@@ -1,11 +1,15 @@
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from app.database import Base, get_db
+from app.main import app
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from fastapi.testclient import TestClient
+import pytest
 import os
 
-from app.main import app
-from app.database import Base, get_db
+os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
+os.environ.setdefault("ALGORITHM", "HS256")
+os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
+
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL", "mysql+pymysql://root:root1234@localhost:3306/arfinder_test"
@@ -13,7 +17,8 @@ DATABASE_URL = os.getenv(
 
 engine = create_engine(DATABASE_URL)
 
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine)
 
 
 def override_get_db():

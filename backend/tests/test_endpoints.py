@@ -53,7 +53,8 @@ def test_get_profile_me_authenticated_no_profile_returns_404(client):
     )
     token = login.json()["access_token"]
 
-    response = client.get("/profiles/me", headers={"Authorization": f"Bearer {token}"})
+    response = client.get(
+        "/profiles/me", headers={"Authorization": f"Bearer {token}"})
 
     assert response.status_code == 404
 
