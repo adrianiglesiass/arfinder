@@ -10,7 +10,8 @@ class ProfileService:
         profile = profile_repository.get_by_user_id(db, user_id)
         if not profile:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+                status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found"
+            )
         return profile
 
     @staticmethod
@@ -18,7 +19,8 @@ class ProfileService:
         existing = profile_repository.get_by_user_id(db, user_id)
         if existing:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Profile already exists")
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Profile already exists"
+            )
         return profile_repository.create(db, user_id, data)
 
     @staticmethod
@@ -26,7 +28,8 @@ class ProfileService:
         profile = profile_repository.get_by_user_id(db, user_id)
         if not profile:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+                status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found"
+            )
         return profile_repository.update(db, profile, data)
 
     @staticmethod
@@ -34,5 +37,6 @@ class ProfileService:
         profile = profile_repository.get_by_user_id(db, user_id)
         if not profile:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+                status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found"
+            )
         return profile_repository.update_photo(db, profile, foto_url)

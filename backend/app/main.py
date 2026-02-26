@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.models import User, Profile, Conversation, Message
 from app.routes.auth import router as auth_router
-from app.routes import profile, auth
+from app.routes import profile
 from sqlalchemy import text
 from dotenv import load_dotenv
 import os
@@ -16,7 +15,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title=os.getenv("APP_NAME", "Arfinder"),
     description="Arfinder API documentation",
-    version="0.1.0"
+    version="0.1.0",
 )
 
 app.add_middleware(
@@ -45,4 +44,4 @@ def health_check():
 def db_test():
     with engine.connect() as connection:
         connection.execute(text("SELECT 1"))
-        return {"db_test": 'connected'}
+        return {"db_test": "connected"}

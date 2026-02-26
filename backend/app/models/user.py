@@ -15,6 +15,8 @@ class User(Base):
     profile = relationship("Profile", back_populates="user", uselist=False)
     sent_messages = relationship("Message", back_populates="sender")
     conversations_as_user1 = relationship(
-        "Conversation", foreign_keys="Conversation.user1_id", back_populates="user1")
+        "Conversation", foreign_keys="Conversation.user1_id", back_populates="user1"
+    )
     conversations_as_user2 = relationship(
-        "Conversation", foreign_keys="Conversation.user2_id", back_populates="user2")
+        "Conversation", foreign_keys="Conversation.user2_id", back_populates="user2"
+    )
