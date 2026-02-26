@@ -1,0 +1,56 @@
+name: Backend CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root1234
+          MYSQL_DATABASE: arfinder_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Lint with ruff
+        run: |
+          cd backend
+          ruff check .
+
+      - name: Format check with black
+        run: |
+          cd backend
+          black --check .
+
+      - name: Run tests
+        env:
+          DATABASE_URL: mysql+pymysql://root:root1234@localhost:3306/arfinder_test
+        run: |
+          cd backend
+          pytest
