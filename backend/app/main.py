@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.database import engine
+from sqlalchemy import text
 from dotenv import load_dotenv
 import os
 
@@ -28,3 +30,10 @@ def root():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/db-test")
+def db_test():
+    with engine.connect() as connection:
+        connection.execute(text("SELECT 1"))
+        return {"db_test": 'connected'}
