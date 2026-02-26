@@ -1,11 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import engine
+from app.database import engine, Base
+from app.models import User, Profile, Conversation, Message
 from sqlalchemy import text
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
+
+Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(
     title=os.getenv("APP_NAME", "Arfinder"),
