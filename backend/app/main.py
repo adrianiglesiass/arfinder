@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.models import User, Profile, Conversation, Message
 from app.routes.auth import router as auth_router
+from app.routes import profile, auth
 from sqlalchemy import text
 from dotenv import load_dotenv
 import os
@@ -27,6 +28,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(profile.router)
 
 
 @app.get("/")
