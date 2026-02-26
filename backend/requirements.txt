@@ -24,6 +24,7 @@ PyJWT==2.11.0
 PyMySQL==1.1.2
 pytest==9.0.2
 python-dotenv==1.2.1
+python-multipart==0.0.22
 six==1.17.0
 SQLAlchemy==2.0.47
 starlette==0.52.1
