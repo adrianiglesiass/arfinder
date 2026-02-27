@@ -17,8 +17,7 @@ DATABASE_URL = os.getenv(
 
 engine = create_engine(DATABASE_URL)
 
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def override_get_db():
@@ -38,7 +37,17 @@ def setup_database():
 
 @pytest.fixture(scope="function", autouse=True)
 def clean_tables():
+
+    db = TestingSessionLocal()
+    try:
+        for table in reversed(Base.metadata.sorted_tables):
+            db.execute(table.delete())
+        db.commit()
+    finally:
+        db.close()
+
     yield
+
     db = TestingSessionLocal()
     try:
         for table in reversed(Base.metadata.sorted_tables):
