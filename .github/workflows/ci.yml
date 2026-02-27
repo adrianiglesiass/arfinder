@@ -37,7 +37,7 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
-          pip install ruff black
+          pip install ruff black==26.1.0 'cryptography>=42.0.0'
 
       - name: Verify black installation
         run: black --version
@@ -47,10 +47,10 @@ jobs:
           cd backend
           ruff check .
 
-      - name: Format code with black
+      - name: Check formatting with black
         run: |
           cd backend
-          black .
+          black --check .
 
       - name: Run tests
         env:
