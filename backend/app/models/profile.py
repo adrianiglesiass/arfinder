@@ -20,8 +20,9 @@ class Profile(Base):
     __tablename__ = "profile"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey(
-        "user.id", ondelete="CASCADE"), unique=True, nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("user.id", ondelete="CASCADE"), unique=True, nullable=False
+    )
     nombre = Column(String(100), nullable=False)
     edad = Column(Integer, nullable=False)
     ciudad = Column(String(100), nullable=False, index=True)

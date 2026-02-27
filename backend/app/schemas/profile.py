@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, ConfigDict
+from typing import Optional, ClassVar
 from datetime import date
 from enum import Enum
 
@@ -63,5 +63,4 @@ class ProfileResponse(BaseModel):
     tipo: TipoEnum
     descripcion_habitacion: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    ConfigDict: ClassVar = ConfigDict(from_attributes=True)

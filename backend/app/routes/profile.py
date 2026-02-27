@@ -12,8 +12,7 @@ router = APIRouter(prefix="/profiles", tags=["profiles"])
 
 @router.get("/me", response_model=ProfileResponse)
 def get_my_profile(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     return ProfileService.get_profile(db, current_user.id)
 
@@ -22,7 +21,7 @@ def get_my_profile(
 def create_my_profile(
     data: ProfileCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     return ProfileService.create_profile(db, current_user.id, data)
 
@@ -31,7 +30,7 @@ def create_my_profile(
 def update_my_profile(
     data: ProfileUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     return ProfileService.update_profile(db, current_user.id, data)
 
@@ -40,7 +39,7 @@ def update_my_profile(
 def upload_profile_photo(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     foto_url = upload_image(file.file)
     return ProfileService.update_photo(db, current_user.id, foto_url)

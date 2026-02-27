@@ -10,30 +10,32 @@ import os
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-
 bearer_scheme = HTTPBearer()
 
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> User:
+    secret_key = os.getenv("SECRET_KEY")
+    algorithm = os.getenv("ALGORITHM", "HS256")
     token = credentials.credentials
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
         user_id = int(payload.get("sub"))
     except jwt.ExpiredSignatureError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="token expired")
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="token expired"
+        )
 
     except jwt.InvalidTokenError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token"
+        )
 
     user = UserRepository.get_by_id(db, user_id)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="user not found")
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="user not found"
+        )
     return user
