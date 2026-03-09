@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models import User
+from app.models.user import User
 from app.schemas.user import UserCreate
 from app.repositories import user_repository
 from app.exceptions.auth import EmailAlreadyRegisteredError, InvalidCredentialsError

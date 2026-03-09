@@ -1,3 +1,4 @@
+import app.models
 from app.core.config import settings
 from app.db.database import Base, get_db
 from app.main import app
@@ -7,7 +8,6 @@ from fastapi.testclient import TestClient
 import pytest
 import os
 
-# PRIMERO las variables de entorno, antes de cualquier import de app
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
 os.environ.setdefault("ALGORITHM", "HS256")
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
@@ -17,14 +17,15 @@ os.environ.setdefault(
 os.environ.setdefault("CLOUDINARY_CLOUD_NAME", "test")
 os.environ.setdefault("CLOUDINARY_API_KEY", "test")
 os.environ.setdefault("CLOUDINARY_API_SECRET", "test")
-os.environ.setdefault("APP_NAME", "Arfinder Test")
+
+# Registrar todos los modelos antes de cualquier import de app
+
 
 # DESPUÉS los imports de app
 
 
 engine = create_engine(settings.DATABASE_URL)
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def override_get_db():

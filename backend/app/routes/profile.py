@@ -4,7 +4,7 @@ from app.db.database import get_db
 from app.core.dependencies import get_current_user
 from typing import List
 from pydantic import BaseModel
-from app.schemas import (
+from app.schemas.profile import (
     ProfileCreate,
     ProfileUpdate,
     ProfileResponse,
@@ -12,7 +12,7 @@ from app.schemas import (
 )
 from app.services.profile_service import ProfileService
 from app.services.profile_photo_service import ProfilePhotoService
-from app.models import User
+from app.models.user import User
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 

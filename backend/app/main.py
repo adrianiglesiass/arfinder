@@ -4,6 +4,7 @@ from app.routes.auth import router as auth_router
 from app.routes import profile
 from app.core.config import settings
 from app.core.exception_handlers import register_exception_handlers
+import app.models
 
 app = FastAPI(
     title=settings.APP_NAME,
