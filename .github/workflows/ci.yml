@@ -3,8 +3,12 @@ name: Backend CI
 on:
   push:
     branches: ['**']
+    paths:
+      - 'backend/**'
   pull_request:
     branches: [main, develop]
+    paths:
+      - 'backend/**'
 
 jobs:
   test:
@@ -37,25 +41,43 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
-          pip install ruff black==26.1.0 'cryptography>=42.0.0'
-
-      - name: Verify black installation
-        run: black --version
+          pip install ruff
 
       - name: Lint with ruff
         run: |
           cd backend
           ruff check .
 
-      - name: Check formatting with black
+      - name: Check formatting with ruff
         run: |
           cd backend
-          black --check .
+          ruff format --check .
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: mysql+pymysql://root:root1234@localhost:3306/arfinder_test
+          SECRET_KEY: 'test-secret-key-for-ci'
+          ALGORITHM: 'HS256'
+          ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+          CLOUDINARY_CLOUD_NAME: 'test'
+          CLOUDINARY_API_KEY: 'test'
+          CLOUDINARY_API_SECRET: 'test'
+
+        run: |
+          cd backend
+          export PYTHONPATH=$(pwd)
+          alembic upgrade head
 
       - name: Run tests
         env:
           DATABASE_URL: mysql+pymysql://root:root1234@localhost:3306/arfinder_test
+          SECRET_KEY: 'test-secret-key-for-ci'
+          ALGORITHM: 'HS256'
           ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+          CLOUDINARY_CLOUD_NAME: 'test'
+          CLOUDINARY_API_KEY: 'test'
+          CLOUDINARY_API_SECRET: 'test'
+
         run: |
           cd backend
           pytest

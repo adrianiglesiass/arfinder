@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, Date, Text, Enum, ForeignKey
 from sqlalchemy.orm import relationship
-from app.database import Base
+from app.db.database import Base
 import enum
 
 
@@ -33,8 +33,10 @@ class Profile(Base):
     horario = Column(Enum(HorarioEnum), default=HorarioEnum.flexible)
     genero = Column(String(50))
     disponibilidad_desde = Column(Date)
-    foto_url = Column(String(500))
     tipo = Column(Enum(TipoEnum), nullable=False)
     descripcion_habitacion = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="profile")
+    photos = relationship(
+        "ProfilePhoto", back_populates="profile", cascade="all, delete-orphan"
+    )

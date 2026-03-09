@@ -1,4 +1,6 @@
-from app.database import Base, get_db
+import app.models
+from app.core.config import settings
+from app.db.database import Base, get_db
 from app.main import app
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -9,14 +11,20 @@ import os
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
 os.environ.setdefault("ALGORITHM", "HS256")
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
-
-
-DATABASE_URL = os.getenv(
+os.environ.setdefault(
     "DATABASE_URL", "mysql+pymysql://root:root1234@localhost:3306/arfinder_test"
 )
+os.environ.setdefault("CLOUDINARY_CLOUD_NAME", "test")
+os.environ.setdefault("CLOUDINARY_API_KEY", "test")
+os.environ.setdefault("CLOUDINARY_API_SECRET", "test")
 
-engine = create_engine(DATABASE_URL)
+# Registrar todos los modelos antes de cualquier import de app
 
+
+# DESPUÉS los imports de app
+
+
+engine = create_engine(settings.DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -37,15 +45,6 @@ def setup_database():
 
 @pytest.fixture(scope="function", autouse=True)
 def clean_tables():
-
-    db = TestingSessionLocal()
-    try:
-        for table in reversed(Base.metadata.sorted_tables):
-            db.execute(table.delete())
-        db.commit()
-    finally:
-        db.close()
-
     yield
 
     db = TestingSessionLocal()

@@ -1,9 +1,9 @@
 import pytest
-from fastapi import HTTPException
 from app.services.auth_service import register_user
 from app.services.profile_service import ProfileService
 from app.schemas.user import UserCreate
 from app.schemas.profile import ProfileCreate, ProfileUpdate
+from app.exceptions.profile import ProfileNotFoundError, ProfileAlreadyExistsError
 
 
 @pytest.fixture
@@ -27,10 +27,8 @@ def test_create_profile(db, user, profile_data):
 
 def test_create_duplicate_profile_raises_exception(db, user, profile_data):
     ProfileService.create_profile(db, user.id, profile_data)
-    with pytest.raises(HTTPException) as exc:
+    with pytest.raises(ProfileAlreadyExistsError):
         ProfileService.create_profile(db, user.id, profile_data)
-
-    assert exc.value.status_code == 400
 
 
 def test_get_profile(db, user, profile_data):
@@ -41,10 +39,8 @@ def test_get_profile(db, user, profile_data):
 
 
 def test_get_nonexistent_profile_raises_exception(db, user):
-    with pytest.raises(HTTPException) as exc:
+    with pytest.raises(ProfileNotFoundError):
         ProfileService.get_profile(db, user.id)
-
-    assert exc.value.status_code == 404
 
 
 def test_update_profile(db, user, profile_data):
@@ -57,7 +53,5 @@ def test_update_profile(db, user, profile_data):
 
 
 def test_update_nonexistent_profile_raises_exception(db, user):
-    with pytest.raises(HTTPException) as exc:
+    with pytest.raises(ProfileNotFoundError):
         ProfileService.update_profile(db, user.id, ProfileUpdate(nombre="Nuevo Nombre"))
-
-    assert exc.value.status_code == 404

@@ -1,19 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import engine, Base
 from app.routes.auth import router as auth_router
 from app.routes import profile
-from sqlalchemy import text
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-Base.metadata.create_all(bind=engine)
-
+from app.core.config import settings
+from app.core.exception_handlers import register_exception_handlers
+import app.models
 
 app = FastAPI(
-    title=os.getenv("APP_NAME", "Arfinder"),
+    title=settings.APP_NAME,
     description="Arfinder API documentation",
     version="0.1.0",
 )
@@ -25,6 +19,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+register_exception_handlers(app)
 
 app.include_router(auth_router)
 app.include_router(profile.router)
@@ -38,10 +34,3 @@ def root():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
-
-
-@app.get("/db-test")
-def db_test():
-    with engine.connect() as connection:
-        connection.execute(text("SELECT 1"))
-        return {"db_test": "connected"}
