@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = "0001_add_profile_photo_and_remove_foto_url"
-down_revision = None
+revision = "0001_profile_photo"
+down_revision = "0000_base"
 branch_labels = None
 depends_on = None
 
