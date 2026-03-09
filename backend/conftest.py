@@ -1,4 +1,5 @@
-from app.database import Base, get_db
+from app.core.config import settings
+from app.db.database import Base, get_db
 from app.main import app
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -6,18 +7,24 @@ from fastapi.testclient import TestClient
 import pytest
 import os
 
+# PRIMERO las variables de entorno, antes de cualquier import de app
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
 os.environ.setdefault("ALGORITHM", "HS256")
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
-
-
-DATABASE_URL = os.getenv(
+os.environ.setdefault(
     "DATABASE_URL", "mysql+pymysql://root:root1234@localhost:3306/arfinder_test"
 )
+os.environ.setdefault("CLOUDINARY_CLOUD_NAME", "test")
+os.environ.setdefault("CLOUDINARY_API_KEY", "test")
+os.environ.setdefault("CLOUDINARY_API_SECRET", "test")
+os.environ.setdefault("APP_NAME", "Arfinder Test")
 
-engine = create_engine(DATABASE_URL)
+# DESPUÉS los imports de app
 
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+engine = create_engine(settings.DATABASE_URL)
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine)
 
 
 def override_get_db():
@@ -37,15 +44,6 @@ def setup_database():
 
 @pytest.fixture(scope="function", autouse=True)
 def clean_tables():
-
-    db = TestingSessionLocal()
-    try:
-        for table in reversed(Base.metadata.sorted_tables):
-            db.execute(table.delete())
-        db.commit()
-    finally:
-        db.close()
-
     yield
 
     db = TestingSessionLocal()
