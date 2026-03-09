@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, ClassVar
-from datetime import date
+from typing import Optional, ClassVar, List
+from datetime import date, datetime
 from enum import Enum
 
 
@@ -59,8 +59,19 @@ class ProfileResponse(BaseModel):
     horario: Optional[HorarioEnum] = None
     genero: Optional[str] = None
     disponibilidad_desde: Optional[date] = None
-    foto_url: Optional[str] = None
     tipo: TipoEnum
     descripcion_habitacion: Optional[str] = None
+    photos: List["ProfilePhotoResponse"] = []
+
+    ConfigDict: ClassVar = ConfigDict(from_attributes=True)
+
+
+class ProfilePhotoResponse(BaseModel):
+    id: int
+    profile_id: int
+    foto_url: str
+    order: int
+    is_main: bool
+    created_at: datetime
 
     ConfigDict: ClassVar = ConfigDict(from_attributes=True)

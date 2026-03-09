@@ -8,4 +8,5 @@ from .profile import (
     ProfileCreate as ProfileCreate,
     ProfileUpdate as ProfileUpdate,
     ProfileResponse as ProfileResponse,
+    ProfilePhotoResponse as ProfilePhotoResponse,
 )
