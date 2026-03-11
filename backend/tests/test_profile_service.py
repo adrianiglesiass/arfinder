@@ -3,7 +3,7 @@ from app.services.auth_service import register_user
 from app.services.profile_service import ProfileService
 from app.schemas.user import UserCreate
 from app.schemas.profile import ProfileCreate, ProfileUpdate
-from app.exceptions.profile import ProfileNotFoundError, ProfileAlreadyExistsError
+from app.core.exceptions.profile import ProfileNotFoundError, ProfileAlreadyExistsError
 
 
 @pytest.fixture
@@ -54,4 +54,5 @@ def test_update_profile(db, user, profile_data):
 
 def test_update_nonexistent_profile_raises_exception(db, user):
     with pytest.raises(ProfileNotFoundError):
-        ProfileService.update_profile(db, user.id, ProfileUpdate(nombre="Nuevo Nombre"))
+        ProfileService.update_profile(
+            db, user.id, ProfileUpdate(nombre="Nuevo Nombre"))
