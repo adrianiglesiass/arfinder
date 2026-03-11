@@ -1,16 +1,29 @@
-class PhotoAccessDeniedError(Exception):
+from app.core.exceptions.base import AppError
+
+
+class PhotoError(AppError):
+    pass
+
+
+class PhotoAccessDeniedError(PhotoError):
+    status_code = 403
+    default_detail = "Not allowed to access this photo"
+
     def __init__(self, photo_id: int = None):
-        self.photo_id = photo_id
-        message = "Not allowed to access this photo"
-        if photo_id:
-            message = f"Not allowed to access photo {photo_id}"
-        super().__init__(message)
+        super().__init__(
+            detail=f"Not allowed to access photo {photo_id}"
+            if photo_id is not None
+            else None,
+            photo_id=photo_id,
+        )
 
 
-class ImageUploadFailedError(Exception):
+class ImageUploadFailedError(PhotoError):
+    status_code = 502
+    default_detail = "Image upload failed"
+
     def __init__(self, reason: str = None):
-        self.reason = reason
-        message = "Image upload failed"
-        if reason:
-            message = f"Image upload failed: {reason}"
-        super().__init__(message)
+        super().__init__(
+            detail=f"Image upload failed: {reason}" if reason else None,
+            reason=reason,
+        )
