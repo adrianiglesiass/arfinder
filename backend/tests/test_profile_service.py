@@ -54,5 +54,4 @@ def test_update_profile(db, user, profile_data):
 
 def test_update_nonexistent_profile_raises_exception(db, user):
     with pytest.raises(ProfileNotFoundError):
-        ProfileService.update_profile(
-            db, user.id, ProfileUpdate(nombre="Nuevo Nombre"))
+        ProfileService.update_profile(db, user.id, ProfileUpdate(nombre="Nuevo Nombre"))

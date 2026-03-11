@@ -1,38 +1,38 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models.user import User
 from app.repositories import user_repository
 from app.core.config import settings
+from app.core.exceptions.auth import InvalidCredentialsError
 import jwt
 
-bearer_scheme = HTTPBearer()
+# 1. 403 → 401 cuando no hay token
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> User:
-    token = credentials.credentials
+    if credentials is None:
+        raise InvalidCredentialsError()
+
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            credentials.credentials,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
         )
-        user_id = int(payload.get("sub"))
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="token expired"
-        )
-
-    except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token"
-        )
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise InvalidCredentialsError()
+        user_id = int(user_id)
+    except (jwt.InvalidTokenError, ValueError):
+        raise InvalidCredentialsError()
 
     user = user_repository.get_user_by_id(db, user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="user not found"
-        )
+        raise InvalidCredentialsError()
     return user
