@@ -1,8 +1,8 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from app.exceptions.auth import EmailAlreadyRegisteredError, InvalidCredentialsError
-from app.exceptions.profile import ProfileNotFoundError, ProfileAlreadyExistsError
-from app.exceptions.photo import PhotoAccessDeniedError, ImageUploadFailedError
+from app.core.exceptions.auth import EmailAlreadyRegisteredError, InvalidCredentialsError
+from app.core.exceptions.profile import ProfileNotFoundError, ProfileAlreadyExistsError
+from app.core.exceptions.photo import PhotoAccessDeniedError, ImageUploadFailedError
 
 
 async def email_already_registered_handler(
@@ -61,8 +61,12 @@ def register_exception_handlers(app):
     app.add_exception_handler(
         EmailAlreadyRegisteredError, email_already_registered_handler
     )
-    app.add_exception_handler(InvalidCredentialsError, invalid_credentials_handler)
+    app.add_exception_handler(InvalidCredentialsError,
+                              invalid_credentials_handler)
     app.add_exception_handler(ProfileNotFoundError, profile_not_found_handler)
-    app.add_exception_handler(ProfileAlreadyExistsError, profile_already_exists_handler)
-    app.add_exception_handler(PhotoAccessDeniedError, photo_access_denied_handler)
-    app.add_exception_handler(ImageUploadFailedError, image_upload_failed_handler)
+    app.add_exception_handler(
+        ProfileAlreadyExistsError, profile_already_exists_handler)
+    app.add_exception_handler(PhotoAccessDeniedError,
+                              photo_access_denied_handler)
+    app.add_exception_handler(ImageUploadFailedError,
+                              image_upload_failed_handler)

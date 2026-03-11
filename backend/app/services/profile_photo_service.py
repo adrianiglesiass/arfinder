@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 from app.repositories import profile_photo_repository
 from app.repositories import profile_repository
 from app.clients.cloudinary_client import upload_image
-from app.exceptions.profile import ProfileNotFoundError
-from app.exceptions.photo import PhotoAccessDeniedError, ImageUploadFailedError
+from app.core.exceptions.profile import ProfileNotFoundError
+from app.core.exceptions.photo import PhotoAccessDeniedError, ImageUploadFailedError
 
 
 class ProfilePhotoService:
