@@ -2,7 +2,10 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate
 from app.repositories import user_repository
-from app.exceptions.auth import EmailAlreadyRegisteredError, InvalidCredentialsError
+from app.core.exceptions.auth import (
+    EmailAlreadyRegisteredError,
+    InvalidCredentialsError,
+)
 from app.core.security import hash_password, verify_password, create_access_token
 
 

@@ -1,7 +1,10 @@
 import pytest
 from app.services.auth_service import register_user, login_user
 from app.schemas.user import UserCreate
-from app.exceptions.auth import EmailAlreadyRegisteredError, InvalidCredentialsError
+from app.core.exceptions.auth import (
+    EmailAlreadyRegisteredError,
+    InvalidCredentialsError,
+)
 
 
 def test_register_creates_user(db):
@@ -32,11 +35,11 @@ def test_login_wrong_password_raises_exception(db):
     with pytest.raises(InvalidCredentialsError) as exc:
         login_user(db, email="test@test.com", password="wrongpassword")
 
-    assert "invalid credentials" in str(exc.value).lower()
+    assert "invalid email or password" in str(exc.value).lower()
 
 
 def test_login_nonexistent_user_raises_exception(db):
     with pytest.raises(InvalidCredentialsError) as exc:
         login_user(db, email="nonexistent@test.com", password="password123")
 
-    assert "invalid credentials" in str(exc.value).lower()
+    assert "invalid email or password" in str(exc.value).lower()

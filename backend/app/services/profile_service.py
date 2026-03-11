@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from app.repositories import profile_repository
 from app.schemas.profile import ProfileCreate, ProfileUpdate
-from app.exceptions.profile import ProfileNotFoundError, ProfileAlreadyExistsError
+from app.core.exceptions.profile import ProfileNotFoundError, ProfileAlreadyExistsError
 
 
 class ProfileService:
