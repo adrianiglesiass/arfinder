@@ -1,4 +1,13 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Index
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Index,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
@@ -18,4 +27,7 @@ class ProfilePhoto(Base):
 
     profile = relationship("Profile", back_populates="photos")
 
-    __table_args__ = (Index("idx_profile_order", "profile_id", "order"),)
+    __table_args__ = (
+        Index("idx_profile_order", "profile_id", "order"),
+        UniqueConstraint("profile_id", "order", name="unique_profile_photo_order"),
+    )

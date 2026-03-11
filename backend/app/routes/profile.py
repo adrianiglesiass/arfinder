@@ -11,7 +11,7 @@ from app.schemas.profile import (
     ProfilePhotoResponse,
 )
 from app.services.profile_service import ProfileService
-from app.services.profile_photo_service import ProfilePhotoService
+from app.services import profile_photo_service
 from app.models.user import User
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
@@ -20,6 +20,10 @@ router = APIRouter(prefix="/profiles", tags=["profiles"])
 class _PhotoUpdate(BaseModel):
     order: int | None = None
     is_main: bool | None = None
+
+
+class _PhotoReorder(BaseModel):
+    ordered_ids: list[int]
 
 
 @router.get("/me", response_model=ProfileResponse)
@@ -53,14 +57,23 @@ def upload_profile_photo(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return ProfilePhotoService.upload(db, current_user.id, file.file)
+    return profile_photo_service.upload(db, current_user.id, file.file)
 
 
 @router.get("/me/photos", response_model=List[ProfilePhotoResponse])
 def list_profile_photos(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
-    return ProfilePhotoService.list_for_user(db, current_user.id)
+    return profile_photo_service.list_for_user(db, current_user.id)
+
+
+@router.patch("/me/photos/reorder", response_model=List[ProfilePhotoResponse])
+def reorder_profile_photos(
+    data: _PhotoReorder,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return profile_photo_service.reorder(db, current_user.id, data.ordered_ids)
 
 
 @router.patch("/me/photos/{photo_id}", response_model=ProfilePhotoResponse)
@@ -70,7 +83,7 @@ def update_profile_photo(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return ProfilePhotoService.update(
+    return profile_photo_service.update(
         db, current_user.id, photo_id, order=data.order, is_main=data.is_main
     )
 
@@ -81,5 +94,5 @@ def delete_profile_photo(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    ProfilePhotoService.delete(db, current_user.id, photo_id)
+    profile_photo_service.delete(db, current_user.id, photo_id)
     return {"detail": "deleted"}
