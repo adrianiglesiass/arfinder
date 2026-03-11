@@ -4,10 +4,10 @@ install:
 	pip install -r requirements.txt
 
 lint:
-	ruff check app/ tests/
+	ruff check app/ tests/ alembic/
 
 format:
-	ruff format app/ tests/
+	ruff format app/ tests/ alembic/
 
 test:
 	pytest tests/ -v

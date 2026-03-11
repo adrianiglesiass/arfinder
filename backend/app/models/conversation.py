@@ -1,4 +1,11 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    ForeignKey,
+    DateTime,
+    UniqueConstraint,
+    CheckConstraint,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
@@ -18,6 +25,7 @@ class Conversation(Base):
 
     __table_args__ = (
         UniqueConstraint("user1_id", "user2_id", name="unique_conversation"),
+        CheckConstraint("user1_id < user2_id", name="check_user1_less_than_user2"),
     )
 
     user1 = relationship(
