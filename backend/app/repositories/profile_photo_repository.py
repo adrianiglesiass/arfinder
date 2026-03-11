@@ -52,3 +52,25 @@ def clear_main_profile_photo(db: Session, profile_id: int):
         ProfilePhoto.profile_id == profile_id, ProfilePhoto.is_main
     ).update({"is_main": False})
     db.commit()
+
+
+def reorder_photos(
+    db: Session, profile_id: int, ordered_ids: list[int]
+) -> list[ProfilePhoto]:
+    for new_order, photo_id in enumerate(ordered_ids):
+        photo = (
+            db.query(ProfilePhoto)
+            .filter(ProfilePhoto.id == photo_id, ProfilePhoto.profile_id == profile_id)
+            .first()
+        )
+        if photo:
+            photo.order = new_order
+
+    db.commit()
+
+    return (
+        db.query(ProfilePhoto)
+        .filter(ProfilePhoto.profile_id == profile_id)
+        .order_by(ProfilePhoto.order.asc())
+        .all()
+    )
