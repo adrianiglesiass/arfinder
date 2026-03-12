@@ -11,7 +11,6 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-# revision identifiers, used by Alembic.
 revision: str = "0006"
 down_revision: Union[str, None] = "0005"
 branch_labels: Union[str, Sequence[str], None] = None
@@ -102,58 +101,8 @@ def upgrade() -> None:
         nullable=False,
     )
 
-    # message
-    op.alter_column(
-        "message",
-        "contenido",
-        new_column_name="content",
-        existing_type=sa.Text(),
-        nullable=False,
-    )
-    op.alter_column(
-        "message", "fecha", new_column_name="sent_at", existing_type=sa.DateTime()
-    )
-    op.alter_column(
-        "message",
-        "leido",
-        new_column_name="is_read",
-        existing_type=sa.Boolean(),
-        nullable=False,
-    )
-    op.alter_column(
-        "message", "leido_at", new_column_name="read_at", existing_type=sa.DateTime()
-    )
-    op.create_index(
-        "idx_conversation_is_read", "message", ["conversation_id", "is_read"]
-    )
-    op.drop_index("idx_conversation_leido", table_name="message")
-
 
 def downgrade() -> None:
-    # message
-    op.create_index("idx_conversation_leido", "message", ["conversation_id", "leido"])
-    op.drop_index("idx_conversation_is_read", table_name="message")
-    op.alter_column(
-        "message", "read_at", new_column_name="leido_at", existing_type=sa.DateTime()
-    )
-    op.alter_column(
-        "message",
-        "is_read",
-        new_column_name="leido",
-        existing_type=sa.Boolean(),
-        nullable=False,
-    )
-    op.alter_column(
-        "message", "sent_at", new_column_name="fecha", existing_type=sa.DateTime()
-    )
-    op.alter_column(
-        "message",
-        "content",
-        new_column_name="contenido",
-        existing_type=sa.Text(),
-        nullable=False,
-    )
-
     # profile_photo
     op.alter_column(
         "profile_photo",
