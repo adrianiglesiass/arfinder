@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, Text, Boolean
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Text, Boolean, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
@@ -16,7 +16,10 @@ class Message(Base):
     )
     contenido = Column(Text, nullable=False)
     fecha = Column(DateTime, server_default=func.now())
-    leido = Column(Boolean, default=False)
+    leido = Column(Boolean, nullable=False, default=False)
+    leido_at = Column(DateTime, nullable=True)
 
     conversation = relationship("Conversation", back_populates="messages")
     sender = relationship("User", back_populates="sent_messages")
+
+    __table_args__ = (Index("idx_conversation_leido", "conversation_id", "leido"),)
