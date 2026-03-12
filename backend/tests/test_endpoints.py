@@ -80,3 +80,26 @@ def test_create_profile_authenticated(client):
 
     assert response.status_code == 200
     assert response.json()["nombre"] == "Test User"
+
+
+def test_mark_message_as_read_returns_404(client):
+    client.post(
+        "/auth/register", json={"email": "test@test.com", "password": "password123"}
+    )
+    login = client.post(
+        "/auth/login", json={"email": "test@test.com", "password": "password123"}
+    )
+    token = login.json()["access_token"]
+
+    response = client.patch(
+        "/messages/999/read",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 404
+
+
+def test_mark_message_as_read_unauthenticated_returns_401(client):
+    response = client.patch("/messages/1/read")
+
+    assert response.status_code == 401
