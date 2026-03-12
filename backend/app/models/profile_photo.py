@@ -20,7 +20,7 @@ class ProfilePhoto(Base):
     profile_id = Column(
         Integer, ForeignKey("profile.id", ondelete="CASCADE"), nullable=False
     )
-    foto_url = Column(String(500), nullable=False)
+    photo_url = Column(String(500), nullable=False)
     order = Column(Integer, default=0)
     is_main = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
