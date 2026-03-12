@@ -10,6 +10,19 @@ on:
     paths:
       - 'backend/**'
 
+defaults:
+  run:
+    working-directory: backend
+
+env:
+  DATABASE_URL: mysql+pymysql://root:root1234@localhost:3306/arfinder_test
+  SECRET_KEY: test-secret-key-for-ci
+  ALGORITHM: HS256
+  ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+  CLOUDINARY_CLOUD_NAME: test
+  CLOUDINARY_API_KEY: test
+  CLOUDINARY_API_SECRET: test
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -29,55 +42,32 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
       - name: Install dependencies
-        run: |
-          cd backend
-          pip install -r requirements.txt
-          pip install ruff
+        run: pip install -r requirements.txt
 
-      - name: Lint with ruff
-        run: |
-          cd backend
-          ruff check .
+      - name: Lint
+        run: ruff check .
 
-      - name: Check formatting with ruff
-        run: |
-          cd backend
-          ruff format --check .
+      - name: Format check
+        run: ruff format --check .
 
-      - name: Run database migrations
-        env:
-          DATABASE_URL: mysql+pymysql://root:root1234@localhost:3306/arfinder_test
-          SECRET_KEY: 'test-secret-key-for-ci'
-          ALGORITHM: 'HS256'
-          ACCESS_TOKEN_EXPIRE_MINUTES: 1440
-          CLOUDINARY_CLOUD_NAME: 'test'
-          CLOUDINARY_API_KEY: 'test'
-          CLOUDINARY_API_SECRET: 'test'
-
+      - name: Migrate
         run: |
-          cd backend
           export PYTHONPATH=$(pwd)
           alembic upgrade head
 
-      - name: Run tests
-        env:
-          DATABASE_URL: mysql+pymysql://root:root1234@localhost:3306/arfinder_test
-          SECRET_KEY: 'test-secret-key-for-ci'
-          ALGORITHM: 'HS256'
-          ACCESS_TOKEN_EXPIRE_MINUTES: 1440
-          CLOUDINARY_CLOUD_NAME: 'test'
-          CLOUDINARY_API_KEY: 'test'
-          CLOUDINARY_API_SECRET: 'test'
-
-        run: |
-          cd backend
-          pytest
+      - name: Test
+        run: pytest --tb=short
