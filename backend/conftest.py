@@ -1,14 +1,10 @@
-import app.models
-from app.core.config import settings
-from app.db.database import Base, get_db
-from app.main import app
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-from fastapi.testclient import TestClient
-import pytest
 import os
 
-os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only")
+from dotenv import load_dotenv
+
+load_dotenv(".env.test", override=False)
+
+os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only-32chars")
 os.environ.setdefault("ALGORITHM", "HS256")
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
 os.environ.setdefault(
@@ -18,11 +14,14 @@ os.environ.setdefault("CLOUDINARY_CLOUD_NAME", "test")
 os.environ.setdefault("CLOUDINARY_API_KEY", "test")
 os.environ.setdefault("CLOUDINARY_API_SECRET", "test")
 
-# Registrar todos los modelos antes de cualquier import de app
-
-
-# DESPUÉS los imports de app
-
+import app.models  # noqa: E402
+import pytest  # noqa: E402
+from app.core.config import settings  # noqa: E402
+from app.db.database import Base, get_db  # noqa: E402
+from app.main import app  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
 
 engine = create_engine(settings.DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -38,7 +37,7 @@ def override_get_db():
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_database():
-    Base.metadata.drop_all(bind=engine)
+    """Create all tables once per session and drop them at the end."""
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
@@ -46,13 +45,16 @@ def setup_database():
 
 @pytest.fixture(scope="function", autouse=True)
 def clean_tables():
+    """Truncate all tables after each test to ensure isolation."""
     yield
-
     db = TestingSessionLocal()
     try:
         for table in reversed(Base.metadata.sorted_tables):
             db.execute(table.delete())
         db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 
