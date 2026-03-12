@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.auth import router as auth_router
-from app.routes import profile
 from app.core.config import settings
 from app.core.exception_handlers import register_exception_handlers
-import app.models
+from app.routes.auth import router as auth_router
+from app.routes.profile import router as profile_router
+from app.routes.messages import router as messages_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -23,7 +23,8 @@ app.add_middleware(
 register_exception_handlers(app)
 
 app.include_router(auth_router)
-app.include_router(profile.router)
+app.include_router(profile_router)
+app.include_router(messages_router)
 
 
 @app.get("/")
