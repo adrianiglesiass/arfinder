@@ -4,63 +4,63 @@ from datetime import date, datetime
 from enum import Enum
 
 
-class HorarioEnum(str, Enum):
-    manana = "manana"
-    tarde = "tarde"
-    noche = "noche"
+class ScheduleEnum(str, Enum):
+    morning = "morning"
+    afternoon = "afternoon"
+    night = "night"
     flexible = "flexible"
 
 
-class TipoEnum(str, Enum):
-    busco_piso = "busco_piso"
-    busco_companero = "busco_companero"
+class TypeEnum(str, Enum):
+    looking_for_flat = "looking_for_flat"
+    looking_for_roommate = "looking_for_roommate"
 
 
 class ProfileCreate(BaseModel):
-    nombre: str
-    edad: int
-    ciudad: str
+    name: str
+    age: int
+    city: str
     bio: Optional[str] = None
-    presupuesto_max: Optional[int] = None
-    mascotas: bool = False
-    fumador: bool = False
-    horario: Optional[HorarioEnum] = None
-    genero: Optional[str] = None
-    disponibilidad_desde: Optional[date] = None
-    tipo: TipoEnum
-    descripcion_habitacion: Optional[str] = None
+    max_budget: Optional[int] = None
+    has_pets: bool = False
+    is_smoker: bool = False
+    schedule: Optional[ScheduleEnum] = None
+    gender: Optional[str] = None
+    available_from: Optional[date] = None
+    type: TypeEnum
+    room_description: Optional[str] = None
 
 
 class ProfileUpdate(BaseModel):
-    nombre: Optional[str] = None
-    edad: Optional[int] = None
-    ciudad: Optional[str] = None
+    name: Optional[str] = None
+    age: Optional[int] = None
+    city: Optional[str] = None
     bio: Optional[str] = None
-    presupuesto_max: Optional[int] = None
-    mascotas: Optional[bool] = None
-    fumador: Optional[bool] = None
-    horario: Optional[HorarioEnum] = None
-    genero: Optional[str] = None
-    disponibilidad_desde: Optional[date] = None
-    tipo: Optional[TipoEnum] = None
-    descripcion_habitacion: Optional[str] = None
+    max_budget: Optional[int] = None
+    has_pets: Optional[bool] = None
+    is_smoker: Optional[bool] = None
+    schedule: Optional[ScheduleEnum] = None
+    gender: Optional[str] = None
+    available_from: Optional[date] = None
+    type: Optional[TypeEnum] = None
+    room_description: Optional[str] = None
 
 
 class ProfileResponse(BaseModel):
     id: int
     user_id: int
-    nombre: str
-    edad: int
-    ciudad: str
+    name: str
+    age: int
+    city: str
     bio: Optional[str] = None
-    presupuesto_max: Optional[int] = None
-    mascotas: bool
-    fumador: bool
-    horario: Optional[HorarioEnum] = None
-    genero: Optional[str] = None
-    disponibilidad_desde: Optional[date] = None
-    tipo: TipoEnum
-    descripcion_habitacion: Optional[str] = None
+    max_budget: Optional[int] = None
+    has_pets: bool
+    is_smoker: bool
+    schedule: Optional[ScheduleEnum] = None
+    gender: Optional[str] = None
+    available_from: Optional[date] = None
+    type: TypeEnum
+    room_description: Optional[str] = None
     photos: List["ProfilePhotoResponse"] = []
 
     ConfigDict: ClassVar = ConfigDict(from_attributes=True)
@@ -69,7 +69,7 @@ class ProfileResponse(BaseModel):
 class ProfilePhotoResponse(BaseModel):
     id: int
     profile_id: int
-    foto_url: str
+    photo_url: str
     order: int
     is_main: bool
     created_at: datetime

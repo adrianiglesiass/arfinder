@@ -70,16 +70,16 @@ def test_create_profile_authenticated(client):
     response = client.post(
         "/profiles/me",
         json={
-            "nombre": "Test User",
-            "edad": 25,
-            "ciudad": "A Coruña",
-            "tipo": "busco_piso",
+            "name": "Test User",
+            "age": 25,
+            "city": "A Coruña",
+            "type": "looking_for_flat",
         },
         headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 200
-    assert response.json()["nombre"] == "Test User"
+    assert response.json()["name"] == "Test User"
 
 
 def test_mark_message_as_read_returns_404(client):

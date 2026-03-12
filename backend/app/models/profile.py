@@ -4,16 +4,16 @@ from app.db.database import Base
 import enum
 
 
-class HorarioEnum(str, enum.Enum):
-    manana = "manana"
-    tarde = "tarde"
-    noche = "noche"
+class ScheduleEnum(str, enum.Enum):
+    morning = "morning"
+    afternoon = "afternoon"
+    night = "night"
     flexible = "flexible"
 
 
-class TipoEnum(str, enum.Enum):
-    busco_piso = "busco_piso"
-    busco_companero = "busco_companero"
+class TypeEnum(str, enum.Enum):
+    looking_for_flat = "looking_for_flat"
+    looking_for_roommate = "looking_for_roommate"
 
 
 class Profile(Base):
@@ -23,18 +23,18 @@ class Profile(Base):
     user_id = Column(
         Integer, ForeignKey("user.id", ondelete="CASCADE"), unique=True, nullable=False
     )
-    nombre = Column(String(100), nullable=False)
-    edad = Column(Integer, nullable=False)
-    ciudad = Column(String(100), nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    age = Column(Integer, nullable=False)
+    city = Column(String(100), nullable=False, index=True)
     bio = Column(Text)
-    presupuesto_max = Column(Integer)
-    mascotas = Column(Boolean, nullable=False, default=False)
-    fumador = Column(Boolean, nullable=False, default=False)
-    horario = Column(Enum(HorarioEnum), default=HorarioEnum.flexible)
-    genero = Column(String(50))
-    disponibilidad_desde = Column(Date)
-    tipo = Column(Enum(TipoEnum), nullable=False)
-    descripcion_habitacion = Column(Text, nullable=True)
+    max_budget = Column(Integer)
+    has_pets = Column(Boolean, nullable=False, default=False)
+    is_smoker = Column(Boolean, nullable=False, default=False)
+    schedule = Column(Enum(ScheduleEnum), default=ScheduleEnum.flexible)
+    gender = Column(String(50))
+    available_from = Column(Date)
+    type = Column(Enum(TypeEnum), nullable=False)
+    room_description = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="profile")
     photos = relationship(

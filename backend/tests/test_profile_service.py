@@ -14,7 +14,7 @@ def user(db):
 @pytest.fixture
 def profile_data():
     return ProfileCreate(
-        nombre="Test User", edad=25, ciudad="A Coruña", tipo="busco_piso"
+        name="Test User", age=25, city="A Coruña", type="looking_for_flat"
     )
 
 
@@ -22,7 +22,7 @@ def test_create_profile(db, user, profile_data):
     profile = ProfileService.create_profile(db, user.id, profile_data)
     assert profile.id is not None
     assert profile.user_id == user.id
-    assert profile.nombre == "Test User"
+    assert profile.name == "Test User"
 
 
 def test_create_duplicate_profile_raises_exception(db, user, profile_data):
@@ -45,13 +45,11 @@ def test_get_nonexistent_profile_raises_exception(db, user):
 
 def test_update_profile(db, user, profile_data):
     ProfileService.create_profile(db, user.id, profile_data)
-    updated = ProfileService.update_profile(
-        db, user.id, ProfileUpdate(nombre="Nuevo Nombre")
-    )
+    updated = ProfileService.update_profile(db, user.id, ProfileUpdate(name="New Name"))
 
-    assert updated.nombre == "Nuevo Nombre"
+    assert updated.name == "New Name"
 
 
 def test_update_nonexistent_profile_raises_exception(db, user):
     with pytest.raises(ProfileNotFoundError):
-        ProfileService.update_profile(db, user.id, ProfileUpdate(nombre="Nuevo Nombre"))
+        ProfileService.update_profile(db, user.id, ProfileUpdate(name="New Name"))
