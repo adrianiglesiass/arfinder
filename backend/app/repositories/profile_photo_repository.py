@@ -3,10 +3,10 @@ from app.models.profile_photo import ProfilePhoto
 
 
 def create_profile_photo(
-    db: Session, profile_id: int, foto_url: str, order: int = 0, is_main: bool = False
+    db: Session, profile_id: int, photo_url: str, order: int = 0, is_main: bool = False
 ) -> ProfilePhoto:
     photo = ProfilePhoto(
-        profile_id=profile_id, foto_url=foto_url, order=order, is_main=is_main
+        profile_id=profile_id, photo_url=photo_url, order=order, is_main=is_main
     )
     db.add(photo)
     db.commit()

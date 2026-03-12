@@ -14,12 +14,13 @@ class Message(Base):
     sender_id = Column(
         Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False
     )
-    contenido = Column(Text, nullable=False)
-    fecha = Column(DateTime, server_default=func.now())
-    leido = Column(Boolean, nullable=False, default=False)
-    leido_at = Column(DateTime, nullable=True)
+
+    content = Column(Text, nullable=False)
+    sent_at = Column(DateTime, server_default=func.now())
+    is_read = Column(Boolean, nullable=False, default=False)
+    read_at = Column(DateTime, nullable=True)
 
     conversation = relationship("Conversation", back_populates="messages")
     sender = relationship("User", back_populates="sent_messages")
 
-    __table_args__ = (Index("idx_conversation_leido", "conversation_id", "leido"),)
+    __table_args__ = (Index("idx_conversation_is_read", "conversation_id", "is_read"),)

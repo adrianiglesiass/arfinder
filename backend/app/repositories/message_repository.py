@@ -8,8 +8,8 @@ def get_message(db: Session, message_id: int) -> Message | None:
 
 
 def mark_as_read(db: Session, message: Message) -> Message:
-    message.leido = True
-    message.leido_at = datetime.now(UTC)
+    message.is_read = True
+    message.read_at = datetime.now(UTC)
     db.commit()
     db.refresh(message)
     return message
