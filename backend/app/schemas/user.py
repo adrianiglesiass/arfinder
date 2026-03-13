@@ -1,7 +1,7 @@
-from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional, ClassVar
-from pydantic.config import ConfigDict
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class UserCreate(BaseModel):
@@ -14,7 +14,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     created_at: datetime
 
-    ConfigDict: ClassVar = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Token(BaseModel):
