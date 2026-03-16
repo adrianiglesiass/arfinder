@@ -15,10 +15,19 @@ class LastMessageSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ParticipantSummary(BaseModel):
+    user_id: int
+    name: str
+    photo_url: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ConversationResponse(BaseModel):
     id: int
     user1_id: int
     user2_id: int
+    other_user: ParticipantSummary | None = None
     last_message: LastMessageSummary | None = None
     unread_count: int = 0
 

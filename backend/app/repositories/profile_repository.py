@@ -23,6 +23,10 @@ def update_profile(db: Session, profile: Profile, data: ProfileUpdate) -> Profil
     return profile
 
 
+def get_profile_by_id(db: Session, profile_id: int):
+    return db.query(Profile).filter(Profile.id == profile_id).first()
+
+
 def search_profiles(
     db: Session,
     city: str | None = None,

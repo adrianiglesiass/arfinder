@@ -20,6 +20,7 @@ from app.services.profile_service import (
     get_profile,
     search_profiles,
     update_profile,
+    get_public_profile as profile_service_get_public_profile,
 )
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
@@ -133,3 +134,11 @@ def delete_profile_photo(
 ):
     profile_photo_service.delete(db, current_user.id, photo_id)
     return {"detail": "deleted"}
+
+
+@router.get("/{profile_id}", response_model=ProfileResponse)
+def get_public_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+):
+    return profile_service_get_public_profile(db, profile_id)
