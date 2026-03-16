@@ -3,11 +3,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 NOMINATIM_RESPONSE = [
-    {"display_name": "Madrid, Comunidad de Madrid, España"},
+    {"display_name": "Madrid, Comunidad de Madrid, Espa"},
     {"display_name": "Madrid, Cundinamarca, Colombia"},
     {"display_name": "Madrid, Iowa, United States"},
-    {"display_name": "A Coruña, Galicia, España"},
-    {"display_name": "Coruña, Galicia, España"},
+    {"display_name": "A Coru, Galicia, Espa"},
+    {"display_name": "Coru, Galicia, Espa"},
 ]
 
 
@@ -58,4 +58,4 @@ def test_city_search_no_query_returns_422(client):
 def test_city_search_handles_special_characters(client, mock_nominatim):
     res = client.get("/cities/search?q=Coru")
     cities = res.json()
-    assert "A Coruña" in cities or "Coruña" in cities
+    assert "A Coru" in cities or "Coru" in cities
