@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.profile import Profile
+from app.models.profile import Profile, ScheduleEnum, TypeEnum
 from app.schemas.profile import ProfileCreate, ProfileUpdate
 
 
@@ -21,3 +21,39 @@ def update_profile(db: Session, profile: Profile, data: ProfileUpdate) -> Profil
     db.commit()
     db.refresh(profile)
     return profile
+
+
+def search_profiles(
+    db: Session,
+    city: str | None = None,
+    budget_max: int | None = None,
+    has_pets: bool | None = None,
+    is_smoker: bool | None = None,
+    schedule: ScheduleEnum | None = None,
+    profile_type: TypeEnum | None = None,
+    gender: str | None = None,
+    age_min: int | None = None,
+    age_max: int | None = None,
+) -> list[Profile]:
+    q = db.query(Profile)
+
+    if city:
+        q = q.filter(Profile.city.ilike(f"%{city}%"))
+    if budget_max is not None:
+        q = q.filter(Profile.max_budget <= budget_max)
+    if has_pets is not None:
+        q = q.filter(Profile.has_pets == has_pets)
+    if is_smoker is not None:
+        q = q.filter(Profile.is_smoker == is_smoker)
+    if schedule is not None:
+        q = q.filter(Profile.schedule == schedule)
+    if profile_type is not None:
+        q = q.filter(Profile.type == profile_type)
+    if gender:
+        q = q.filter(Profile.gender.ilike(f"%{gender}%"))
+    if age_min is not None:
+        q = q.filter(Profile.age >= age_min)
+    if age_max is not None:
+        q = q.filter(Profile.age <= age_max)
+
+    return q.order_by(Profile.id.desc()).all()

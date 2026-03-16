@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, ClassVar, List
+from typing import Optional, List
 from datetime import date, datetime
 from enum import Enum
 
@@ -46,6 +46,17 @@ class ProfileUpdate(BaseModel):
     room_description: Optional[str] = None
 
 
+class ProfilePhotoResponse(BaseModel):
+    id: int
+    profile_id: int
+    photo_url: str
+    order: int
+    is_main: bool
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ProfileResponse(BaseModel):
     id: int
     user_id: int
@@ -61,17 +72,6 @@ class ProfileResponse(BaseModel):
     available_from: Optional[date] = None
     type: TypeEnum
     room_description: Optional[str] = None
-    photos: List["ProfilePhotoResponse"] = []
+    photos: List[ProfilePhotoResponse] = []
 
-    ConfigDict: ClassVar = ConfigDict(from_attributes=True)
-
-
-class ProfilePhotoResponse(BaseModel):
-    id: int
-    profile_id: int
-    photo_url: str
-    order: int
-    is_main: bool
-    created_at: datetime
-
-    ConfigDict: ClassVar = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
