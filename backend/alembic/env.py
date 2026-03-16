@@ -1,5 +1,6 @@
 from app.db.database import Base  # target metadata
 from app.core.config import settings
+from app.models import user, profile, profile_photo, conversation, message  # noqa: F401
 import os
 import sys
 from logging.config import fileConfig
