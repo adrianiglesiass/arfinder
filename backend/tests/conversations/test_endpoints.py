@@ -194,3 +194,46 @@ def test_mark_conversation_as_read_ok(client, auth_headers, second_user_id):
     conv_id = res.json()["id"]
     res = client.patch(f"/conversations/{conv_id}/read", headers=auth_headers)
     assert res.status_code == 204
+
+
+def test_get_conversation_ok(client, auth_headers, second_user_id):
+    res = client.post(
+        "/conversations",
+        json={"other_user_id": second_user_id},
+        headers=auth_headers,
+    )
+    conv_id = res.json()["id"]
+    res = client.get(f"/conversations/{conv_id}", headers=auth_headers)
+    assert res.status_code == 200
+    assert res.json()["id"] == conv_id
+
+
+def test_get_conversation_not_found(client, auth_headers):
+    res = client.get("/conversations/999", headers=auth_headers)
+    assert res.status_code == 404
+
+
+def test_get_conversation_access_denied(client, auth_headers, second_user_id):
+    third_res = client.post(
+        "/auth/register",
+        json={"email": "third@test.com", "password": "password123"},
+    )
+    third_id = third_res.json()["id"]
+    login = client.post(
+        "/auth/login",
+        json={"email": "other@test.com", "password": "password123"},
+    )
+    second_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+    res = client.post(
+        "/conversations",
+        json={"other_user_id": third_id},
+        headers=second_headers,
+    )
+    conv_id = res.json()["id"]
+    res = client.get(f"/conversations/{conv_id}", headers=auth_headers)
+    assert res.status_code == 403
+
+
+def test_get_conversation_unauthorized(client):
+    res = client.get("/conversations/1")
+    assert res.status_code == 401

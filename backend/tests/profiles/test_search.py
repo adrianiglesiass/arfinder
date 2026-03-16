@@ -125,3 +125,20 @@ def test_search_no_results(client, profile_madrid, profile_barcelona):
     res = client.get("/profiles?city=Tokio")
     assert res.status_code == 200
     assert res.json() == []
+
+
+def test_get_public_profile_ok(client, profile_madrid):
+    res = client.get(f"/profiles/{profile_madrid.id}")
+    assert res.status_code == 200
+    assert res.json()["id"] == profile_madrid.id
+    assert res.json()["city"] == "Madrid"
+
+
+def test_get_public_profile_not_found(client):
+    res = client.get("/profiles/999")
+    assert res.status_code == 404
+
+
+def test_get_public_profile_no_auth_required(client, profile_madrid):
+    res = client.get(f"/profiles/{profile_madrid.id}")
+    assert res.status_code == 200

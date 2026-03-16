@@ -20,7 +20,7 @@ def mock_nominatim():
     mock_async_client = AsyncMock()
     mock_async_client.get = AsyncMock(return_value=mock_response)
 
-    with patch("app.routes.cities.httpx.AsyncClient") as mock_client:
+    with patch("app.services.city_service.httpx.AsyncClient") as mock_client:
         mock_client.return_value.__aenter__ = AsyncMock(return_value=mock_async_client)
         mock_client.return_value.__aexit__ = AsyncMock(return_value=False)
         yield mock_client
