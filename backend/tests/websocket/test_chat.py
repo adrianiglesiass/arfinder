@@ -37,7 +37,7 @@ def conversation(client, two_users_tokens):
     return res.json()["id"]
 
 
-# ── Conexión ─────────────────────────────────────────────────────────────────
+#  Conexi
 
 
 def test_websocket_connect_authenticated(client, two_users_tokens, conversation):
@@ -79,7 +79,7 @@ def test_websocket_connect_not_participant(client, two_users_tokens, conversatio
             pass
 
 
-# ── Envío y recepción ─────────────────────────────────────────────────────────
+#  Envo y recepci
 
 
 def test_websocket_send_message(client, two_users_tokens, conversation):
@@ -112,7 +112,7 @@ def test_websocket_empty_message_ignored(client, two_users_tokens, conversation)
         ws.send_json({"type": "message", "content": ""})
 
 
-# ── Persistencia ──────────────────────────────────────────────────────────────
+#  Persistencia
 
 
 def test_websocket_message_persisted(client, two_users_tokens, conversation):
@@ -132,7 +132,7 @@ def test_websocket_message_persisted(client, two_users_tokens, conversation):
     assert messages[0]["content"] == "Persistido"
 
 
-# ── Desconexión ───────────────────────────────────────────────────────────────
+#  Desconexi
 
 
 def test_websocket_disconnect_does_not_break_other_client(
@@ -153,6 +153,6 @@ def test_websocket_disconnect_does_not_break_other_client(
             data = ws2.receive_json()
             assert data["content"] == "Hola desde user1"
 
-        ws1.send_json({"type": "message", "content": "Sigo aquí"})
+        ws1.send_json({"type": "message", "content": "Sigo aqu"})
         data = ws1.receive_json()
-        assert data["content"] == "Sigo aquí"
+        assert data["content"] == "Sigo aqu"

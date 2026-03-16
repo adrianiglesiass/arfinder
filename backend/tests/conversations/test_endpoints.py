@@ -30,7 +30,7 @@ def current_user_id(client, auth_headers):
     return res.json()["id"]
 
 
-# ── POST /conversations ──────────────────────────────────────────────────────
+#  POST /conversations
 
 
 def test_create_conversation_ok(client, auth_headers, second_user_id):
@@ -74,7 +74,7 @@ def test_create_conversation_unauthorized(client, second_user_id):
     assert res.status_code == 401
 
 
-# ── GET /conversations ───────────────────────────────────────────────────────
+#  GET /conversations
 
 
 def test_list_conversations_empty(client, auth_headers):
@@ -123,7 +123,7 @@ def test_list_conversations_unauthorized(client):
     assert res.status_code == 401
 
 
-# ── GET /conversations/{id}/messages ────────────────────────────────────────
+#  GET /conversations/{id}/messages
 
 
 def test_list_messages_empty(client, auth_headers, second_user_id):
@@ -172,7 +172,7 @@ def test_list_messages_access_denied(client, auth_headers, second_user_id):
     assert res.status_code == 403
 
 
-# ── PATCH /conversations/{id}/read ──────────────────────────────────────────
+#  PATCH /conversations/{id}/read
 
 
 def test_mark_conversation_as_read_unauthorized(client):
