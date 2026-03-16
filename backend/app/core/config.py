@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str
     CLOUDINARY_API_SECRET: str
 
+    # Nominatim
+    NOMINATIM_USER_AGENT: str
+
     # JWT Authentication
     SECRET_KEY: str
     ALGORITHM: str = "HS256"

@@ -8,6 +8,7 @@ from app.routes.conversations import router as conversations_router
 from app.routes.messages import router as messages_router
 from app.routes.profile import router as profile_router
 from app.routes.ws import router as ws_router
+from app.routes.cities import router as cities_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -30,6 +31,7 @@ app.include_router(profile_router)
 app.include_router(messages_router)
 app.include_router(conversations_router)
 app.include_router(ws_router)
+app.include_router(cities_router)
 
 
 @app.get("/")
