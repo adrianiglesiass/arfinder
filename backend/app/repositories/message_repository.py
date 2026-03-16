@@ -40,3 +40,22 @@ def mark_conversation_as_read(
         Message.is_read.is_(False),
     ).update({"is_read": True, "read_at": datetime.now(UTC)})
     db.commit()
+
+
+def create_message(
+    db: Session,
+    conversation_id: int,
+    sender_id: int,
+    content: str,
+) -> Message:
+    message = Message(
+        conversation_id=conversation_id,
+        sender_id=sender_id,
+        content=content,
+        sent_at=datetime.now(UTC),
+        is_read=False,
+    )
+    db.add(message)
+    db.commit()
+    db.refresh(message)
+    return message
