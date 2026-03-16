@@ -2,14 +2,18 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from sqlalchemy.orm import Session
 
 from app.core.connection_manager import manager
+from app.core.exceptions.conversation import (
+    ConversationAccessDeniedError,
+    ConversationNotFoundError,
+)
 from app.core.security import decode_token
 from app.db.database import get_db
 from app.repositories.user_repository import get_user_by_id
 from app.services.conversation_service import get_conversation_or_raise
-from app.services.message_service import send_message, mark_message_as_read
-from app.core.exceptions.conversation import (
-    ConversationAccessDeniedError,
-    ConversationNotFoundError,
+from app.services.message_service import (
+    build_message_payload,
+    mark_message_as_read,
+    send_message,
 )
 
 router = APIRouter(tags=["websocket"])
@@ -51,29 +55,9 @@ async def websocket_chat(
                     continue
 
                 message = await send_message(db, conversation_id, user.id, content)
-
-                sender_profile = user.profile
-                sender_photo = (
-                    next((p for p in sender_profile.photos if p.is_main), None)
-                    if sender_profile and sender_profile.photos
-                    else None
-                )
-
                 await manager.broadcast(
                     conversation_id,
-                    {
-                        "type": "message",
-                        "id": message.id,
-                        "conversation_id": conversation_id,
-                        "sender_id": user.id,
-                        "sender_name": sender_profile.name if sender_profile else None,
-                        "sender_photo": sender_photo.photo_url
-                        if sender_photo
-                        else None,
-                        "content": message.content,
-                        "sent_at": message.sent_at.isoformat(),
-                        "is_read": message.is_read,
-                    },
+                    build_message_payload(message, user),
                 )
 
             elif msg_type == "read":
@@ -82,13 +66,9 @@ async def websocket_chat(
                     continue
 
                 mark_message_as_read(db, message_id, user.id)
-
                 await manager.broadcast(
                     conversation_id,
-                    {
-                        "type": "read",
-                        "message_id": message_id,
-                    },
+                    {"type": "read", "message_id": message_id},
                 )
 
     except WebSocketDisconnect:
