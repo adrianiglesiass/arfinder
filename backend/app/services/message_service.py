@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.message import Message
 from app.repositories import message_repository
+from app.repositories.message_repository import create_message
 from app.core.exceptions.message import MessageNotFoundError, MessageAccessDeniedError
 from app.services.conversation_service import get_conversation_or_raise
 
@@ -36,3 +37,13 @@ def mark_conversation_messages_as_read(
 ) -> None:
     get_conversation_or_raise(db, conversation_id, current_user_id)
     message_repository.mark_conversation_as_read(db, conversation_id, current_user_id)
+
+
+async def send_message(
+    db: Session,
+    conversation_id: int,
+    sender_id: int,
+    content: str,
+) -> Message:
+    get_conversation_or_raise(db, conversation_id, sender_id)
+    return create_message(db, conversation_id, sender_id, content)
