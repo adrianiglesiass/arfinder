@@ -52,6 +52,13 @@ async def websocket_chat(
 
                 message = await send_message(db, conversation_id, user.id, content)
 
+                sender_profile = user.profile
+                sender_photo = (
+                    next((p for p in sender_profile.photos if p.is_main), None)
+                    if sender_profile and sender_profile.photos
+                    else None
+                )
+
                 await manager.broadcast(
                     conversation_id,
                     {
@@ -59,6 +66,10 @@ async def websocket_chat(
                         "id": message.id,
                         "conversation_id": conversation_id,
                         "sender_id": user.id,
+                        "sender_name": sender_profile.name if sender_profile else None,
+                        "sender_photo": sender_photo.photo_url
+                        if sender_photo
+                        else None,
                         "content": message.content,
                         "sent_at": message.sent_at.isoformat(),
                         "is_read": message.is_read,
