@@ -27,6 +27,13 @@ def update_profile(db: Session, user_id: int, data: ProfileUpdate):
     return profile_repository.update_profile(db, profile, data)
 
 
+def delete_profile(db: Session, user_id: int):
+    profile = profile_repository.get_profile_by_user_id(db, user_id)
+    if not profile:
+        raise ProfileNotFoundError(user_id)
+    profile_repository.delete_profile(db, profile)
+
+
 def get_public_profile(db: Session, profile_id: int):
     profile = profile_repository.get_profile_by_id(db, profile_id)
     if not profile:

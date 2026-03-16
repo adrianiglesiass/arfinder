@@ -22,3 +22,10 @@ def login_user(db: Session, email: str, password: str) -> str:
     if not user or not verify_password(password, user.password_hash):
         raise InvalidCredentialsError()
     return create_access_token(user.id)
+
+
+def delete_user(db: Session, user: User):
+    user = user_repository.get_user_by_id(db, user.id)
+    if not user:
+        raise InvalidCredentialsError()
+    user_repository.delete_user(db, user)
