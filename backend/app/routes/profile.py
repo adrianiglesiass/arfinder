@@ -1,18 +1,26 @@
-from fastapi import APIRouter, Depends, UploadFile, File
-from sqlalchemy.orm import Session
-from app.db.database import get_db
-from app.core.dependencies import get_current_user
 from typing import List
+
+from fastapi import APIRouter, Depends, Query, UploadFile, File
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.core.dependencies import get_current_user
+from app.db.database import get_db
+from app.models.profile import ScheduleEnum, TypeEnum
+from app.models.user import User
 from app.schemas.profile import (
     ProfileCreate,
-    ProfileUpdate,
-    ProfileResponse,
     ProfilePhotoResponse,
+    ProfileResponse,
+    ProfileUpdate,
 )
-from app.services.profile_service import ProfileService
 from app.services import profile_photo_service
-from app.models.user import User
+from app.services.profile_service import (
+    create_profile,
+    get_profile,
+    search_profiles,
+    update_profile,
+)
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
@@ -26,11 +34,39 @@ class _PhotoReorder(BaseModel):
     ordered_ids: list[int]
 
 
+@router.get("", response_model=list[ProfileResponse])
+def search(
+    city: str | None = Query(default=None),
+    budget_max: int | None = Query(default=None),
+    has_pets: bool | None = Query(default=None),
+    is_smoker: bool | None = Query(default=None),
+    schedule: ScheduleEnum | None = Query(default=None),
+    profile_type: TypeEnum | None = Query(default=None),
+    gender: str | None = Query(default=None),
+    age_min: int | None = Query(default=None),
+    age_max: int | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    return search_profiles(
+        db,
+        city,
+        budget_max,
+        has_pets,
+        is_smoker,
+        schedule,
+        profile_type,
+        gender,
+        age_min,
+        age_max,
+    )
+
+
 @router.get("/me", response_model=ProfileResponse)
 def get_my_profile(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return ProfileService.get_profile(db, current_user.id)
+    return get_profile(db, current_user.id)
 
 
 @router.post("/me", response_model=ProfileResponse)
@@ -39,7 +75,7 @@ def create_my_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return ProfileService.create_profile(db, current_user.id, data)
+    return create_profile(db, current_user.id, data)
 
 
 @router.patch("/me", response_model=ProfileResponse)
@@ -48,7 +84,7 @@ def update_my_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return ProfileService.update_profile(db, current_user.id, data)
+    return update_profile(db, current_user.id, data)
 
 
 @router.post("/me/photos", response_model=ProfilePhotoResponse)
@@ -62,7 +98,8 @@ def upload_profile_photo(
 
 @router.get("/me/photos", response_model=List[ProfilePhotoResponse])
 def list_profile_photos(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return profile_photo_service.list_for_user(db, current_user.id)
 
