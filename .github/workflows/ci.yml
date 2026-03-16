@@ -22,6 +22,7 @@ env:
   CLOUDINARY_CLOUD_NAME: test
   CLOUDINARY_API_KEY: test
   CLOUDINARY_API_SECRET: test
+  NOMINATIM_USER_AGENT: 'Arfinder/1.0 (ci@arfinder.com)'
 
 jobs:
   test:
