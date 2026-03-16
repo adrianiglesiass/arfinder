@@ -17,6 +17,7 @@ from app.schemas.profile import (
 from app.services import profile_photo_service
 from app.services.profile_service import (
     create_profile,
+    delete_profile,
     get_profile,
     search_profiles,
     update_profile,
@@ -142,3 +143,11 @@ def get_public_profile(
     db: Session = Depends(get_db),
 ):
     return profile_service_get_public_profile(db, profile_id)
+
+
+@router.delete("/me", status_code=204)
+def delete_my_profile(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    delete_profile(db, current_user.id)

@@ -23,6 +23,11 @@ def update_profile(db: Session, profile: Profile, data: ProfileUpdate) -> Profil
     return profile
 
 
+def delete_profile(db: Session, profile: Profile):
+    db.delete(profile)
+    db.commit()
+
+
 def get_profile_by_id(db: Session, profile_id: int):
     return db.query(Profile).filter(Profile.id == profile_id).first()
 

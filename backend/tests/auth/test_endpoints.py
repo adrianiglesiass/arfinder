@@ -32,3 +32,19 @@ def test_login_wrong_credentials_returns_401(client):
         "/auth/login", json={"email": "noexiste@test.com", "password": "password123"}
     )
     assert response.status_code == 401
+
+
+def test_delete_account_ok(client, auth_headers):
+    res = client.delete("/auth/me", headers=auth_headers)
+    assert res.status_code == 204
+
+
+def test_delete_account_unauthorized(client):
+    res = client.delete("/auth/me")
+    assert res.status_code == 401
+
+
+def test_delete_account_token_invalid_after_deletion(client, auth_headers):
+    client.delete("/auth/me", headers=auth_headers)
+    res = client.get("/auth/me", headers=auth_headers)
+    assert res.status_code == 401
