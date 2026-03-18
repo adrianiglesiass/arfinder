@@ -12,7 +12,8 @@
     "lint:fix": "ng lint --fix",
     "format": "prettier --write \"src/**/*.{ts,html,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,css}\"",
-    "check-all": "npm run format:check && npm run lint && npm run test:ci"
+    "check-all": "npm run format:check && npm run lint && npm run test:ci",
+    "generate:types": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/app/core/api/api.types.ts"
   },
   "private": true,
   "packageManager": "npm@11.9.0",
@@ -40,6 +41,7 @@
     "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^28.0.0",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.3",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.1.12",
