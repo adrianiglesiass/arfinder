@@ -13,7 +13,8 @@
     "format": "prettier --write \"src/**/*.{ts,html,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,css}\"",
     "check-all": "npm run format:check && npm run lint && npm run test:ci",
-    "generate:types": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/app/core/api/api.types.ts"
+    "generate:types": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/app/core/api/api.types.ts",
+    "fix-all": "npm run format && npm run lint:fix"
   },
   "private": true,
   "packageManager": "npm@11.9.0",
