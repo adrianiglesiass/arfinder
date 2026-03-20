@@ -5,12 +5,12 @@ import { Layout } from '@core/layout/layout';
 export const routes: Routes = [
   {
     path: 'login',
-    // loadComponent: () => import('@features/auth/login'),
+    loadComponent: () => import('@features/auth/login/login').then((m) => m.Login),
   },
 
   {
     path: 'register',
-    // loadComponent: () => import('@features/auth/register'), cuando cree los componentes
+    loadComponent: () => import('@features/auth/register/register').then((m) => m.Register),
   },
 
   {

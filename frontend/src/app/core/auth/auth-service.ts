@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { UserCreate, UserResponse, Token } from '@core/models/auth-model';
+import { UserCreate, Token } from '@core/models/auth-model';
 import { environment } from '@env/environment';
 
 @Injectable({
@@ -24,8 +24,8 @@ export class AuthService {
     return this.http.post<Token>(`${this.APIURL}/login`, credentials);
   }
 
-  register(credentials: UserCreate): Observable<UserResponse> {
-    return this.http.post<UserResponse>(`${this.APIURL}/register`, credentials);
+  register(credentials: UserCreate): Observable<Token> {
+    return this.http.post<Token>(`${this.APIURL}/register`, credentials);
   }
 
   logout(): void {
