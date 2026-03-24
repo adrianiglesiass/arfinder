@@ -1,9 +1,8 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '@core/auth/auth-service';
-import { UserCreate } from '@core/models/auth-model';
+import { AuthService } from '@core/auth/auth.service';
+import type { UserCreate } from '@core/api/api.models';
 import { switchMap } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -16,6 +15,7 @@ import {
   hasNumeric,
   passwordMatch,
 } from '@core/auth/password.validators';
+import { FieldError } from '@shared/components/field-error/field-error';
 
 const ERROR_MESSAGES = {
   EMAIL_REGISTERED: 'Este correo ya está registrado',
@@ -34,9 +34,9 @@ const ERROR_MESSAGES = {
     PasswordModule,
     RouterLink,
     DividerModule,
+    FieldError,
   ],
   templateUrl: './register.html',
-  schemas: [NO_ERRORS_SCHEMA],
 })
 export class Register {
   private readonly fb = inject(FormBuilder);

@@ -1,6 +1,8 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthService } from '@core/auth/auth-service';
+import { Router } from '@angular/router';
+import { AuthService } from '@core/auth/auth.service';
+import { catchError, throwError } from 'rxjs';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const token = inject(AuthService).getToken();
@@ -16,4 +18,16 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   return next(req);
+};
+
+export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
+  return next(req).pipe(
+    catchError((err: HttpErrorResponse) => {
+      if (err.status === 401) {
+        inject(AuthService).logout();
+        inject(Router).navigate(['/login']);
+      }
+      return throwError(() => err);
+    })
+  );
 };

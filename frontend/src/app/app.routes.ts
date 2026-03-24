@@ -17,13 +17,7 @@ export const routes: Routes = [
     path: '',
     component: Layout,
     canActivate: [authGuard],
-    children: [
-      {
-        path: '',
-        redirectTo: 'search',
-        pathMatch: 'full',
-      },
-    ],
+    children: [],
   },
 
   {
