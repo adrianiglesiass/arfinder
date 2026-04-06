@@ -8,6 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
 import { FieldError } from '@shared/components/field-error/field-error';
+import { AuthCard } from '@shared/components/auth-card/auth-card';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ import { FieldError } from '@shared/components/field-error/field-error';
     PasswordModule,
     RouterLink,
     FieldError,
+    AuthCard,
   ],
   templateUrl: './login.html',
 })

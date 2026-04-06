@@ -16,6 +16,7 @@ import {
   passwordMatch,
 } from '@core/auth/password.validators';
 import { FieldError } from '@shared/components/field-error/field-error';
+import { AuthCard } from '@shared/components/auth-card/auth-card';
 
 const ERROR_MESSAGES = {
   EMAIL_REGISTERED: 'Este correo ya está registrado',
@@ -35,6 +36,7 @@ const ERROR_MESSAGES = {
     RouterLink,
     DividerModule,
     FieldError,
+    AuthCard,
   ],
   templateUrl: './register.html',
 })

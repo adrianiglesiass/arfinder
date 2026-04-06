@@ -1,49 +1,39 @@
-<div class="flex items-center justify-center flex-col bg-[#f7f5f1] min-h-screen overflow-x-hidden">
-  <div class="bg-white p-12 w-full max-w-md z-10 rounded-3xl shadow-lg">
-    <span class="flex justify-center font-bold text-3xl text-green-800">
-      Arf<span class="text-orange-400">inder</span>
-    </span>
-    <p class="flex justify-center text-center mt-0.5 mb-8 text-sm text-[#8a8a82]">
-      Encuentra tu compañero de piso ideal
+<app-auth-card>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+    <div class="flex flex-col gap-1">
+      <input
+        pInputText
+        type="email"
+        placeholder="Correo electrónico"
+        formControlName="email"
+        [invalid]="isInvalid('email')"
+        class="w-full bg-[#f7f5f1]!"
+      />
+      <app-field-error [control]="form.get('email')!" />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <p-password
+        formControlName="password"
+        placeholder="Contraseña"
+        [toggleMask]="true"
+        [feedback]="false"
+        [fluid]="true"
+        [invalid]="isInvalid('password')"
+        inputStyleClass="w-full bg-[#f7f5f1]!"
+      />
+      <app-field-error [control]="form.get('password')!" />
+    </div>
+
+    @if (errorMessage()) {
+      <p-message severity="error" size="small" variant="simple">{{ errorMessage() }}</p-message>
+    }
+
+    <button pButton type="submit" class="w-full active:scale-95">Entrar</button>
+
+    <p class="text-center text-sm text-[#8a8a82]">
+      ¿No tienes cuenta?
+      <a routerLink="/register" class="text-green-800 font-semibold hover:underline">Regístrate</a>
     </p>
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
-      <div class="flex flex-col gap-1">
-        <input
-          pInputText
-          type="email"
-          placeholder="Correo electrónico"
-          formControlName="email"
-          [invalid]="isInvalid('email')"
-          class="w-full"
-        />
-        <app-field-error [control]="form.get('email')!" />
-      </div>
-
-      <div class="flex flex-col gap-1">
-        <p-password
-          formControlName="password"
-          placeholder="Contraseña"
-          [toggleMask]="true"
-          [feedback]="false"
-          [fluid]="true"
-          [invalid]="isInvalid('password')"
-        />
-        <app-field-error [control]="form.get('password')!" />
-      </div>
-
-      @if (errorMessage()) {
-        <p-message severity="error" size="small" variant="simple">{{ errorMessage() }}</p-message>
-      }
-
-      <button pButton type="submit" class="w-full">Entrar</button>
-
-      <p class="text-center text-sm text-[#8a8a82]">
-        ¿No tienes cuenta?
-        <a routerLink="/register" class="text-green-800 font-semibold hover:underline"
-          >Regístrate</a
-        >
-      </p>
-    </form>
-  </div>
-</div>
+  </form>
+</app-auth-card>
