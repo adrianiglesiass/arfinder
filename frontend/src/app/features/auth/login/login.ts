@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
@@ -27,7 +27,7 @@ export class Login {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  errorMessage: string | null = null;
+  errorMessage = signal<string | null>(null);
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -40,7 +40,7 @@ export class Login {
       return;
     }
 
-    this.errorMessage = null;
+    this.errorMessage.set(null);
 
     const credentials: UserCreate = {
       email: this.form.value.email!,
@@ -53,11 +53,11 @@ export class Login {
           this.authService.setToken(res.access_token);
           this.router.navigate(['']);
         } else {
-          this.errorMessage = 'No se recibió un token válido del servidor';
+          this.errorMessage.set('No se recibió un token válido del servidor');
         }
       },
       error: () => {
-        this.errorMessage = 'Correo o contraseña incorrectos.';
+        this.errorMessage.set('Correo o contraseña incorrectos.');
       },
     });
   }

@@ -73,8 +73,8 @@
         }
       </div>
 
-      @if (errorMessage) {
-        <p-message severity="error" size="small" variant="simple">{{ errorMessage }}</p-message>
+      @if (errorMessage()) {
+        <p-message severity="error" size="small" variant="simple">{{ errorMessage() }}</p-message>
       }
 
       <button pButton type="submit" class="w-full">Registrarse</button>
