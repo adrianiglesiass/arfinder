@@ -25,3 +25,5 @@ export type TypeEnum = components['schemas']['TypeEnum'];
 
 export type HTTPValidationError = components['schemas']['HTTPValidationError'];
 export type ValidationError = components['schemas']['ValidationError'];
+
+export type CitySearchResponse = string[];

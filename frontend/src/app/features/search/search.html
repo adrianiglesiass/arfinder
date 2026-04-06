@@ -1,0 +1,41 @@
+<div class="search-container p-4">
+  <div class="relative w-full max-w-md mx-auto">
+    <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 z-10 text-gray-400"></i>
+
+    <p-autoComplete
+      [suggestions]="cityResource.value() ?? []"
+      (completeMethod)="onCitySearch($event)"
+      [minLength]="2"
+      placeholder="¿En qué ciudad buscas?"
+      class="w-full"
+      [inputStyle]="{ 'padding-left': '2.8rem', 'padding-right': '2.8rem' }"
+      inputStyleClass="w-full bg-[#f4f4f0] border-none rounded-[14px] py-4 px-5 text-gray-700 placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-[#1a4a3a]/10 transition-all duration-200 shadow-sm"
+      [showEmptyMessage]="!cityResource.isLoading()"
+      emptyMessage="No se encontraron ciudades"
+    >
+      <ng-template let-city pTemplate="item">
+        <div class="flex items-center gap-2 py-1">
+          <i class="pi pi-map-marker text-[#1a4a3a]"></i>
+          <span class="text-sm text-gray-700 font-medium">{{ city }}</span>
+        </div>
+      </ng-template>
+    </p-autoComplete>
+
+    @if (cityResource.isLoading()) {
+      <div
+        class="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex items-center pointer-events-none"
+      >
+        <i class="pi pi-spin pi-spinner text-[#1a4a3a]"></i>
+      </div>
+    }
+  </div>
+
+  @if (cityResource.error()) {
+    <div
+      class="flex items-center gap-2 mt-2 px-3 py-2 bg-red-50 border border-red-100 rounded-lg animate-in fade-in duration-300"
+    >
+      <i class="pi pi-exclamation-circle text-red-500 text-xs"></i>
+      <span class="text-xs text-red-600 font-medium">No se pudo cargar la lista de ciudades</span>
+    </div>
+  }
+</div>
