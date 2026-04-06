@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
@@ -43,7 +43,7 @@ export class Register {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
-  errorMessage: string | null = null;
+  errorMessage = signal<string | null>(null);
 
   form = this.fb.nonNullable.group(
     {
@@ -63,7 +63,7 @@ export class Register {
       return;
     }
 
-    this.errorMessage = null;
+    this.errorMessage.set(null);
 
     const credentials: UserCreate = {
       email: this.form.value.email!,
@@ -79,16 +79,16 @@ export class Register {
             this.authService.setToken(res.access_token);
             this.router.navigate(['']);
           } else {
-            this.errorMessage = ERROR_MESSAGES.INVALID_TOKEN;
+            this.errorMessage.set(ERROR_MESSAGES.INVALID_TOKEN);
           }
         },
         error: (err) => {
           if (err.status === 400) {
-            this.errorMessage = ERROR_MESSAGES.EMAIL_REGISTERED;
+            this.errorMessage.set(ERROR_MESSAGES.EMAIL_REGISTERED);
           } else if (err.status === 422) {
-            this.errorMessage = ERROR_MESSAGES.INVALID_EMAIL;
+            this.errorMessage.set(ERROR_MESSAGES.INVALID_EMAIL);
           } else {
-            this.errorMessage = ERROR_MESSAGES.SERVER_ERROR;
+            this.errorMessage.set(ERROR_MESSAGES.SERVER_ERROR);
           }
         },
       });
