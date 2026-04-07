@@ -1,22 +1,25 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '@core/auth/auth.service';
-import type { UserCreate } from '@core/api/api.models';
-import { switchMap } from 'rxjs';
+
 import { ButtonModule } from 'primeng/button';
+import { DividerModule } from 'primeng/divider';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
-import { DividerModule } from 'primeng/divider';
+import { switchMap } from 'rxjs';
+
+import type { UserCreate } from '@core/api/api.models';
+import { AuthService } from '@core/auth/auth.service';
 import {
   hasLowercase,
-  hasUppercase,
   hasNumeric,
+  hasUppercase,
   passwordMatch,
 } from '@core/auth/password.validators';
-import { FieldError } from '@shared/components/field-error/field-error';
+
 import { AuthCard } from '@shared/components/auth-card/auth-card';
+import { FieldError } from '@shared/components/field-error/field-error';
 
 const ERROR_MESSAGES = {
   EMAIL_REGISTERED: 'Este correo ya está registrado',

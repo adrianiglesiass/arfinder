@@ -1,9 +1,12 @@
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { authErrorInterceptor, jwtInterceptor } from '@core/interceptors/jwt-interceptor';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { providePrimeNG } from 'primeng/config';
+
 import Aura from '@primeuix/themes/aura';
+import { providePrimeNG } from 'primeng/config';
+
+import { authErrorInterceptor, jwtInterceptor } from '@core/interceptors/jwt-interceptor';
+
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
