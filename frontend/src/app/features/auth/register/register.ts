@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -7,7 +8,6 @@ import { DividerModule } from 'primeng/divider';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
-import { switchMap } from 'rxjs';
 
 import type { UserCreate } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
@@ -25,7 +25,7 @@ const ERROR_MESSAGES = {
   EMAIL_REGISTERED: 'Este correo ya está registrado',
   INVALID_EMAIL: 'Revise que el email sea válido',
   SERVER_ERROR: 'Error en el servidor',
-  INVALID_TOKEN: 'No se recibió un token válido del servidor',
+  UNEXPECTED_ERROR: 'Ocurrió un error inesperado.',
 };
 
 @Component({
@@ -49,6 +49,7 @@ export class Register {
   private readonly router = inject(Router);
 
   errorMessage = signal<string | null>(null);
+  isLoading = signal<boolean>(false);
 
   form = this.fb.nonNullable.group(
     {
@@ -62,41 +63,42 @@ export class Register {
     { validators: passwordMatch }
   );
 
-  onSubmit() {
+  async onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     this.errorMessage.set(null);
+    this.isLoading.set(true);
 
+    const formValue = this.form.getRawValue();
     const credentials: UserCreate = {
-      email: this.form.value.email!,
-      password: this.form.value.password!,
+      email: formValue.email,
+      password: formValue.password,
     };
 
-    this.authService
-      .register(credentials)
-      .pipe(switchMap(() => this.authService.login(credentials)))
-      .subscribe({
-        next: (res) => {
-          if (res && res.access_token) {
-            this.authService.setToken(res.access_token);
-            this.router.navigate(['']);
-          } else {
-            this.errorMessage.set(ERROR_MESSAGES.INVALID_TOKEN);
-          }
-        },
-        error: (err) => {
-          if (err.status === 400) {
-            this.errorMessage.set(ERROR_MESSAGES.EMAIL_REGISTERED);
-          } else if (err.status === 422) {
-            this.errorMessage.set(ERROR_MESSAGES.INVALID_EMAIL);
-          } else {
-            this.errorMessage.set(ERROR_MESSAGES.SERVER_ERROR);
-          }
-        },
-      });
+    try {
+      await this.authService.register(credentials);
+
+      await this.authService.login(credentials);
+
+      await this.router.navigate(['/onboarding']);
+    } catch (error: unknown) {
+      if (error instanceof HttpErrorResponse) {
+        if (error.status === 400) {
+          this.errorMessage.set(ERROR_MESSAGES.EMAIL_REGISTERED);
+        } else if (error.status === 422) {
+          this.errorMessage.set(ERROR_MESSAGES.INVALID_EMAIL);
+        } else {
+          this.errorMessage.set(ERROR_MESSAGES.SERVER_ERROR);
+        }
+      } else {
+        this.errorMessage.set(ERROR_MESSAGES.UNEXPECTED_ERROR);
+      }
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   isInvalid(controlName: string): boolean {
