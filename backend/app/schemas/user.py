@@ -1,10 +1,13 @@
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
+from app.schemas.types import UTCDatetime
+
 
 class UserCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     email: EmailStr
     password: str
 
@@ -12,7 +15,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
-    created_at: datetime
+    created_at: UTCDatetime
 
     model_config = ConfigDict(from_attributes=True)
 

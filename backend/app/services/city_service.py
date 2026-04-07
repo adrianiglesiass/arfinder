@@ -1,22 +1,26 @@
 import httpx
 
 from app.core.config import settings
+from app.core.exceptions.city import CitySearchUnavailableError
 
 
 async def search_cities(q: str) -> list[str]:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://nominatim.openstreetmap.org/search",
-            params={
-                "q": q,
-                "featuretype": "city",
-                "format": "json",
-                "limit": 10,
-            },
-            headers={"User-Agent": settings.NOMINATIM_USER_AGENT},
-            timeout=5.0,
-        )
-        response.raise_for_status()
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://nominatim.openstreetmap.org/search",
+                params={
+                    "q": q,
+                    "featuretype": "city",
+                    "format": "json",
+                    "limit": 10,
+                },
+                headers={"User-Agent": settings.NOMINATIM_USER_AGENT},
+                timeout=5.0,
+            )
+            response.raise_for_status()
+    except httpx.HTTPError:
+        raise CitySearchUnavailableError()
 
     results = response.json()
     seen = set()

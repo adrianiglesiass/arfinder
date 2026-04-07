@@ -1,7 +1,10 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
-from datetime import date, datetime
+from datetime import date
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict
+
+from app.schemas.types import UTCDatetime
 
 
 class ScheduleEnum(str, Enum):
@@ -17,6 +20,8 @@ class TypeEnum(str, Enum):
 
 
 class ProfileCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     name: str
     age: int
     city: str
@@ -32,6 +37,8 @@ class ProfileCreate(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     name: Optional[str] = None
     age: Optional[int] = None
     city: Optional[str] = None
@@ -52,7 +59,7 @@ class ProfilePhotoResponse(BaseModel):
     photo_url: str
     order: int
     is_main: bool
-    created_at: datetime
+    created_at: UTCDatetime
 
     model_config = ConfigDict(from_attributes=True)
 

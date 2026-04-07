@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.db.database import get_db
+
 from app.core.dependencies import get_current_user
+from app.core.openapi import PROTECTED
+from app.db.database import get_db
 from app.models.user import User
 from app.schemas.message import MessageResponse
 from app.services import message_service
 
-router = APIRouter(prefix="/messages", tags=["messages"])
+router = APIRouter(prefix="/messages", tags=["messages"], responses=PROTECTED)
 
 
 @router.patch("/{message_id}/read", response_model=MessageResponse)

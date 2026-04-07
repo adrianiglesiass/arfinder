@@ -6,7 +6,7 @@ class AuthError(AppError):
 
 
 class EmailAlreadyRegisteredError(AuthError):
-    status_code = 400
+    status_code = 409
     default_detail = "Email already registered"
 
     def __init__(self, email: str = None):

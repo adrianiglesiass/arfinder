@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
+from app.core.openapi import PROTECTED
 from app.db.database import get_db
 from app.models.message import Message
 from app.models.user import User
@@ -19,7 +20,7 @@ from app.services.conversation_service import (
 )
 from app.services.message_service import mark_conversation_messages_as_read
 
-router = APIRouter(prefix="/conversations", tags=["conversations"])
+router = APIRouter(prefix="/conversations", tags=["conversations"], responses=PROTECTED)
 
 
 def _get_other_user_summary(
