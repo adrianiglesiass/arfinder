@@ -1,8 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { CitySearchResponse } from '@core/api/api.models';
+
 import { environment } from '@env/environment';
 import { catchError, Observable, of } from 'rxjs';
+
+import { CitySearchResponse } from '@core/api/api.models';
 
 @Injectable({
   providedIn: 'root',

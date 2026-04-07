@@ -1,8 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import type { UserCreate, Token, UserResponse } from '@core/api/api.models';
+
 import { environment } from '@env/environment';
+import { Observable } from 'rxjs';
+
+import type { Token, UserCreate, UserResponse } from '@core/api/api.models';
 
 @Injectable({
   providedIn: 'root',

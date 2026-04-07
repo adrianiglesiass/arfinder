@@ -1,14 +1,17 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '@core/auth/auth.service';
-import type { UserCreate } from '@core/api/api.models';
+
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
-import { FieldError } from '@shared/components/field-error/field-error';
+
+import type { UserCreate } from '@core/api/api.models';
+import { AuthService } from '@core/auth/auth.service';
+
 import { AuthCard } from '@shared/components/auth-card/auth-card';
+import { FieldError } from '@shared/components/field-error/field-error';
 
 @Component({
   selector: 'app-login',
