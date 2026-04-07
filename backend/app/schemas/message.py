@@ -1,5 +1,6 @@
-from datetime import datetime
 from pydantic import BaseModel, ConfigDict
+
+from app.schemas.types import UTCDatetime
 
 
 class MessageResponse(BaseModel):
@@ -7,8 +8,8 @@ class MessageResponse(BaseModel):
     conversation_id: int
     sender_id: int
     content: str
-    sent_at: datetime
+    sent_at: UTCDatetime
     is_read: bool
-    read_at: datetime | None
+    read_at: UTCDatetime | None
 
     model_config = ConfigDict(from_attributes=True)

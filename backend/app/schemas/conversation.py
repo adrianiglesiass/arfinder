@@ -1,15 +1,17 @@
-from datetime import datetime
-
 from pydantic import BaseModel, ConfigDict
+
+from app.schemas.types import UTCDatetime
 
 
 class ConversationCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     other_user_id: int
 
 
 class LastMessageSummary(BaseModel):
     content: str
-    sent_at: datetime
+    sent_at: UTCDatetime
     is_read: bool
 
     model_config = ConfigDict(from_attributes=True)

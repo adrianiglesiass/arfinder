@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
+from app.core.openapi import BAD_REQUEST, CONFLICT, UNAUTH
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.user import Token, UserCreate, UserResponse
@@ -11,24 +12,27 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post(
-    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+    "/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    responses={**BAD_REQUEST, **CONFLICT},
 )
 def register(data: UserCreate, db: Session = Depends(get_db)):
     return register_user(db, data)
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Token, responses=UNAUTH)
 def login(data: UserCreate, db: Session = Depends(get_db)):
     token = login_user(db, data.email, data.password)
     return {"access_token": token, "token_type": "bearer"}
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserResponse, responses=UNAUTH)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT, responses=UNAUTH)
 def delete_my_account(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

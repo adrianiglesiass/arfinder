@@ -13,7 +13,7 @@ def test_register_duplicate_returns_400(client):
     response = client.post(
         "/auth/register", json={"email": "test@test.com", "password": "password123"}
     )
-    assert response.status_code == 400
+    assert response.status_code == 409
 
 
 def test_login_endpoint(client):
