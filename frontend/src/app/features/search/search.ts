@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 
-import { CityService } from '@infrastructure/api/city.service';
+import { CityService } from '@infrastructure/api/city/city.service';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { of } from 'rxjs';
 

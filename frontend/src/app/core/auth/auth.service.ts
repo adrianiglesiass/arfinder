@@ -1,18 +1,17 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 
-import { environment } from '@env/environment';
-import { Observable } from 'rxjs';
+import { AuthApiService } from '@infrastructure/api/auth/auth.api.service';
 
-import type { Token, UserCreate, UserResponse } from '@core/api/api.models';
+import type { UserCreate, UserResponse } from '@core/api/api.models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private readonly TOKEN_KEY = 'access_token';
-  private readonly http = inject(HttpClient);
-  private readonly APIURL = `${environment.APIURL}/auth`;
+  private readonly authApi = inject(AuthApiService);
+
+  currentUser = signal<UserResponse | null>(null);
 
   setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
@@ -22,16 +21,18 @@ export class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  login(credentials: UserCreate): Observable<Token> {
-    return this.http.post<Token>(`${this.APIURL}/login`, credentials);
+  async login(credentials: UserCreate): Promise<void> {
+    const response = await this.authApi.login(credentials);
+    this.setToken(response.access_token);
   }
 
-  register(credentials: UserCreate): Observable<UserResponse> {
-    return this.http.post<UserResponse>(`${this.APIURL}/register`, credentials);
+  async register(credentials: UserCreate): Promise<UserResponse> {
+    return await this.authApi.register(credentials);
   }
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
+    this.currentUser.set(null);
   }
 
   isAuthenticated(): boolean {

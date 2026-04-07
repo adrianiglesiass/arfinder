@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -12,6 +13,11 @@ import { AuthService } from '@core/auth/auth.service';
 
 import { AuthCard } from '@shared/components/auth-card/auth-card';
 import { FieldError } from '@shared/components/field-error/field-error';
+
+const ERROR_MESSAGES = {
+  INVALID_CREDENTIALS: 'Correo o contraseña incorrectos.',
+  SERVER_ERROR: 'Ocurrió un error inesperado al iniciar sesión.',
+};
 
 @Component({
   selector: 'app-login',
@@ -33,38 +39,38 @@ export class Login {
   private readonly router = inject(Router);
 
   errorMessage = signal<string | null>(null);
+  isLoading = signal<boolean>(false);
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
   });
 
-  onSubmit() {
+  async onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     this.errorMessage.set(null);
+    this.isLoading.set(true);
 
-    const credentials: UserCreate = {
-      email: this.form.value.email!,
-      password: this.form.value.password!,
-    };
+    try {
+      // getRawValue() da el objeto tipado sin necesidad de poner "!"
+      const credentials: UserCreate = this.form.getRawValue();
 
-    this.authService.login(credentials).subscribe({
-      next: (res) => {
-        if (res && res.access_token) {
-          this.authService.setToken(res.access_token);
-          this.router.navigate(['']);
-        } else {
-          this.errorMessage.set('No se recibió un token válido del servidor');
-        }
-      },
-      error: () => {
-        this.errorMessage.set('Correo o contraseña incorrectos.');
-      },
-    });
+      await this.authService.login(credentials);
+
+      await this.router.navigate(['']);
+    } catch (error: unknown) {
+      if (error instanceof HttpErrorResponse && error.status === 401) {
+        this.errorMessage.set(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      } else {
+        this.errorMessage.set(ERROR_MESSAGES.SERVER_ERROR);
+      }
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   isInvalid(controlName: string): boolean {
