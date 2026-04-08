@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
@@ -20,6 +20,7 @@ import {
 
 import { AuthCard } from '@shared/components/auth-card/auth-card';
 import { FieldError } from '@shared/components/field-error/field-error';
+import { isControlInvalid } from '@shared/utils/form.utils';
 
 const ERROR_MESSAGES = {
   EMAIL_REGISTERED: 'Este correo ya está registrado',
@@ -36,7 +37,6 @@ const ERROR_MESSAGES = {
     InputTextModule,
     MessageModule,
     PasswordModule,
-    RouterLink,
     DividerModule,
     FieldError,
     AuthCard,
@@ -102,8 +102,7 @@ export class Register {
   }
 
   isInvalid(controlName: string): boolean {
-    const control = this.form.get(controlName);
-    return !!(control?.invalid && control.touched);
+    return isControlInvalid(this.form, controlName);
   }
 
   isPasswordMismatch(): boolean {
