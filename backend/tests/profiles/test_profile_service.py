@@ -8,7 +8,7 @@ from app.core.exceptions.profile import ProfileNotFoundError, ProfileAlreadyExis
 
 @pytest.fixture
 def user(db):
-    return register_user(db, UserCreate(email="test@test.com", password="password123"))
+    return register_user(db, UserCreate(email="test@test.com", password="Password123!"))
 
 
 @pytest.fixture

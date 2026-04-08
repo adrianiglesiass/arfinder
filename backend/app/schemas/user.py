@@ -1,8 +1,8 @@
 from typing import Optional
-
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 from app.schemas.types import UTCDatetime
+from app.core.validators import validate_password_strength
 
 
 class UserCreate(BaseModel):
@@ -10,6 +10,11 @@ class UserCreate(BaseModel):
 
     email: EmailStr
     password: str
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value):
+        return validate_password_strength(value)
 
 
 class UserResponse(BaseModel):
@@ -26,4 +31,4 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    email: Optional[int] = None
+    user_id: Optional[int] = None

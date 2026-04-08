@@ -16,10 +16,10 @@ from app.core.exceptions.conversation import (
 @pytest.fixture
 def two_users(db):
     user1 = register_user(
-        db, UserCreate(email="user1@test.com", password="password123")
+        db, UserCreate(email="user1@test.com", password="Password123!")
     )
     user2 = register_user(
-        db, UserCreate(email="user2@test.com", password="password123")
+        db, UserCreate(email="user2@test.com", password="Password123!")
     )
     return user1, user2
 
@@ -67,7 +67,7 @@ def test_list_conversations_only_mine(db, two_users):
     """Un usuario no ve conversaciones en las que no participa."""
     user1, user2 = two_users
     user3 = register_user(
-        db, UserCreate(email="user3@test.com", password="password123")
+        db, UserCreate(email="user3@test.com", password="Password123!")
     )
     get_or_create_conversation(db, user1.id, user2.id)
     get_or_create_conversation(db, user2.id, user3.id)
@@ -87,7 +87,7 @@ def test_get_conversation_or_raise_not_found(db, two_users):
 def test_get_conversation_or_raise_access_denied(db, two_users):
     user1, user2 = two_users
     user3 = register_user(
-        db, UserCreate(email="user3@test.com", password="password123")
+        db, UserCreate(email="user3@test.com", password="Password123!")
     )
     conv = get_or_create_conversation(db, user1.id, user2.id)
 

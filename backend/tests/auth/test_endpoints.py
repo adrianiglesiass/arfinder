@@ -1,6 +1,6 @@
 def test_register_endpoint(client):
     response = client.post(
-        "/auth/register", json={"email": "test@test.com", "password": "password123"}
+        "/auth/register", json={"email": "test@test.com", "password": "Password123!"}
     )
     assert response.status_code == 201
     assert response.json()["email"] == "test@test.com"
@@ -8,20 +8,20 @@ def test_register_endpoint(client):
 
 def test_register_duplicate_returns_400(client):
     client.post(
-        "/auth/register", json={"email": "test@test.com", "password": "password123"}
+        "/auth/register", json={"email": "test@test.com", "password": "Password123!"}
     )
     response = client.post(
-        "/auth/register", json={"email": "test@test.com", "password": "password123"}
+        "/auth/register", json={"email": "test@test.com", "password": "Password123!"}
     )
     assert response.status_code == 409
 
 
 def test_login_endpoint(client):
     client.post(
-        "/auth/register", json={"email": "test@test.com", "password": "password123"}
+        "/auth/register", json={"email": "test@test.com", "password": "Password123!"}
     )
     response = client.post(
-        "/auth/login", json={"email": "test@test.com", "password": "password123"}
+        "/auth/login", json={"email": "test@test.com", "password": "Password123!"}
     )
     assert response.status_code == 200
     assert "access_token" in response.json()
@@ -29,7 +29,7 @@ def test_login_endpoint(client):
 
 def test_login_wrong_credentials_returns_401(client):
     response = client.post(
-        "/auth/login", json={"email": "noexiste@test.com", "password": "password123"}
+        "/auth/login", json={"email": "noexiste@test.com", "password": "Password123!"}
     )
     assert response.status_code == 401
 

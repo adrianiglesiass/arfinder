@@ -1,21 +1,32 @@
-from app.models.user import User
-from app.models.profile_photo import ProfilePhoto
-from app.models.profile import Profile, ScheduleEnum, TypeEnum
-from app.models.message import Message
-from app.models.conversation import Conversation
-from app.db.database import SessionLocal
-from app.core.security import hash_password
-from datetime import UTC, date, datetime
 import os
+
 import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa # isort: skip
+
+
+from app.models.user import User
+
+from app.models.profile_photo import ProfilePhoto
+
+from app.models.profile import Profile, ScheduleEnum, TypeEnum
+
+from app.models.message import Message
+
+from app.models.conversation import Conversation
+
+from app.db.database import SessionLocal
+
+from app.core.security import hash_password
+
+from datetime import UTC, date, datetime
 
 
 SEED_USERS = [
     {
         "email": "adrian@arfinder.com",
-        "password": "password123",
+        "password": "Arfinder2026!",
         "profile": {
             "name": "Adrián Iglesias",
             "age": 21,
@@ -45,7 +56,7 @@ SEED_USERS = [
     },
     {
         "email": "carlos@arfinder.com",
-        "password": "password123",
+        "password": "Arfinder2026!",
         "profile": {
             "name": "Carlos Mendoza",
             "age": 31,
@@ -75,7 +86,7 @@ SEED_USERS = [
     },
     {
         "email": "ana@arfinder.com",
-        "password": "password123",
+        "password": "Arfinder2026!",
         "profile": {
             "name": "Ana Rodríguez",
             "age": 25,
@@ -110,7 +121,7 @@ SEED_USERS = [
     },
     {
         "email": "javier@arfinder.com",
-        "password": "password123",
+        "password": "Arfinder2026!",
         "profile": {
             "name": "Javier Torres",
             "age": 29,
@@ -135,7 +146,7 @@ SEED_USERS = [
     },
     {
         "email": "marta@arfinder.com",
-        "password": "password123",
+        "password": "Arfinder2026!",
         "profile": {
             "name": "Marta Jiménez",
             "age": 23,
@@ -165,7 +176,7 @@ SEED_USERS = [
     },
     {
         "email": "pablo@arfinder.com",
-        "password": "password123",
+        "password": "Arfinder2026!",
         "profile": {
             "name": "Pablo González",
             "age": 34,
@@ -200,7 +211,7 @@ SEED_USERS = [
     },
     {
         "email": "sofia@arfinder.com",
-        "password": "password123",
+        "password": "Arfinder2026!",
         "profile": {
             "name": "Sofía Martín",
             "age": 28,
@@ -225,7 +236,7 @@ SEED_USERS = [
     },
     {
         "email": "miguel@arfinder.com",
-        "password": "password123",
+        "password": "Arfinder2026!",
         "profile": {
             "name": "Miguel Sánchez",
             "age": 32,
@@ -254,6 +265,7 @@ SEED_USERS = [
         ],
     },
 ]
+
 
 SEED_CONVERSATIONS = [
     {
@@ -318,29 +330,39 @@ SEED_CONVERSATIONS = [
 
 
 def seed():
+
     db = SessionLocal()
+
     try:
         existing = db.query(User).filter(User.email == SEED_USERS[0]["email"]).first()
+
         if existing:
             print(
                 "Seed ya ejecutado. Para volver a ejecutarlo hacer docker compose down -v primero."
             )
+
             return
 
         print("Iniciando seed...")
 
         created_users = {}
+
         for user_data in SEED_USERS:
             user = User(
                 email=user_data["email"],
                 password_hash=hash_password(user_data["password"]),
             )
+
             db.add(user)
+
             db.flush()
 
             profile_data = user_data["profile"]
+
             profile = Profile(user_id=user.id, **profile_data)
+
             db.add(profile)
+
             db.flush()
 
             for photo_data in user_data["photos"]:
@@ -350,24 +372,31 @@ def seed():
                     order=photo_data["order"],
                     is_main=photo_data["is_main"],
                 )
+
                 db.add(photo)
 
             created_users[user_data["email"]] = user
+
             print(f"Usuario creado: {profile_data['name']} ({user_data['email']})")
 
         db.flush()
 
         for conv_data in SEED_CONVERSATIONS:
             u1 = created_users[conv_data["user1_email"]]
+
             u2 = created_users[conv_data["user2_email"]]
+
             lo, hi = sorted([u1.id, u2.id])
 
             conversation = Conversation(user1_id=lo, user2_id=hi)
+
             db.add(conversation)
+
             db.flush()
 
             for msg_data in conv_data["messages"]:
                 sender = created_users[msg_data["sender_email"]]
+
                 message = Message(
                     conversation_id=conversation.id,
                     sender_id=sender.id,
@@ -375,6 +404,7 @@ def seed():
                     sent_at=datetime.now(UTC),
                     is_read=True,
                 )
+
                 db.add(message)
 
             print(
@@ -382,15 +412,21 @@ def seed():
             )
 
         db.commit()
+
         print("Seed completado correctamente.")
-        print("\nUsuarios disponibles (todos con password: password123):")
+
+        print("\nUsuarios disponibles (todos con password: Arfinder2026!):")
+
         for u in SEED_USERS:
             print(f"  - {u['email']}")
 
     except Exception as e:
         db.rollback()
+
         print(f"Error durante el seed: {e}")
+
         raise
+
     finally:
         db.close()
 
