@@ -1,26 +1,37 @@
-<app-auth-card>
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
-    <div class="flex flex-col gap-1">
+<app-auth-card [activeTab]="'login'">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+    <div class="flex flex-col gap-1.5">
+      <label
+        for="login-email"
+        class="block text-xs font-semibold text-gray-500 uppercase tracking-wider"
+        >Email</label
+      >
       <input
+        id="login-email"
         pInputText
         type="email"
-        placeholder="Correo electrónico"
+        placeholder="ejemplo@arfinder.com"
         formControlName="email"
         [invalid]="isInvalid('email')"
-        class="w-full bg-[#f7f5f1]!"
+        class="w-full rounded-xl!"
       />
       <app-field-error [control]="form.get('email')!" />
     </div>
 
-    <div class="flex flex-col gap-1">
+    <div class="flex flex-col gap-1.5">
+      <label
+        for="login-password"
+        class="block text-xs font-semibold text-gray-500 uppercase tracking-wider"
+        >Contraseña</label
+      >
       <p-password
+        inputId="login-password"
         formControlName="password"
-        placeholder="Contraseña"
+        placeholder="••••••••"
         [toggleMask]="true"
         [feedback]="false"
         [fluid]="true"
         [invalid]="isInvalid('password')"
-        inputStyleClass="w-full bg-[#f7f5f1]!"
       />
       <app-field-error [control]="form.get('password')!" />
     </div>
@@ -29,11 +40,13 @@
       <p-message severity="error" size="small" variant="simple">{{ errorMessage() }}</p-message>
     }
 
-    <button pButton type="submit" class="w-full active:scale-95">Entrar</button>
-
-    <p class="text-center text-sm text-[#8a8a82]">
-      ¿No tienes cuenta?
-      <a routerLink="/register" class="text-green-800 font-semibold hover:underline">Regístrate</a>
-    </p>
+    <button
+      pButton
+      type="submit"
+      [loading]="isLoading()"
+      class="w-full py-3.5 rounded-2xl! font-medium text-sm mt-1 active:scale-95"
+    >
+      Iniciar sesión
+    </button>
   </form>
 </app-auth-card>

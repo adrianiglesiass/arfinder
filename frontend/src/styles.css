@@ -1,2 +1,26 @@
 @import 'tailwindcss';
 @import 'primeicons/primeicons.css';
+
+@theme {
+  --color-primary: #111827;
+  --color-accent: #0f766e;
+  --color-accentLight: #ccfbf1;
+
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+  --font-family-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-family-serif: 'Playfair Display', serif;
+}
+
+@layer base {
+  body {
+    background-color: #fafafa;
+    color: var(--color-primary);
+    font-family: var(--font-family-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
