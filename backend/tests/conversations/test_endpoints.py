@@ -6,11 +6,11 @@ def second_user_headers(client):
     """Registra un segundo usuario y devuelve sus headers."""
     client.post(
         "/auth/register",
-        json={"email": "other@test.com", "password": "password123"},
+        json={"email": "other@test.com", "password": "Password123!"},
     )
     login = client.post(
         "/auth/login",
-        json={"email": "other@test.com", "password": "password123"},
+        json={"email": "other@test.com", "password": "Password123!"},
     )
     return {"Authorization": f"Bearer {login.json()['access_token']}"}
 
@@ -19,7 +19,7 @@ def second_user_headers(client):
 def second_user_id(client):
     res = client.post(
         "/auth/register",
-        json={"email": "other@test.com", "password": "password123"},
+        json={"email": "other@test.com", "password": "Password123!"},
     )
     return res.json()["id"]
 
@@ -151,13 +151,13 @@ def test_list_messages_conversation_not_found(client, auth_headers):
 def test_list_messages_access_denied(client, auth_headers, second_user_id):
     third_res = client.post(
         "/auth/register",
-        json={"email": "third@test.com", "password": "password123"},
+        json={"email": "third@test.com", "password": "Password123!"},
     )
     third_id = third_res.json()["id"]
 
     login = client.post(
         "/auth/login",
-        json={"email": "other@test.com", "password": "password123"},
+        json={"email": "other@test.com", "password": "Password123!"},
     )
     second_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
 
@@ -216,12 +216,12 @@ def test_get_conversation_not_found(client, auth_headers):
 def test_get_conversation_access_denied(client, auth_headers, second_user_id):
     third_res = client.post(
         "/auth/register",
-        json={"email": "third@test.com", "password": "password123"},
+        json={"email": "third@test.com", "password": "Password123!"},
     )
     third_id = third_res.json()["id"]
     login = client.post(
         "/auth/login",
-        json={"email": "other@test.com", "password": "password123"},
+        json={"email": "other@test.com", "password": "Password123!"},
     )
     second_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
     res = client.post(

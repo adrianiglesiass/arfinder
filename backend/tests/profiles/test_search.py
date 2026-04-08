@@ -8,7 +8,7 @@ from app.schemas.profile import ProfileCreate, TypeEnum, ScheduleEnum
 @pytest.fixture
 def profile_madrid(db):
     user = register_user(
-        db, UserCreate(email="madrid@test.com", password="password123")
+        db, UserCreate(email="madrid@test.com", password="Password123!")
     )
     return create_profile(
         db,
@@ -30,7 +30,7 @@ def profile_madrid(db):
 @pytest.fixture
 def profile_barcelona(db):
     user = register_user(
-        db, UserCreate(email="barcelona@test.com", password="password123")
+        db, UserCreate(email="barcelona@test.com", password="Password123!")
     )
     return create_profile(
         db,

@@ -79,10 +79,10 @@ def client():
 @pytest.fixture(scope="function")
 def auth_token(client):
     client.post(
-        "/auth/register", json={"email": "test@test.com", "password": "password123"}
+        "/auth/register", json={"email": "test@test.com", "password": "Password123!"}
     )
     login = client.post(
-        "/auth/login", json={"email": "test@test.com", "password": "password123"}
+        "/auth/login", json={"email": "test@test.com", "password": "Password123!"}
     )
     return login.json()["access_token"]
 

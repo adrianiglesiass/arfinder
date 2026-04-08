@@ -334,8 +334,7 @@ def seed():
     db = SessionLocal()
 
     try:
-        existing = db.query(User).filter(
-            User.email == SEED_USERS[0]["email"]).first()
+        existing = db.query(User).filter(User.email == SEED_USERS[0]["email"]).first()
 
         if existing:
             print(
@@ -378,8 +377,7 @@ def seed():
 
             created_users[user_data["email"]] = user
 
-            print(
-                f"Usuario creado: {profile_data['name']} ({user_data['email']})")
+            print(f"Usuario creado: {profile_data['name']} ({user_data['email']})")
 
         db.flush()
 
