@@ -1,7 +1,43 @@
-<div class="flex items-center justify-center flex-col bg-[#f7f5f1] min-h-screen overflow-x-hidden">
-  <div class="bg-white p-12 w-full max-w-md z-10 rounded-3xl shadow-lg">
-    <app-arfinder-logo></app-arfinder-logo>
+<div
+  class="min-h-screen bg-white flex flex-col items-center justify-center p-6 relative overflow-hidden"
+>
+  <div
+    class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-accentLight/50 blur-[100px] pointer-events-none"
+  ></div>
+  <div
+    class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-teal-50 blur-[100px] pointer-events-none"
+  ></div>
 
-    <ng-content></ng-content>
+  <div class="w-full max-w-100 relative z-10">
+    <app-arfinder-logo />
+
+    <div class="bg-white/80 backdrop-blur-xl p-8 rounded-4xl shadow-glass border border-gray-100">
+      <div class="flex p-1 bg-gray-100/50 rounded-2xl mb-8">
+        <a
+          routerLink="/login"
+          class="flex-1 py-2 text-sm font-medium rounded-xl transition-all text-center"
+          [class]="
+            activeTab() === 'login'
+              ? 'bg-white shadow-sm text-primary'
+              : 'text-gray-500 hover:text-primary'
+          "
+        >
+          Entrar
+        </a>
+        <a
+          routerLink="/register"
+          class="flex-1 py-2 text-sm font-medium rounded-xl transition-all text-center"
+          [class]="
+            activeTab() === 'register'
+              ? 'bg-white shadow-sm text-primary'
+              : 'text-gray-500 hover:text-primary'
+          "
+        >
+          Registro
+        </a>
+      </div>
+
+      <ng-content />
+    </div>
   </div>
 </div>
