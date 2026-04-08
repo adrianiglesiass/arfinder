@@ -1,4 +1,3 @@
-// src/app/infrastructure/api/auth.api.service.ts
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
