@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
-import { ArfinderLogo } from '@shared/components/arfinder-logo/arfinder-logo';
+import { Navbar } from '@shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, ArfinderLogo],
+  imports: [RouterOutlet, Navbar],
   templateUrl: './layout.html',
 })
 export class Layout {}

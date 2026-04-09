@@ -43,7 +43,7 @@ const ERROR_MESSAGES = {
   ],
   templateUrl: './register.html',
 })
-export class Register {
+export default class Register {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);

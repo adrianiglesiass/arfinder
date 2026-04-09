@@ -33,7 +33,7 @@ const ERROR_MESSAGES = {
   ],
   templateUrl: './login.html',
 })
-export class Login {
+export default class Login {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
