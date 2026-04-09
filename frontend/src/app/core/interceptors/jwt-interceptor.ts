@@ -23,11 +23,14 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
 };
 
 export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
       if (err.status === 401) {
-        inject(AuthService).logout();
-        inject(Router).navigate(['/login']);
+        authService.logout();
+        router.navigate(['/login']);
       }
       return throwError(() => err);
     })
