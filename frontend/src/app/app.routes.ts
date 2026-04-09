@@ -6,12 +6,12 @@ import { Layout } from '@core/layout/layout';
 export const routes: Routes = [
   {
     path: 'login',
-    loadComponent: () => import('@features/auth/login/login').then((m) => m.Login),
+    loadComponent: () => import('@features/auth/login/login'),
   },
 
   {
     path: 'register',
-    loadComponent: () => import('@features/auth/register/register').then((m) => m.Register),
+    loadComponent: () => import('@features/auth/register/register'),
   },
 
   {
