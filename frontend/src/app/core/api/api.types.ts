@@ -339,10 +339,7 @@ export interface components {
     LastMessageSummary: {
       /** Content */
       content: string;
-      /**
-       * Sent At
-       * Format: date-time
-       */
+      /** Sent At */
       sent_at: string;
       /** Is Read */
       is_read: boolean;
@@ -357,10 +354,7 @@ export interface components {
       sender_id: number;
       /** Content */
       content: string;
-      /**
-       * Sent At
-       * Format: date-time
-       */
+      /** Sent At */
       sent_at: string;
       /** Is Read */
       is_read: boolean;
@@ -419,10 +413,7 @@ export interface components {
       order: number;
       /** Is Main */
       is_main: boolean;
-      /**
-       * Created At
-       * Format: date-time
-       */
+      /** Created At */
       created_at: string;
     };
     /** ProfileResponse */
@@ -458,6 +449,36 @@ export interface components {
        * @default []
        */
       photos: components['schemas']['ProfilePhotoResponse'][];
+    };
+    /** ProfileSummary */
+    ProfileSummary: {
+      /** Id */
+      id: number;
+      /** User Id */
+      user_id: number;
+      /** Name */
+      name: string;
+      /** Age */
+      age: number;
+      /** City */
+      city: string;
+      /** Has Pets */
+      has_pets: boolean;
+      /** Is Smoker */
+      is_smoker: boolean;
+      type: components['schemas']['TypeEnum'];
+      /** Max Budget */
+      max_budget?: number | null;
+      schedule?: components['schemas']['ScheduleEnum'] | null;
+      /** Gender */
+      gender?: string | null;
+      /** Room Description */
+      room_description?: string | null;
+      /**
+       * Photo Urls
+       * @default []
+       */
+      photo_urls: string[];
     };
     /** ProfileUpdate */
     ProfileUpdate: {
@@ -520,10 +541,7 @@ export interface components {
        * Format: email
        */
       email: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
+      /** Created At */
       created_at: string;
     };
     /** ValidationError */
@@ -582,6 +600,20 @@ export interface operations {
           'application/json': components['schemas']['UserResponse'];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Conflict — resource already exists */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Validation Error */
       422: {
         headers: {
@@ -615,6 +647,20 @@ export interface operations {
           'application/json': components['schemas']['Token'];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Validation Error */
       422: {
         headers: {
@@ -644,6 +690,20 @@ export interface operations {
           'application/json': components['schemas']['UserResponse'];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
     };
   };
   delete_my_account_auth_me_delete: {
@@ -657,6 +717,20 @@ export interface operations {
     responses: {
       /** @description Successful Response */
       204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
         headers: {
           [name: string]: unknown;
         };
@@ -676,6 +750,8 @@ export interface operations {
         gender?: string | null;
         age_min?: number | null;
         age_max?: number | null;
+        skip?: number;
+        limit?: number;
       };
       header?: never;
       path?: never;
@@ -689,8 +765,15 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['ProfileResponse'][];
+          'application/json': components['schemas']['ProfileSummary'][];
         };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -721,6 +804,27 @@ export interface operations {
           'application/json': components['schemas']['ProfileResponse'];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
     };
   };
   create_my_profile_profiles_me_post: {
@@ -744,6 +848,20 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ProfileResponse'];
         };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -772,6 +890,27 @@ export interface operations {
         };
         content?: never;
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
     };
   };
   update_my_profile_profiles_me_patch: {
@@ -795,6 +934,27 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ProfileResponse'];
         };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -825,6 +985,20 @@ export interface operations {
           'application/json': components['schemas']['ProfilePhotoResponse'][];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
     };
   };
   upload_profile_photo_profiles_me_photos_post: {
@@ -848,6 +1022,34 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ProfilePhotoResponse'];
         };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description File too large */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -882,6 +1084,27 @@ export interface operations {
           'application/json': components['schemas']['ProfilePhotoResponse'][];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Validation Error */
       422: {
         headers: {
@@ -912,6 +1135,27 @@ export interface operations {
         content: {
           'application/json': unknown;
         };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -948,6 +1192,27 @@ export interface operations {
           'application/json': components['schemas']['ProfilePhotoResponse'];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Validation Error */
       422: {
         headers: {
@@ -978,6 +1243,20 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ProfileResponse'];
         };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -1010,6 +1289,27 @@ export interface operations {
           'application/json': components['schemas']['MessageResponse'];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Validation Error */
       422: {
         headers: {
@@ -1039,6 +1339,27 @@ export interface operations {
           'application/json': components['schemas']['ConversationResponse'][];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
     };
   };
   create_or_get_conversation_conversations_post: {
@@ -1062,6 +1383,27 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ConversationResponse'];
         };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -1093,6 +1435,27 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ConversationResponse'];
         };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {
@@ -1128,6 +1491,27 @@ export interface operations {
           'application/json': components['schemas']['MessageResponse'][];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Validation Error */
       422: {
         headers: {
@@ -1152,6 +1536,27 @@ export interface operations {
     responses: {
       /** @description Successful Response */
       204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
         headers: {
           [name: string]: unknown;
         };
@@ -1188,6 +1593,13 @@ export interface operations {
           'application/json': string[];
         };
       };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Validation Error */
       422: {
         headers: {
@@ -1196,6 +1608,13 @@ export interface operations {
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
         };
+      };
+      /** @description External service unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
