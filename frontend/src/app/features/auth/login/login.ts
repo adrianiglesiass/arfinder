@@ -10,15 +10,11 @@ import { PasswordModule } from 'primeng/password';
 
 import type { UserCreate } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { ErrorService } from '@core/errors';
 
 import { AuthCard } from '@shared/components/auth-card/auth-card';
 import { FieldError } from '@shared/components/field-error/field-error';
 import { isControlInvalid } from '@shared/utils/form.utils';
-
-const ERROR_MESSAGES = {
-  INVALID_CREDENTIALS: 'Correo o contraseña incorrectos.',
-  SERVER_ERROR: 'Ocurrió un error inesperado al iniciar sesión.',
-};
 
 @Component({
   selector: 'app-login',
@@ -37,6 +33,7 @@ export default class Login {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly errorService = inject(ErrorService);
 
   errorMessage = signal<string | null>(null);
   isLoading = signal<boolean>(false);
@@ -63,10 +60,11 @@ export default class Login {
 
       await this.router.navigate(['']);
     } catch (error: unknown) {
-      if (error instanceof HttpErrorResponse && error.status === 401) {
-        this.errorMessage.set(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      if (error instanceof HttpErrorResponse) {
+        const { general } = this.errorService.processError(error);
+        this.errorMessage.set(general);
       } else {
-        this.errorMessage.set(ERROR_MESSAGES.SERVER_ERROR);
+        this.errorMessage.set('Ocurrió un error inesperado al iniciar sesión.');
       }
     } finally {
       this.isLoading.set(false);

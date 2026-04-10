@@ -17,17 +17,11 @@ import {
   hasUppercase,
   passwordMatch,
 } from '@core/auth/password.validators';
+import { ErrorService } from '@core/errors';
 
 import { AuthCard } from '@shared/components/auth-card/auth-card';
 import { FieldError } from '@shared/components/field-error/field-error';
 import { isControlInvalid } from '@shared/utils/form.utils';
-
-const ERROR_MESSAGES = {
-  EMAIL_REGISTERED: 'Este correo ya está registrado',
-  INVALID_EMAIL: 'Revise que el email sea válido',
-  SERVER_ERROR: 'Error en el servidor',
-  UNEXPECTED_ERROR: 'Ocurrió un error inesperado.',
-};
 
 @Component({
   selector: 'app-register',
@@ -47,6 +41,7 @@ export default class Register {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly errorService = inject(ErrorService);
 
   errorMessage = signal<string | null>(null);
   isLoading = signal<boolean>(false);
@@ -86,15 +81,11 @@ export default class Register {
       await this.router.navigate(['/onboarding']);
     } catch (error: unknown) {
       if (error instanceof HttpErrorResponse) {
-        if (error.status === 400) {
-          this.errorMessage.set(ERROR_MESSAGES.EMAIL_REGISTERED);
-        } else if (error.status === 422) {
-          this.errorMessage.set(ERROR_MESSAGES.INVALID_EMAIL);
-        } else {
-          this.errorMessage.set(ERROR_MESSAGES.SERVER_ERROR);
-        }
+        const { general, fieldErrors } = this.errorService.processError(error);
+        this.errorMessage.set(general);
+        this.errorService.applyValidationErrors(this.form, fieldErrors);
       } else {
-        this.errorMessage.set(ERROR_MESSAGES.UNEXPECTED_ERROR);
+        this.errorMessage.set('Ocurrió un error inesperado.');
       }
     } finally {
       this.isLoading.set(false);
