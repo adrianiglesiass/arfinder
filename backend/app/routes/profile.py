@@ -12,6 +12,7 @@ from app.schemas.profile import (
     ProfileCreate,
     ProfilePhotoResponse,
     ProfileResponse,
+    ProfileSummary,
     ProfileUpdate,
 )
 from app.services import profile_photo_service, profile_service
@@ -32,7 +33,7 @@ class _PhotoReorder(BaseModel):
     ordered_ids: List[int] = Field(..., max_length=50)
 
 
-@router.get("", response_model=List[ProfileResponse], responses=BAD_REQUEST)
+@router.get("", response_model=List[ProfileSummary], responses=BAD_REQUEST)
 def search(
     city: Optional[str] = Query(None),
     budget_max: Optional[int] = Query(None),

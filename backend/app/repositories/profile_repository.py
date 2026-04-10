@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.models.profile import Profile, ScheduleEnum, TypeEnum
 from app.schemas.profile import ProfileCreate, ProfileUpdate
 
@@ -44,7 +44,8 @@ def search_profiles(
     age_min: int | None = None,
     age_max: int | None = None,
 ) -> list[Profile]:
-    q = db.query(Profile)
+
+    q = db.query(Profile).options(joinedload(Profile.photos))
 
     if city:
         q = q.filter(Profile.city.ilike(f"%{city}%"))
