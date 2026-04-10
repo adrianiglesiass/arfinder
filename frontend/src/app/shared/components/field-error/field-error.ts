@@ -26,14 +26,37 @@ const ERROR_MESSAGES: Record<string, string> = {
 })
 export class FieldError {
   control = input.required<AbstractControl>();
+  serverError = input<string | null>(null);
 
   getErrors(): string[] {
-    const errors = this.control().errors;
+    const control = this.control();
+    const serverErr = this.serverError();
 
+    const errorMessages: string[] = [];
+
+    if (serverErr) {
+      return [serverErr];
+    }
+
+    const errors = control.errors;
     if (!errors) return [];
 
-    return Object.keys(errors)
-      .map((key) => ERROR_MESSAGES[key])
-      .filter(Boolean);
+    if (errors['serverError']) {
+      const serverErrorValue = errors['serverError'];
+      if (typeof serverErrorValue === 'string') {
+        errorMessages.push(serverErrorValue);
+      }
+    }
+
+    Object.keys(errors)
+      .filter((key) => key !== 'serverError')
+      .forEach((key) => {
+        const message = ERROR_MESSAGES[key];
+        if (message) {
+          errorMessages.push(message);
+        }
+      });
+
+    return errorMessages;
   }
 }

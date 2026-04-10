@@ -7,6 +7,7 @@ export type Token = components['schemas']['Token'];
 export type ProfileCreate = components['schemas']['ProfileCreate'];
 export type ProfileResponse = components['schemas']['ProfileResponse'];
 export type ProfileUpdate = components['schemas']['ProfileUpdate'];
+export type ProfileSummary = components['schemas']['ProfileSummary'];
 export type ProfilePhotoResponse = components['schemas']['ProfilePhotoResponse'];
 
 export type ConversationResponse = components['schemas']['ConversationResponse'];
