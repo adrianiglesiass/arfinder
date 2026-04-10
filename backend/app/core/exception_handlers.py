@@ -7,7 +7,7 @@ from app.core.exceptions.base import AppError
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
-        content={"detail": exc.detail},
+        content={"code": exc.code, "detail": exc.detail},
     )
 
 
@@ -22,7 +22,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
     return JSONResponse(
         status_code=422,
-        content={"detail": errors},
+        content={"code": "VALIDATION_ERROR", "detail": errors},
     )
 
 
