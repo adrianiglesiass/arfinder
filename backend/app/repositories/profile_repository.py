@@ -43,6 +43,8 @@ def search_profiles(
     gender: str | None = None,
     age_min: int | None = None,
     age_max: int | None = None,
+    skip: int = 0,
+    limit: int = 20,
 ) -> list[Profile]:
 
     q = db.query(Profile).options(joinedload(Profile.photos))
@@ -66,4 +68,4 @@ def search_profiles(
     if age_max is not None:
         q = q.filter(Profile.age <= age_max)
 
-    return q.order_by(Profile.id.desc()).all()
+    return q.order_by(Profile.id.desc()).offset(skip).limit(limit).all()

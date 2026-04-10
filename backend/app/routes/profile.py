@@ -44,6 +44,8 @@ def search(
     gender: Optional[str] = Query(None),
     age_min: Optional[int] = Query(None),
     age_max: Optional[int] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     return profile_service.search_profiles(
@@ -57,6 +59,8 @@ def search(
         gender,
         age_min,
         age_max,
+        skip,
+        limit,
     )
 
 

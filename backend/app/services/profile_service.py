@@ -77,6 +77,8 @@ def search_profiles(
     gender: str | None = None,
     age_min: int | None = None,
     age_max: int | None = None,
+    skip: int = 0,
+    limit: int = 20,
 ) -> list[ProfileSummary]:
     profiles = profile_repository.search_profiles(
         db,
@@ -89,5 +91,13 @@ def search_profiles(
         gender,
         age_min,
         age_max,
+        skip,
+        limit,
     )
-    return [_profile_to_summary(profile) for profile in profiles]
+
+    profile_summaries = []
+    for profile in profiles:
+        summary = _profile_to_summary(profile)
+        profile_summaries.append(summary)
+
+    return profile_summaries
