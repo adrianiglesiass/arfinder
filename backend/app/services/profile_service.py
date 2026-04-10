@@ -1,9 +1,34 @@
+from operator import attrgetter
+
 from sqlalchemy.orm import Session
 
 from app.core.exceptions.profile import ProfileAlreadyExistsError, ProfileNotFoundError
-from app.models.profile import ScheduleEnum, TypeEnum
+from app.models.profile import Profile, ScheduleEnum, TypeEnum
 from app.repositories import profile_repository
-from app.schemas.profile import ProfileCreate, ProfileUpdate
+from app.schemas.profile import ProfileCreate, ProfileSummary, ProfileUpdate
+
+
+def _profile_to_summary(profile: Profile) -> ProfileSummary:
+    sorted_photos = sorted(profile.photos, key=attrgetter("order"))
+    photo_urls = []
+    for photo in sorted_photos:
+        photo_urls.append(photo.photo_url)
+
+    return ProfileSummary(
+        id=profile.id,
+        user_id=profile.user_id,
+        name=profile.name,
+        age=profile.age,
+        city=profile.city,
+        has_pets=profile.has_pets,
+        is_smoker=profile.is_smoker,
+        type=profile.type,
+        max_budget=profile.max_budget,
+        schedule=profile.schedule,
+        gender=profile.gender,
+        room_description=profile.room_description,
+        photo_urls=photo_urls,
+    )
 
 
 def get_profile(db: Session, user_id: int):
@@ -52,8 +77,8 @@ def search_profiles(
     gender: str | None = None,
     age_min: int | None = None,
     age_max: int | None = None,
-):
-    return profile_repository.search_profiles(
+) -> list[ProfileSummary]:
+    profiles = profile_repository.search_profiles(
         db,
         city,
         budget_max,
@@ -65,3 +90,4 @@ def search_profiles(
         age_min,
         age_max,
     )
+    return [_profile_to_summary(profile) for profile in profiles]

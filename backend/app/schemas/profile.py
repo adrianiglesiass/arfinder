@@ -82,3 +82,21 @@ class ProfileResponse(BaseModel):
     photos: List[ProfilePhotoResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ProfileSummary(BaseModel):
+    id: int
+    user_id: int
+    name: str
+    age: int
+    city: str
+    has_pets: bool
+    is_smoker: bool
+    type: TypeEnum
+    max_budget: Optional[int] = None
+    schedule: Optional[ScheduleEnum] = None
+    gender: Optional[str] = None
+    room_description: Optional[str] = None
+    photo_urls: List[str] = []
+
+    model_config = ConfigDict(from_attributes=True)
