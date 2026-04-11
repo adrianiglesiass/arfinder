@@ -1,37 +1,16 @@
-from datetime import datetime, timedelta, timezone
-import bcrypt
-import jwt
+from insforge import InsforgeClient
 from app.core.config import settings
 
 
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+insforge = InsforgeClient(settings.INSFORGE_URL, settings.INSFORGE_API_KEY)
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(
-        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
-    )
-
-
-def create_access_token(user_id: int) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
-    payload = {"sub": str(user_id), "exp": expire}
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-
-
-def decode_token(token: str) -> int | None:
+async def validate_insforge_token(token: str):
+    """
+    Validates the token with InsForge and returns the session info.
+    """
     try:
-        payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM],
-        )
-        user_id = payload.get("sub")
-        if user_id is None:
-            return None
-        return int(user_id)
-    except jwt.PyJWTError:
+        session = await insforge.auth.get_current_session(access_token=token)
+        return session
+    except Exception:
         return None
