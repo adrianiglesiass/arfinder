@@ -9,14 +9,15 @@ ENV_PATH = os.path.join(BASE_DIR, ".env")
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str
+    DATABASE_URL: str = "mysql+pymysql://root:password@localhost:3306/arfinder"
 
     # InsForge
-    INSFORGE_URL: str
-    INSFORGE_API_KEY: str
+    INSFORGE_URL: str = "https://placeholder.insforge.app"
+    INSFORGE_API_KEY: str = "placeholder_key"
+    OSS_HOST: str = "https://placeholder.insforge.app"
 
     # Nominatim
-    NOMINATIM_USER_AGENT: str
+    NOMINATIM_USER_AGENT: str = "Arfinder/1.0"
 
     # JWT Authentication
     SECRET_KEY: str = (
