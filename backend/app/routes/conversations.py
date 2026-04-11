@@ -66,7 +66,7 @@ def _build_conversation_response(
 
 
 @router.post("", response_model=ConversationResponse, status_code=201)
-def create_or_get_conversation(
+async def create_or_get_conversation(
     body: ConversationCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -83,7 +83,7 @@ def create_or_get_conversation(
 
 
 @router.get("", response_model=list[ConversationResponse])
-def list_conversations(
+async def list_conversations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -95,7 +95,7 @@ def list_conversations(
 
 
 @router.get("/{conversation_id}", response_model=ConversationResponse)
-def get_conversation(
+async def get_conversation(
     conversation_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -105,7 +105,7 @@ def get_conversation(
 
 
 @router.get("/{conversation_id}/messages", response_model=list[MessageResponse])
-def get_conversation_messages(
+async def get_conversation_messages(
     conversation_id: int,
     limit: int = Query(default=50, le=100),
     before_id: int | None = Query(default=None),
@@ -119,7 +119,7 @@ def get_conversation_messages(
 
 
 @router.patch("/{conversation_id}/read", status_code=204)
-def mark_as_read(
+async def mark_as_read(
     conversation_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

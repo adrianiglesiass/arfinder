@@ -29,7 +29,8 @@ def get_conversations_by_user(db: Session, user_id: int) -> list[Conversation]:
 
 
 def create_conversation(db: Session, user1_id: int, user2_id: int) -> Conversation:
-    conversation = Conversation(user1_id=user1_id, user2_id=user2_id)
+    min_id, max_id = sorted([user1_id, user2_id])
+    conversation = Conversation(user1_id=min_id, user2_id=max_id)
     db.add(conversation)
     db.commit()
     db.refresh(conversation)

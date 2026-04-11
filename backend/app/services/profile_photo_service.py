@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from app.repositories import profile_photo_repository
 from app.repositories import profile_repository
-from app.clients.cloudinary_client import upload_image
+from app.clients.storage_client import upload_image
 from app.core.exceptions.profile import ProfileNotFoundError
 from app.core.exceptions.photo import PhotoAccessDeniedError, ImageUploadFailedError
 
@@ -19,10 +19,10 @@ def _get_photo_or_403(photo, profile):
     return photo
 
 
-def upload(db: Session, user_id: int, file) -> object:
+async def upload(db: Session, user_id: int, file) -> object:
     profile = _get_profile_or_404(db, user_id)
     try:
-        secure_url = upload_image(file)
+        secure_url = await upload_image(file, user_id)
     except Exception as e:
         raise ImageUploadFailedError(str(e))
     return profile_photo_repository.create_profile_photo(db, profile.id, secure_url)

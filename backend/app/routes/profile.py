@@ -65,14 +65,14 @@ def search(
 
 
 @router.get("/me", response_model=ProfileResponse, responses=PROTECTED)
-def get_my_profile(
+async def get_my_profile(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     return profile_service.get_profile(db, current_user.id)
 
 
 @router.post("/me", response_model=ProfileResponse, responses=UNAUTH)
-def create_my_profile(
+async def create_my_profile(
     data: ProfileCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -81,7 +81,7 @@ def create_my_profile(
 
 
 @router.patch("/me", response_model=ProfileResponse, responses=PROTECTED)
-def update_my_profile(
+async def update_my_profile(
     data: ProfileUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -94,18 +94,18 @@ def update_my_profile(
     response_model=ProfilePhotoResponse,
     responses={**PROTECTED, 413: {"description": "File too large"}},
 )
-def upload_profile_photo(
+async def upload_profile_photo(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     if file.size and file.size > _MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="File exceeds 5MB limit")
-    return profile_photo_service.upload(db, current_user.id, file.file)
+    return await profile_photo_service.upload(db, current_user.id, file.file)
 
 
 @router.get("/me/photos", response_model=List[ProfilePhotoResponse], responses=UNAUTH)
-def list_profile_photos(
+async def list_profile_photos(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     return profile_photo_service.list_for_user(db, current_user.id)
@@ -114,7 +114,7 @@ def list_profile_photos(
 @router.patch(
     "/me/photos/reorder", response_model=List[ProfilePhotoResponse], responses=PROTECTED
 )
-def reorder_profile_photos(
+async def reorder_profile_photos(
     data: _PhotoReorder,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -125,7 +125,7 @@ def reorder_profile_photos(
 @router.patch(
     "/me/photos/{photo_id}", response_model=ProfilePhotoResponse, responses=PROTECTED
 )
-def update_profile_photo(
+async def update_profile_photo(
     photo_id: int,
     data: _PhotoUpdate,
     db: Session = Depends(get_db),
@@ -137,7 +137,7 @@ def update_profile_photo(
 
 
 @router.delete("/me/photos/{photo_id}", responses=PROTECTED)
-def delete_profile_photo(
+async def delete_profile_photo(
     photo_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -152,7 +152,7 @@ def get_public_profile(profile_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/me", status_code=204, responses=PROTECTED)
-def delete_my_profile(
+async def delete_my_profile(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     profile_service.delete_profile(db, current_user.id)

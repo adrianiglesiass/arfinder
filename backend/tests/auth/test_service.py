@@ -1,45 +1,47 @@
-import pytest
-from app.services.auth_service import register_user, login_user
-from app.schemas.user import UserCreate
-from app.core.exceptions.auth import (
-    EmailAlreadyRegisteredError,
-    InvalidCredentialsError,
-)
+from app.core.auth_utils import get_or_create_local_user
+from app.models.user import User
+from unittest.mock import MagicMock
 
 
-def test_register_creates_user(db):
-    user = register_user(db, UserCreate(email="test@test.com", password="Password123!"))
+def test_get_or_create_local_user_provisions_new_user(db):
+    # Mock InsForge user
+    insforge_user = MagicMock()
+    insforge_user.id = "if_mock_123"
+    insforge_user.email = "new_user@test.com"
+
+    user = get_or_create_local_user(db, insforge_user)
+
     assert user.id is not None
-    assert user.email == "test@test.com"
-    assert user.password_hash != "Password123!"
+    assert user.email == "new_user@test.com"
+    assert user.insforge_id == "if_mock_123"
 
 
-def test_register_duplicate_email_raises_exception(db):
-    register_user(db, UserCreate(email="test@test.com", password="Password123!"))
-    with pytest.raises(EmailAlreadyRegisteredError) as exc:
-        register_user(db, UserCreate(email="test@test.com", password="Password123!"))
+def test_get_or_create_local_user_finds_existing_by_id(db):
+    # Setup existing user
+    existing = User(email="existing@test.com", insforge_id="if_existing")
+    db.add(existing)
+    db.commit()
 
-    assert "already registered" in str(exc.value).lower()
+    insforge_user = MagicMock()
+    insforge_user.id = "if_existing"
+    insforge_user.email = "existing@test.com"
 
+    user = get_or_create_local_user(db, insforge_user)
 
-def test_login_returns_token(db):
-    register_user(db, UserCreate(email="test@test.com", password="Password123!"))
-    token = login_user(db, email="test@test.com", password="Password123!")
-
-    assert isinstance(token, str)
-    assert len(token) > 0
-
-
-def test_login_wrong_password_raises_exception(db):
-    register_user(db, UserCreate(email="test@test.com", password="Password123!"))
-    with pytest.raises(InvalidCredentialsError) as exc:
-        login_user(db, email="test@test.com", password="Wrongpass1!")
-
-    assert "invalid email or password" in str(exc.value).lower()
+    assert user.id == existing.id
 
 
-def test_login_nonexistent_user_raises_exception(db):
-    with pytest.raises(InvalidCredentialsError) as exc:
-        login_user(db, email="nonexistent@test.com", password="Password123!")
+def test_get_or_create_local_user_links_existing_by_email(db):
+    # Setup user with email but no insforge_id
+    existing = User(email="only_email@test.com", insforge_id=None)
+    db.add(existing)
+    db.commit()
 
-    assert "invalid email or password" in str(exc.value).lower()
+    insforge_user = MagicMock()
+    insforge_user.id = "if_newly_linked"
+    insforge_user.email = "only_email@test.com"
+
+    user = get_or_create_local_user(db, insforge_user)
+
+    assert user.id == existing.id
+    assert user.insforge_id == "if_newly_linked"

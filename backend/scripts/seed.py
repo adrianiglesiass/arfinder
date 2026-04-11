@@ -18,8 +18,6 @@ from app.models.conversation import Conversation
 
 from app.db.database import SessionLocal
 
-from app.core.security import hash_password
-
 from datetime import UTC, date, datetime
 
 
@@ -236,7 +234,6 @@ SEED_USERS = [
     },
     {
         "email": "miguel@arfinder.com",
-        "password": "Arfinder2026!",
         "profile": {
             "name": "Miguel Sánchez",
             "age": 32,
@@ -347,10 +344,11 @@ def seed():
 
         created_users = {}
 
-        for user_data in SEED_USERS:
+        for i, user_data in enumerate(SEED_USERS):
             user = User(
                 email=user_data["email"],
-                password_hash=hash_password(user_data["password"]),
+                insforge_id=f"insforge_{i}",  # Ids deterministas para el seed
+                password_hash=None,
             )
 
             db.add(user)

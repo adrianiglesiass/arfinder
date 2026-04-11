@@ -6,9 +6,9 @@ from app.core.exceptions.conversation import (
     ConversationAccessDeniedError,
     ConversationNotFoundError,
 )
-from app.core.security import decode_token
+from app.core.security import validate_insforge_token
+from app.core.auth_utils import get_or_create_local_user
 from app.db.database import get_db
-from app.repositories.user_repository import get_user_by_id
 from app.services.conversation_service import get_conversation_or_raise
 from app.services.message_service import (
     build_message_payload,
@@ -26,15 +26,12 @@ async def websocket_chat(
     token: str,
     db: Session = Depends(get_db),
 ):
-    user_id = decode_token(token)
-    if not user_id:
+    session = await validate_insforge_token(token)
+    if not session or not session.user:
         await websocket.close(code=4001)
         return
 
-    user = get_user_by_id(db, user_id)
-    if not user:
-        await websocket.close(code=4001)
-        return
+    user = get_or_create_local_user(db, session.user)
 
     try:
         get_conversation_or_raise(db, conversation_id, user.id)

@@ -1,15 +1,11 @@
 import pytest
-from app.services.auth_service import register_user
 from app.services.profile_service import create_profile
-from app.schemas.user import UserCreate
 from app.schemas.profile import ProfileCreate, TypeEnum, ScheduleEnum
 
 
 @pytest.fixture
-def profile_madrid(db):
-    user = register_user(
-        db, UserCreate(email="madrid@test.com", password="Password123!")
-    )
+def profile_madrid(db, create_test_user):
+    user = create_test_user(email="madrid@test.com")
     return create_profile(
         db,
         user.id,
@@ -28,10 +24,8 @@ def profile_madrid(db):
 
 
 @pytest.fixture
-def profile_barcelona(db):
-    user = register_user(
-        db, UserCreate(email="barcelona@test.com", password="Password123!")
-    )
+def profile_barcelona(db, create_test_user):
+    user = create_test_user(email="barcelona@test.com")
     return create_profile(
         db,
         user.id,

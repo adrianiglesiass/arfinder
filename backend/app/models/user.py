@@ -8,8 +8,9 @@ class User(Base):
     __tablename__ = "user"
 
     id = Column(Integer, primary_key=True, index=True)
+    insforge_id = Column(String(255), unique=True, nullable=True, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
     profile = relationship("Profile", back_populates="user", uselist=False)
