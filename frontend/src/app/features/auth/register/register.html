@@ -1,5 +1,5 @@
 <app-auth-card [activeTab]="'register'">
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
     <div class="flex flex-col gap-1.5">
       <label
         for="register-email"
@@ -27,57 +27,31 @@
       <p-password
         inputId="register-password"
         formControlName="password"
-        placeholder="Mínimo 8 caracteres"
+        placeholder="••••••••"
         [toggleMask]="true"
-        [feedback]="true"
         [fluid]="true"
         [invalid]="isInvalid('password')"
-        promptLabel="Introduce una contraseña"
-        weakLabel="Débil"
-        mediumLabel="Media"
-        strongLabel="Fuerte"
-      >
-        <ng-template #footer>
-          <p-divider />
-          <ul class="pl-2 my-0 leading-normal text-sm">
-            <li>Por lo menos una minúscula</li>
-            <li>Por lo menos una mayúscula</li>
-            <li>Por lo menos un número</li>
-            <li>Mínimo 8 caracteres</li>
-          </ul>
-        </ng-template>
-      </p-password>
+      />
       <app-field-error [control]="form.get('password')!" />
     </div>
 
     <div class="flex flex-col gap-1.5">
       <label
-        for="register-confirmPassword"
+        for="register-confirm-password"
         class="block text-xs font-semibold text-gray-500 uppercase tracking-wider"
-        >Repite la contraseña</label
+        >Confirmar contraseña</label
       >
-      <p-password
-        inputId="register-confirmPassword"
+      <input
+        id="register-confirm-password"
+        pInputText
+        type="password"
+        placeholder="••••••••"
         formControlName="confirmPassword"
-        placeholder="Repite la contraseña"
-        [toggleMask]="true"
-        [feedback]="false"
-        [fluid]="true"
-        [invalid]="isInvalid('confirmPassword') || isPasswordMismatch()"
+        [invalid]="isPasswordMismatch()"
+        class="w-full rounded-xl!"
       />
-
-      @if (isInvalid('confirmPassword')) {
-        @if (form.get('confirmPassword')?.errors?.['required']) {
-          <p-message severity="error" size="small" variant="simple"
-            >Debes repetir la contraseña.</p-message
-          >
-        }
-      }
-
       @if (isPasswordMismatch()) {
-        <p-message severity="error" size="small" variant="simple"
-          >Las contraseñas no coinciden.</p-message
-        >
+        <small class="text-red-500 text-xs mt-1">Las contraseñas no coinciden.</small>
       }
     </div>
 
@@ -89,9 +63,30 @@
       pButton
       type="submit"
       [loading]="isLoading()"
-      class="w-full py-3.5 rounded-2xl! font-medium text-sm mt-1 active:scale-95"
+      class="w-full py-4 rounded-2xl! font-semibold text-base mt-2 active:scale-95 transition-all"
     >
-      Crear cuenta
+      Registrarse
+    </button>
+
+    <div class="relative py-2">
+      <p-divider align="center">
+        <span class="text-xs text-gray-400 font-medium uppercase tracking-widest px-2"
+          >O únete con</span
+        >
+      </p-divider>
+    </div>
+
+    <button
+      pButton
+      type="button"
+      [loading]="isLoading()"
+      (click)="onRegisterWithGoogle()"
+      class="w-full py-3.5 rounded-2xl! font-medium text-sm border-gray-200! text-gray-700! bg-white! hover:bg-gray-50! active:scale-95 transition-all"
+    >
+      <div class="flex items-center justify-center gap-0.5">
+        <i class="pi pi-google"></i>
+        <span>oogle</span>
+      </div>
     </button>
   </form>
 </app-auth-card>
