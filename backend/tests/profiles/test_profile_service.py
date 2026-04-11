@@ -1,14 +1,12 @@
 import pytest
-from app.services.auth_service import register_user
 from app.services.profile_service import get_profile, create_profile, update_profile
-from app.schemas.user import UserCreate
 from app.schemas.profile import ProfileCreate, ProfileUpdate
 from app.core.exceptions.profile import ProfileNotFoundError, ProfileAlreadyExistsError
 
 
 @pytest.fixture
-def user(db):
-    return register_user(db, UserCreate(email="test@test.com", password="Password123!"))
+def user(db, create_test_user):
+    return create_test_user(email="test@test.com")
 
 
 @pytest.fixture

@@ -2,22 +2,11 @@ import pytest
 
 
 @pytest.fixture
-def two_users_tokens(client):
-    client.post(
-        "/auth/register", json={"email": "user1@test.com", "password": "Password123!"}
-    )
-    client.post(
-        "/auth/register", json={"email": "user2@test.com", "password": "Password123!"}
-    )
+def two_users_tokens(create_test_user):
+    create_test_user(email="user1@test.com")
+    create_test_user(email="user2@test.com")
 
-    login1 = client.post(
-        "/auth/login", json={"email": "user1@test.com", "password": "Password123!"}
-    )
-    login2 = client.post(
-        "/auth/login", json={"email": "user2@test.com", "password": "Password123!"}
-    )
-
-    return login1.json()["access_token"], login2.json()["access_token"]
+    return "token_user1@test.com", "token_user2@test.com"
 
 
 @pytest.fixture
@@ -37,7 +26,7 @@ def conversation(client, two_users_tokens):
     return res.json()["id"]
 
 
-#  Conexi
+#   Conexi
 
 
 def test_websocket_connect_authenticated(client, two_users_tokens, conversation):
@@ -62,16 +51,12 @@ def test_websocket_connect_invalid_token(client, conversation):
             pass
 
 
-def test_websocket_connect_not_participant(client, two_users_tokens, conversation):
+def test_websocket_connect_not_participant(
+    client, two_users_tokens, conversation, create_test_user
+):
 
-    client.post(
-        "/auth/register",
-        json={"email": "outsider@test.com", "password": "Password123!"},
-    )
-    login = client.post(
-        "/auth/login", json={"email": "outsider@test.com", "password": "Password123!"}
-    )
-    outsider_token = login.json()["access_token"]
+    create_test_user(email="outsider@test.com")
+    outsider_token = "token_outsider@test.com"
 
     with pytest.raises(Exception):
         with client.websocket_connect(

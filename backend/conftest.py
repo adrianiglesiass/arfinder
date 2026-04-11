@@ -1,6 +1,21 @@
 import os
+from unittest.mock import MagicMock, patch
 
+import pytest
 from dotenv import load_dotenv
+from fastapi import Depends
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+import app.models  # noqa: E402
+from app.core.config import settings
+from app.core.dependencies import bearer_scheme, get_current_user
+from app.core.exceptions.auth import InvalidCredentialsError
+from app.db.database import Base, get_db
+from app.main import app
+from app.models.user import User
+from app.repositories import user_repository
 
 load_dotenv(".env.test", override=False)
 
@@ -13,15 +28,6 @@ os.environ.setdefault(
 os.environ.setdefault("CLOUDINARY_CLOUD_NAME", "test")
 os.environ.setdefault("CLOUDINARY_API_KEY", "test")
 os.environ.setdefault("CLOUDINARY_API_SECRET", "test")
-
-import app.models  # noqa: E402
-import pytest  # noqa: E402
-from app.core.config import settings  # noqa: E402
-from app.db.database import Base, get_db  # noqa: E402
-from app.main import app  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
-from sqlalchemy import create_engine  # noqa: E402
-from sqlalchemy.orm import sessionmaker  # noqa: E402
 
 engine = create_engine(settings.DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -69,22 +75,66 @@ def db():
 
 
 @pytest.fixture(scope="function")
-def client():
+def client(db, create_test_user):
+    # Create default user
+    default_user = create_test_user(
+        email="test@test.com", insforge_id="default_test_user"
+    )
+
+    async def mock_get_current_user(
+        credentials=Depends(bearer_scheme), db_session=Depends(override_get_db)
+    ):
+        if not credentials:
+            raise InvalidCredentialsError()
+
+        token = credentials.credentials
+        if token.startswith("token_"):
+            email = token.replace("token_", "")
+            user = user_repository.get_user_by_email(db_session, email)
+            if user:
+                return user
+
+        return default_user
+
+    async def mock_validate_token(token):
+        email = "test@test.com"
+        if token.startswith("token_"):
+            email = token.replace("token_", "")
+
+        session = MagicMock()
+        session.user.id = f"if_{email}"
+        session.user.email = email
+        return session
+
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as c:
-        yield c
+    app.dependency_overrides[get_current_user] = mock_get_current_user
+
+    # Patch direct calls to validate_insforge_token (for WebSockets)
+    with patch(
+        "app.routes.ws.validate_insforge_token", side_effect=mock_validate_token
+    ):
+        with TestClient(app) as c:
+            yield c
+
     app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="function")
-def auth_token(client):
-    client.post(
-        "/auth/register", json={"email": "test@test.com", "password": "Password123!"}
-    )
-    login = client.post(
-        "/auth/login", json={"email": "test@test.com", "password": "Password123!"}
-    )
-    return login.json()["access_token"]
+def create_test_user(db):
+    def _create(email: str, insforge_id: str = None):
+        user = User(email=email, insforge_id=insforge_id or f"test_{email}")
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+
+    return _create
+
+
+@pytest.fixture(scope="function")
+def auth_token():
+    # Default token for test@test.com
+    return "token_test@test.com"
 
 
 @pytest.fixture(scope="function")

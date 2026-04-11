@@ -2,30 +2,22 @@ import pytest
 
 
 @pytest.fixture
-def second_user_headers(client):
-    """Registra un segundo usuario y devuelve sus headers."""
-    client.post(
-        "/auth/register",
-        json={"email": "other@test.com", "password": "Password123!"},
-    )
-    login = client.post(
-        "/auth/login",
-        json={"email": "other@test.com", "password": "Password123!"},
-    )
-    return {"Authorization": f"Bearer {login.json()['access_token']}"}
+def second_user_headers(create_test_user):
+    """Crea un segundo usuario y devuelve sus headers con dummy token."""
+    email = "other@test.com"
+    create_test_user(email=email)
+    return {"Authorization": f"Bearer token_{email}"}
 
 
 @pytest.fixture
-def second_user_id(client):
-    res = client.post(
-        "/auth/register",
-        json={"email": "other@test.com", "password": "Password123!"},
-    )
-    return res.json()["id"]
+def second_user_id(create_test_user):
+    user = create_test_user(email="other@test.com")
+    return user.id
 
 
 @pytest.fixture
 def current_user_id(client, auth_headers):
+    # This still works because /auth/me is mocked to return the default user or matching user
     res = client.get("/auth/me", headers=auth_headers)
     return res.json()["id"]
 
@@ -148,18 +140,12 @@ def test_list_messages_conversation_not_found(client, auth_headers):
     assert res.status_code == 404
 
 
-def test_list_messages_access_denied(client, auth_headers, second_user_id):
-    third_res = client.post(
-        "/auth/register",
-        json={"email": "third@test.com", "password": "Password123!"},
-    )
-    third_id = third_res.json()["id"]
+def test_list_messages_access_denied(client, auth_headers, create_test_user):
+    third_user = create_test_user(email="third@test.com")
+    third_id = third_user.id
 
-    login = client.post(
-        "/auth/login",
-        json={"email": "other@test.com", "password": "Password123!"},
-    )
-    second_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+    second_headers = {"Authorization": "Bearer token_other@test.com"}
+    create_test_user(email="other@test.com")
 
     res = client.post(
         "/conversations",
@@ -213,17 +199,12 @@ def test_get_conversation_not_found(client, auth_headers):
     assert res.status_code == 404
 
 
-def test_get_conversation_access_denied(client, auth_headers, second_user_id):
-    third_res = client.post(
-        "/auth/register",
-        json={"email": "third@test.com", "password": "Password123!"},
-    )
-    third_id = third_res.json()["id"]
-    login = client.post(
-        "/auth/login",
-        json={"email": "other@test.com", "password": "Password123!"},
-    )
-    second_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+def test_get_conversation_access_denied(client, auth_headers, create_test_user):
+    third_user = create_test_user(email="third@test.com")
+    third_id = third_user.id
+
+    create_test_user(email="other@test.com")
+    second_headers = {"Authorization": "Bearer token_other@test.com"}
     res = client.post(
         "/conversations",
         json={"other_user_id": third_id},
