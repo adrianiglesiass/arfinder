@@ -11,10 +11,9 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str
 
-    # Cloudinary
-    CLOUDINARY_CLOUD_NAME: str
-    CLOUDINARY_API_KEY: str
-    CLOUDINARY_API_SECRET: str
+    # InsForge
+    INSFORGE_URL: str
+    INSFORGE_API_KEY: str
 
     # Nominatim
     NOMINATIM_USER_AGENT: str
