@@ -9,7 +9,7 @@ ENV_PATH = os.path.join(BASE_DIR, ".env")
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "mysql+pymysql://root:password@localhost:3306/arfinder"
+    DATABASE_URL: str = "mysql+pymysql://root:password@localhost:3306/arfinder_db"
 
     # InsForge
     INSFORGE_URL: str = "https://placeholder.insforge.app"
