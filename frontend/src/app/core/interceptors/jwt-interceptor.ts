@@ -3,23 +3,26 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { catchError, throwError } from 'rxjs';
+import { from, switchMap } from 'rxjs';
 
 import { AuthService } from '@core/auth/auth.service';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = inject(AuthService).getToken();
+  const authService = inject(AuthService);
 
-  if (token) {
-    const newReq = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return next(newReq);
-  }
-
-  return next(req);
+  return from(authService.getToken()).pipe(
+    switchMap((token) => {
+      if (token) {
+        const newReq = req.clone({
+          setHeaders: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return next(newReq);
+      }
+      return next(req);
+    })
+  );
 };
 
 export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {

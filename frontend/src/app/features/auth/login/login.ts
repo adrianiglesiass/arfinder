@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
+import { DividerModule } from 'primeng/divider';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { PasswordModule } from 'primeng/password';
@@ -24,6 +25,7 @@ import { isControlInvalid } from '@shared/utils/form.utils';
     InputTextModule,
     MessageModule,
     PasswordModule,
+    DividerModule,
     FieldError,
     AuthCard,
   ],
@@ -53,11 +55,8 @@ export default class Login {
     this.isLoading.set(true);
 
     try {
-      // getRawValue() da el objeto tipado sin necesidad de poner "!"
       const credentials: UserCreate = this.form.getRawValue();
-
       await this.authService.login(credentials);
-
       await this.router.navigate(['']);
     } catch (error: unknown) {
       if (error instanceof HttpErrorResponse) {
@@ -67,6 +66,16 @@ export default class Login {
         this.errorMessage.set('Ocurrió un error inesperado al iniciar sesión.');
       }
     } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  async onLoginWithGoogle() {
+    this.isLoading.set(true);
+    try {
+      await this.authService.loginWithGoogle();
+    } catch {
+      this.errorMessage.set('Error al conectar con Google.');
       this.isLoading.set(false);
     }
   }

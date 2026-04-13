@@ -75,19 +75,27 @@ export default class Register {
 
     try {
       await this.authService.register(credentials);
-
       await this.authService.login(credentials);
-
-      await this.router.navigate(['/onboarding']);
+      await this.router.navigate(['']);
     } catch (error: unknown) {
       if (error instanceof HttpErrorResponse) {
         const { general, fieldErrors } = this.errorService.processError(error);
         this.errorMessage.set(general);
         this.errorService.applyValidationErrors(this.form, fieldErrors);
       } else {
-        this.errorMessage.set('Ocurrió un error inesperado.');
+        this.errorMessage.set('Ocurrió un error inesperado al registrarse.');
       }
     } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  async onRegisterWithGoogle() {
+    this.isLoading.set(true);
+    try {
+      await this.authService.loginWithGoogle();
+    } catch {
+      this.errorMessage.set('Error al conectar con Google.');
       this.isLoading.set(false);
     }
   }

@@ -2,6 +2,8 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
+import { environment } from '@env/environment';
+import { InsForgeClient } from '@insforge/sdk';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 
@@ -14,6 +16,14 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(withInterceptors([jwtInterceptor, authErrorInterceptor])),
+    {
+      provide: InsForgeClient,
+      useFactory: () =>
+        new InsForgeClient({
+          baseUrl: environment.insforge.url,
+          anonKey: environment.insforge.apiKey,
+        }),
+    },
     providePrimeNG({
       theme: {
         preset: Aura,
