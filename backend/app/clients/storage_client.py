@@ -1,20 +1,28 @@
+import asyncio
 import uuid
-from insforge import InsforgeClient
+import cloudinary
+import cloudinary.uploader
 from app.core.config import settings
 
-insforge = InsforgeClient(settings.INSFORGE_URL, settings.INSFORGE_API_KEY)
+cloudinary.config(
+    cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+    api_key=settings.CLOUDINARY_API_KEY,
+    api_secret=settings.CLOUDINARY_API_SECRET,
+    secure=True,
+)
 
 
 async def upload_image(file, user_id: int) -> str:
-    path = f"profiles/{user_id}/{uuid.uuid4()}.jpg"
-    bucket = "photos"
 
-    if hasattr(file, "read"):
-        file_bytes = file.read()
-    else:
-        file_bytes = file
+    folder = "arfinder/profiles"
+    public_id = f"{user_id}/{uuid.uuid4()}"
 
-    await insforge.storage.upload_object(bucket, path, file_bytes)
+    result = await asyncio.to_thread(
+        cloudinary.uploader.upload,
+        file,
+        folder=folder,
+        public_id=public_id,
+        resource_type="image",
+    )
 
-    # Construct public URL
-    return f"{settings.OSS_HOST}/api/storage/buckets/{bucket}/objects/{path}"
+    return result["secure_url"]

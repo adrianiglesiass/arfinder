@@ -28,6 +28,9 @@ os.environ.setdefault(
 os.environ.setdefault("INSFORGE_URL", "https://placeholder.insforge.app")
 os.environ.setdefault("INSFORGE_API_KEY", "placeholder_key")
 os.environ.setdefault("OSS_HOST", "https://placeholder.insforge.app")
+os.environ.setdefault("CLOUDINARY_CLOUD_NAME", "test")
+os.environ.setdefault("CLOUDINARY_API_KEY", "test")
+os.environ.setdefault("CLOUDINARY_API_SECRET", "test")
 os.environ.setdefault("NOMINATIM_USER_AGENT", "Arfinder/1.0")
 
 engine = create_engine(settings.DATABASE_URL)
