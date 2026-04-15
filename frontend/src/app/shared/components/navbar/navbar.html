@@ -1,5 +1,7 @@
 <nav class="fixed top-0 w-full z-40 glass-nav border-b border-b-[#00000018]">
-  <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+  <div
+    class="max-w-7xl mx-auto px-6 h-14 md:h-20 flex items-center justify-center md:justify-between"
+  >
     <div class="flex justify-center mb-2">
       <a routerLink="/" class="no-underline flex items-center">
         <app-arfinder-logo size="sm" />
@@ -8,6 +10,6 @@
 
     <app-navbar-links />
 
-    <app-navbar-user-menu />
+    <app-navbar-user-menu class="hidden md:block text-primary" />
   </div>
 </nav>
