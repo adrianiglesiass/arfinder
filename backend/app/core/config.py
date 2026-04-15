@@ -31,6 +31,8 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "Arfinder"
+    DEBUG: bool = False
+    DEV_BYPASS_TOKEN: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=ENV_PATH, env_file_encoding="utf-8", extra="ignore"

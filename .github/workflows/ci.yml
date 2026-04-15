@@ -15,7 +15,7 @@ defaults:
     working-directory: backend
 
 env:
-  DATABASE_URL: mysql+pymysql://root:root1234@localhost:3306/arfinder_test
+  DATABASE_URL: postgresql+psycopg2://root:root1234@localhost:5432/arfinder_test
   SECRET_KEY: test-secret-key-for-ci
   ALGORITHM: HS256
   ACCESS_TOKEN_EXPIRE_MINUTES: 1440
@@ -32,18 +32,19 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      mysql:
-        image: mysql:8.0
+      postgres:
+        image: postgres:15-alpine
         env:
-          MYSQL_ROOT_PASSWORD: root1234
-          MYSQL_DATABASE: arfinder_test
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root1234
+          POSTGRES_DB: arfinder_test
         ports:
-          - 3306:3306
+          - 5432:5432
         options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4

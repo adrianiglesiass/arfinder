@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,13 +8,22 @@ from app.routes.auth import router as auth_router
 from app.routes.conversations import router as conversations_router
 from app.routes.messages import router as messages_router
 from app.routes.profile import router as profile_router
-from app.routes.ws import router as ws_router
 from app.routes.cities import router as cities_router
+from app.core.realtime_bridge import realtime_bridge
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await realtime_bridge.start()
+    yield
+    await realtime_bridge.stop()
+
 
 app = FastAPI(
     title=settings.APP_NAME,
     description="Arfinder API documentation",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -34,7 +44,6 @@ app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(messages_router)
 app.include_router(conversations_router)
-app.include_router(ws_router)
 app.include_router(cities_router)
 
 

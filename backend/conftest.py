@@ -1,5 +1,5 @@
 import os
-from unittest.mock import MagicMock, patch
+
 
 import pytest
 from dotenv import load_dotenv
@@ -23,7 +23,8 @@ os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only-32chars")
 os.environ.setdefault("ALGORITHM", "HS256")
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
 os.environ.setdefault(
-    "DATABASE_URL", "mysql+pymysql://root:root1234@localhost:3306/arfinder_test"
+    "DATABASE_URL",
+    "postgresql+psycopg2://root:root1234@localhost:5433/arfinder_test_db",
 )
 os.environ.setdefault("INSFORGE_URL", "https://placeholder.insforge.app")
 os.environ.setdefault("INSFORGE_API_KEY", "placeholder_key")
@@ -100,25 +101,11 @@ def client(db, create_test_user):
 
         return default_user
 
-    async def mock_validate_token(token):
-        email = "test@test.com"
-        if token.startswith("token_"):
-            email = token.replace("token_", "")
-
-        session = MagicMock()
-        session.user.id = f"if_{email}"
-        session.user.email = email
-        return session
-
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = mock_get_current_user
 
-    # Patch direct calls to validate_insforge_token (for WebSockets)
-    with patch(
-        "app.routes.ws.validate_insforge_token", side_effect=mock_validate_token
-    ):
-        with TestClient(app) as c:
-            yield c
+    with TestClient(app) as c:
+        yield c
 
     app.dependency_overrides.clear()
 

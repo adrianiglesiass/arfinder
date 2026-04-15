@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user
 from app.core.openapi import NOT_FOUND, PROTECTED, UNAUTH, BAD_REQUEST
 from app.db.database import get_db
+from app.core.route_utils import parse_age_param, parse_bool_param
 from app.models.profile import ScheduleEnum, TypeEnum
 from app.models.user import User
 from app.schemas.profile import (
@@ -37,28 +38,33 @@ class _PhotoReorder(BaseModel):
 def search(
     city: Optional[str] = Query(None),
     budget_max: Optional[int] = Query(None),
-    has_pets: Optional[bool] = Query(None),
-    is_smoker: Optional[bool] = Query(None),
+    has_pets: Optional[bool | str] = Query(None),
+    is_smoker: Optional[bool | str] = Query(None),
     schedule: Optional[ScheduleEnum] = Query(None),
     profile_type: Optional[TypeEnum] = Query(None),
     gender: Optional[str] = Query(None),
-    age_min: Optional[int] = Query(None),
-    age_max: Optional[int] = Query(None),
+    age_min: Optional[int | str] = Query(None),
+    age_max: Optional[int | str] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
+    clean_age_min = parse_age_param(age_min, "age_min")
+    clean_age_max = parse_age_param(age_max, "age_max")
+    clean_has_pets = parse_bool_param(has_pets, "has_pets")
+    clean_is_smoker = parse_bool_param(is_smoker, "is_smoker")
+
     return profile_service.search_profiles(
         db,
         city,
         budget_max,
-        has_pets,
-        is_smoker,
+        clean_has_pets,
+        clean_is_smoker,
         schedule,
         profile_type,
         gender,
-        age_min,
-        age_max,
+        clean_age_min,
+        clean_age_max,
         skip,
         limit,
     )
@@ -120,6 +126,13 @@ async def reorder_profile_photos(
     current_user: User = Depends(get_current_user),
 ):
     return profile_photo_service.reorder(db, current_user.id, data.ordered_ids)
+
+
+@router.delete("/me/photos/reorder", include_in_schema=False)
+async def catch_reorder_delete():
+    raise HTTPException(
+        status_code=405, detail="Method Not Allowed", headers={"Allow": "PATCH"}
+    )
 
 
 @router.patch(
