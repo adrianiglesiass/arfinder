@@ -9,20 +9,23 @@ ENV_PATH = os.path.join(BASE_DIR, ".env")
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "mysql+pymysql://root:password@localhost:3306/arfinder_db"
+    DATABASE_URL: str
 
     # InsForge
-    INSFORGE_URL: str = "https://placeholder.insforge.app"
-    INSFORGE_API_KEY: str = "placeholder_key"
-    OSS_HOST: str = "https://placeholder.insforge.app"
+    INSFORGE_URL: str
+    INSFORGE_API_KEY: str
+    OSS_HOST: str
+
+    # Cloudinary
+    CLOUDINARY_CLOUD_NAME: str
+    CLOUDINARY_API_KEY: str
+    CLOUDINARY_API_SECRET: str
 
     # Nominatim
     NOMINATIM_USER_AGENT: str = "Arfinder/1.0"
 
     # JWT Authentication
-    SECRET_KEY: str = (
-        "token_de_seguridad_muy_largo_para_evitar_warnings_de_pytest_xdist"
-    )
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 

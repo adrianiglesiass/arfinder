@@ -9,12 +9,13 @@ certifi==2026.2.25
 cffi==2.0.0
 charset-normalizer==3.4.7
 click==8.3.1
+cloudinary==1.44.1
 colorama==0.4.6
 coverage==7.13.4
-insforge
 cryptography==42.0.5
 dnspython==2.8.0
 email-validator==2.3.0
+execnet==2.1.2
 fastapi==0.133.0
 graphql-core==3.2.8
 greenlet==3.3.2
@@ -27,6 +28,7 @@ hypothesis-graphql==0.12.0
 hypothesis-jsonschema==0.23.1
 idna==3.11
 iniconfig==2.3.0
+insforge==0.1.0
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 jsonschema_rs==0.45.1
@@ -49,8 +51,10 @@ PyJWT==2.11.0
 PyMySQL==1.1.2
 pyrate-limiter==4.1.0
 pytest==9.0.2
+pytest-asyncio==1.3.0
 pytest-cov==7.0.0
 pytest-env==1.5.0
+pytest-xdist==3.6.1
 python-dotenv==1.2.1
 python-multipart==0.0.22
 pytokens==0.4.1
