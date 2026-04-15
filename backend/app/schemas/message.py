@@ -13,3 +13,7 @@ class MessageResponse(BaseModel):
     read_at: UTCDatetime | None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class MessageCreate(BaseModel):
+    content: str

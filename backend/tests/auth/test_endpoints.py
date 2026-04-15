@@ -12,6 +12,12 @@ def test_login_endpoint_returns_404(client):
     assert response.status_code == 404
 
 
+def test_me_endpoint_authenticated(client, auth_headers):
+    res = client.get("/auth/me", headers=auth_headers)
+    assert res.status_code == 200
+    assert res.json()["email"] == "test@test.com"
+
+
 def test_me_endpoint_unauthorized(client):
     res = client.get("/auth/me")
     assert res.status_code == 401

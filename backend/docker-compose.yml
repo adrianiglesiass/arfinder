@@ -2,32 +2,34 @@ version: '3.8'
 
 services:
   db:
-    image: mysql:8.0
+    image: postgres:15-alpine
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root1234
-      MYSQL_DATABASE: arfinder_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root1234
+      POSTGRES_DB: arfinder_db
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
     ports:
-      - '3306:3306'
+      - '5432:5432'
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      test: ["CMD-SHELL", "pg_isready -U root -d arfinder_db"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 10s
 
   db-test:
-    image: mysql:8.0
+    image: postgres:15-alpine
     restart: 'no'
     environment:
-      MYSQL_ROOT_PASSWORD: root1234
-      MYSQL_DATABASE: arfinder_test_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root1234
+      POSTGRES_DB: arfinder_test_db
     tmpfs:
-      - /var/lib/mysql
+      - /var/lib/postgresql/data
     ports:
-      - '3307:3306'
+      - '5433:5432'
 
 volumes:
   db_data:

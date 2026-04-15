@@ -12,7 +12,8 @@ from app.schemas.conversation import (
     ConversationResponse,
     ParticipantSummary,
 )
-from app.schemas.message import MessageResponse
+from app.schemas.message import MessageCreate, MessageResponse
+from app.services import message_service
 from app.services.conversation_service import (
     get_conversation_or_raise,
     get_or_create_conversation,
@@ -125,3 +126,17 @@ async def mark_as_read(
     current_user: User = Depends(get_current_user),
 ):
     mark_conversation_messages_as_read(db, conversation_id, current_user.id)
+
+
+@router.post(
+    "/{conversation_id}/messages", response_model=MessageResponse, status_code=201
+)
+async def send_new_message(
+    conversation_id: int,
+    body: MessageCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await message_service.send_message(
+        db, conversation_id, current_user.id, body.content
+    )
