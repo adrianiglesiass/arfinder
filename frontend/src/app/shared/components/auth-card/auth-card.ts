@@ -9,5 +9,5 @@ import { ArfinderLogo } from '@shared/components/arfinder-logo/arfinder-logo';
   templateUrl: './auth-card.html',
 })
 export class AuthCard {
-  activeTab = input.required<'login' | 'register'>();
+  activeTab = input.required<'login' | 'register' | 'verify'>();
 }

@@ -74,7 +74,13 @@ export default class Register {
     };
 
     try {
-      await this.authService.register(credentials);
+      const response = await this.authService.register(credentials);
+      if (response?.requireEmailVerification) {
+        await this.router.navigate(['/verify-email'], {
+          queryParams: { email: credentials.email },
+        });
+        return;
+      }
       await this.authService.login(credentials);
       await this.router.navigate(['']);
     } catch (error: unknown) {
