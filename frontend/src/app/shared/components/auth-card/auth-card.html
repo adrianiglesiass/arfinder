@@ -14,30 +14,37 @@
     </div>
 
     <div class="bg-white/80 backdrop-blur-xl p-8 rounded-4xl shadow-glass border border-gray-100">
-      <div class="flex p-1 bg-gray-100/50 rounded-2xl mb-8">
-        <a
-          routerLink="/login"
-          class="flex-1 py-2 text-sm font-medium rounded-xl transition-all text-center"
-          [class]="
-            activeTab() === 'login'
-              ? 'bg-white shadow-sm text-primary'
-              : 'text-gray-500 hover:text-primary'
-          "
-        >
-          Entrar
-        </a>
-        <a
-          routerLink="/register"
-          class="flex-1 py-2 text-sm font-medium rounded-xl transition-all text-center"
-          [class]="
-            activeTab() === 'register'
-              ? 'bg-white shadow-sm text-primary'
-              : 'text-gray-500 hover:text-primary'
-          "
-        >
-          Registro
-        </a>
-      </div>
+      @if (activeTab() !== 'verify') {
+        <div class="flex p-1 bg-gray-100/50 rounded-2xl mb-8">
+          <a
+            routerLink="/login"
+            class="flex-1 py-2 text-sm font-medium rounded-xl transition-all text-center"
+            [class]="
+              activeTab() === 'login'
+                ? 'bg-white shadow-sm text-primary'
+                : 'text-gray-500 hover:text-primary'
+            "
+          >
+            Entrar
+          </a>
+          <a
+            routerLink="/register"
+            class="flex-1 py-2 text-sm font-medium rounded-xl transition-all text-center"
+            [class]="
+              activeTab() === 'register'
+                ? 'bg-white shadow-sm text-primary'
+                : 'text-gray-500 hover:text-primary'
+            "
+          >
+            Registro
+          </a>
+        </div>
+      } @else {
+        <div class="text-center mb-8">
+          <h2 class="text-2xl font-bold text-gray-900">Verificar Email</h2>
+          <p class="text-gray-500 mt-2">Hemos enviado un código a tu correo electrónico.</p>
+        </div>
+      }
 
       <ng-content />
     </div>

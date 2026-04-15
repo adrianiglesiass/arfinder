@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 
 import { environment } from '@env/environment';
 import { InsForgeClient } from '@insforge/sdk';
+import { CreateUserResponse, VerifyEmailResponse } from '@insforge/shared-schemas';
 import { firstValueFrom } from 'rxjs';
 
 import type { UserResponse } from '@core/api/api.models';
@@ -57,15 +58,42 @@ export class AuthService {
     }
   }
 
-  async register(credentials: { email: string; password: string }): Promise<void> {
+  async register(credentials: {
+    email: string;
+    password: string;
+  }): Promise<CreateUserResponse | null> {
     const { data, error } = await this.insforge.auth.signUp({
       email: credentials.email,
       password: credentials.password,
     });
     if (error) throw error;
     if (data) {
+      if (!data.requireEmailVerification) {
+        await this.syncUser();
+      }
+    }
+    return data;
+  }
+
+  async verifyEmail(email: string, otp: string): Promise<VerifyEmailResponse | null> {
+    const { data, error } = await this.insforge.auth.verifyEmail({
+      email,
+      otp,
+    });
+
+    if (error) throw error;
+
+    if (data) {
       await this.syncUser();
     }
+    return data;
+  }
+
+  async resendVerificationEmail(email: string): Promise<void> {
+    const { error } = await this.insforge.auth.resendVerificationEmail({
+      email,
+    });
+    if (error) throw error;
   }
 
   async logout(): Promise<void> {
@@ -84,8 +112,7 @@ export class AuthService {
         this.http.get<UserResponse>(`${environment.APIURL}/auth/me`)
       );
       this.currentUser.set(user);
-    } catch (error) {
-      console.error('Failed to sync user with backend:', error);
+    } catch {
       this.currentUser.set(null);
     }
   }
