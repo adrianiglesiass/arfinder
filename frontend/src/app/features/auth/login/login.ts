@@ -1,63 +1,35 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { ButtonModule } from 'primeng/button';
-import { DividerModule } from 'primeng/divider';
-import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
-import { PasswordModule } from 'primeng/password';
-
-import type { UserCreate } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
 import { ErrorService } from '@core/errors';
 
-import { AuthCard } from '@shared/components/auth-card/auth-card';
-import { AuthSocialButton } from '@shared/components/auth-social-button/auth-social-button';
-import { FieldError } from '@shared/components/field-error/field-error';
-import { isControlInvalid } from '@shared/utils/form.utils';
+import { AuthForm } from '@features/auth/components/auth-form/auth-form';
+
+interface AuthCredentials {
+  email: string;
+  password: string;
+}
 
 @Component({
   selector: 'app-login',
-  imports: [
-    ReactiveFormsModule,
-    ButtonModule,
-    InputTextModule,
-    MessageModule,
-    PasswordModule,
-    DividerModule,
-    FieldError,
-    AuthCard,
-    AuthSocialButton,
-  ],
+  imports: [AuthForm],
   templateUrl: './login.html',
 })
 export default class Login {
-  private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly errorService = inject(ErrorService);
 
+  isLoading = signal(false);
   errorMessage = signal<string | null>(null);
-  isLoading = signal<boolean>(false);
 
-  form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]],
-  });
-
-  async onSubmit() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
+  async onFormSubmit(credentials: AuthCredentials) {
     this.errorMessage.set(null);
     this.isLoading.set(true);
 
     try {
-      const credentials: UserCreate = this.form.getRawValue();
       await this.authService.login(credentials);
       await this.router.navigate(['']);
     } catch (error: unknown) {
@@ -72,17 +44,15 @@ export default class Login {
     }
   }
 
-  async onLoginWithGoogle() {
+  async onSocialAuth() {
+    this.errorMessage.set(null);
     this.isLoading.set(true);
+
     try {
       await this.authService.loginWithGoogle();
     } catch {
       this.errorMessage.set('Error al conectar con Google.');
       this.isLoading.set(false);
     }
-  }
-
-  isInvalid(controlName: string): boolean {
-    return isControlInvalid(this.form, controlName);
   }
 }

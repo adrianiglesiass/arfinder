@@ -23,11 +23,10 @@ import { MessageModule } from 'primeng/message';
 import { AuthService } from '@core/auth/auth.service';
 import { ErrorService } from '@core/errors';
 
-import { AuthCard } from '@shared/components/auth-card/auth-card';
+import { AuthCard } from '@features/auth/components/auth-card/auth-card';
 
 @Component({
   selector: 'app-verify-email',
-  standalone: true,
   imports: [ReactiveFormsModule, ButtonModule, MessageModule, AuthCard],
   templateUrl: './verify-email.html',
 })
