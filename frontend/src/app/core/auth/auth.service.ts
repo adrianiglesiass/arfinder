@@ -1,11 +1,10 @@
-import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { environment } from '@env/environment';
+import { AuthApiService } from '@infrastructure/api/auth/auth.api.service';
 import { InsForgeClient } from '@insforge/sdk';
 import { CreateUserResponse, VerifyEmailResponse } from '@insforge/shared-schemas';
-import { firstValueFrom } from 'rxjs';
 
 import type { UserResponse } from '@core/api/api.models';
 
@@ -13,7 +12,7 @@ import type { UserResponse } from '@core/api/api.models';
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly http = inject(HttpClient);
+  private readonly authApi = inject(AuthApiService);
   private readonly insforge = inject(InsForgeClient);
   private readonly router = inject(Router);
 
@@ -108,9 +107,7 @@ export class AuthService {
 
   private async syncUser(): Promise<void> {
     try {
-      const user = await firstValueFrom(
-        this.http.get<UserResponse>(`${environment.APIURL}/auth/me`)
-      );
+      const user = await this.authApi.getMe();
       this.currentUser.set(user);
     } catch {
       this.currentUser.set(null);
