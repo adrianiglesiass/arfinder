@@ -1,10 +1,28 @@
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 from app.models.profile_photo import ProfilePhoto
 
 
+def _get_next_photo_order_locked(db: Session, profile_id: int) -> int:
+
+    db.execute(text("SELECT pg_advisory_xact_lock(:lock_id)"), {"lock_id": profile_id})
+    max_order = (
+        db.query(func.max(ProfilePhoto.order))
+        .filter(ProfilePhoto.profile_id == profile_id)
+        .scalar()
+    )
+    return (max_order if max_order is not None else -1) + 1
+
+
 def create_profile_photo(
-    db: Session, profile_id: int, photo_url: str, order: int = 0, is_main: bool = False
+    db: Session,
+    profile_id: int,
+    photo_url: str,
+    order: int | None = None,
+    is_main: bool = False,
 ) -> ProfilePhoto:
+    if order is None:
+        order = _get_next_photo_order_locked(db, profile_id)
     photo = ProfilePhoto(
         profile_id=profile_id, photo_url=photo_url, order=order, is_main=is_main
     )
@@ -12,19 +30,6 @@ def create_profile_photo(
     db.commit()
     db.refresh(photo)
     return photo
-
-
-def get_photos_by_profile(db: Session, profile_id: int):
-    return (
-        db.query(ProfilePhoto)
-        .filter(ProfilePhoto.profile_id == profile_id)
-        .order_by(ProfilePhoto.order.asc())
-        .all()
-    )
-
-
-def get_profile_photo_by_id(db: Session, photo_id: int) -> ProfilePhoto | None:
-    return db.query(ProfilePhoto).filter(ProfilePhoto.id == photo_id).first()
 
 
 def update_profile_photo(
@@ -40,6 +45,19 @@ def update_profile_photo(
     db.commit()
     db.refresh(photo)
     return photo
+
+
+def get_photos_by_profile(db: Session, profile_id: int) -> list[ProfilePhoto]:
+    return (
+        db.query(ProfilePhoto)
+        .filter(ProfilePhoto.profile_id == profile_id)
+        .order_by(ProfilePhoto.order.asc())
+        .all()
+    )
+
+
+def get_profile_photo_by_id(db: Session, photo_id: int) -> ProfilePhoto:
+    return db.query(ProfilePhoto).filter(ProfilePhoto.id == photo_id).first()
 
 
 def delete_profile_photo(db: Session, photo: ProfilePhoto):
@@ -65,9 +83,7 @@ def reorder_photos(
         )
         if photo:
             photo.order = new_order
-
     db.commit()
-
     return (
         db.query(ProfilePhoto)
         .filter(ProfilePhoto.profile_id == profile_id)

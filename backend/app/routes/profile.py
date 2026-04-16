@@ -20,7 +20,7 @@ from app.services import profile_photo_service, profile_service
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
-_MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
+_MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
 class _PhotoUpdate(BaseModel):
@@ -106,7 +106,7 @@ async def upload_profile_photo(
     current_user: User = Depends(get_current_user),
 ):
     if file.size and file.size > _MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail="File exceeds 5MB limit")
+        raise HTTPException(status_code=413, detail="File exceeds 10MB limit")
     return await profile_photo_service.upload(db, current_user.id, file.file)
 
 
@@ -114,7 +114,12 @@ async def upload_profile_photo(
 async def list_profile_photos(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
-    return profile_photo_service.list_for_user(db, current_user.id)
+    try:
+        return profile_photo_service.list_for_user(db, current_user.id)
+    except HTTPException as e:
+        if e.status_code == 404:
+            return []
+        raise
 
 
 @router.patch(

@@ -44,7 +44,7 @@ async def test_upload_profile_photo_success(client, auth_headers, db, profile):
 
 @pytest.mark.asyncio
 async def test_upload_profile_photo_file_too_large(client, auth_headers, profile):
-    large_content = b"0" * (6 * 1024 * 1024)
+    large_content = b"0" * (11 * 1024 * 1024)
     file = BytesIO(large_content)
 
     response = client.post(
@@ -54,7 +54,7 @@ async def test_upload_profile_photo_file_too_large(client, auth_headers, profile
     )
 
     assert response.status_code == 413
-    assert "File exceeds 5MB limit" in response.json()["detail"]
+    assert "File exceeds 10MB limit" in response.json()["detail"]
 
 
 def test_list_profile_photos(client, auth_headers, profile, db):
