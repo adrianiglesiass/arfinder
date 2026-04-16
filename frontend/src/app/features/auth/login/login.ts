@@ -31,7 +31,7 @@ export default class Login {
 
     try {
       await this.authService.login(credentials);
-      await this.router.navigate(['']);
+      await this.authService.navigatePostAuth();
     } catch (error: unknown) {
       if (error instanceof HttpErrorResponse) {
         const { general } = this.errorService.processError(error);

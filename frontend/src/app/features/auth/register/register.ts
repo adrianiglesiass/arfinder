@@ -47,7 +47,7 @@ export default class Register {
         return;
       }
       await this.authService.login(credentials);
-      await this.router.navigate(['']);
+      await this.authService.navigatePostAuth();
     } catch (error: unknown) {
       if (error instanceof HttpErrorResponse) {
         const { general, fieldErrors } = this.errorService.processError(error);
