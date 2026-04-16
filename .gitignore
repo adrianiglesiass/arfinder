@@ -27,3 +27,6 @@ desktop.ini
 .roo
 .trae
 .windsurf
+
+# Local instructions file
+.github/instructions/git-instructions.md
