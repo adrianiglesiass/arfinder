@@ -29,6 +29,18 @@ export const appConfig: ApplicationConfig = {
         preset: Aura,
         options: { darkModeSelector: false },
       },
+      translation: {
+        weak: 'Débil',
+        medium: 'Media',
+        strong: 'Fuerte',
+        passwordPrompt: 'Introduce tu contraseña',
+        choose: 'Seleccionar',
+        upload: 'Subir',
+        cancel: 'Cancelar',
+        accept: 'Aceptar',
+        reject: 'Rechazar',
+        clear: 'Limpiar',
+      },
     }),
   ],
 };
