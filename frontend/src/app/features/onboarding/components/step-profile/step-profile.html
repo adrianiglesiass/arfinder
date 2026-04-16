@@ -1,0 +1,60 @@
+<div class="animate-in fade-in slide-in-from-right-4 duration-300">
+  <h2 class="text-3xl font-serif text-primary mb-2">Cuéntanos sobre ti</h2>
+  <p class="text-gray-500 mb-8">Esta información nos ayuda a sugerirte los mejores perfiles.</p>
+
+  <div class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="flex flex-col gap-2">
+        <label for="fullName" class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Nombre completo
+        </label>
+        <input
+          pInputText
+          id="fullName"
+          [ngModel]="name()"
+          (ngModelChange)="onModelChange('name', $event)"
+          class="w-full rounded-xl!"
+          placeholder="Ej. Alex García"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="age" class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Edad
+        </label>
+        <input
+          pInputText
+          id="age"
+          type="number"
+          [ngModel]="age()"
+          (ngModelChange)="onModelChange('age', $event)"
+          class="w-full rounded-xl!"
+          placeholder="Ej. 26"
+        />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="city" class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        Ciudad
+      </label>
+      <app-search [initialCity]="city()" (citySelected)="onCitySelect($event)" />
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="bio" class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        Biografía
+      </label>
+      <textarea
+        pTextarea
+        id="bio"
+        [ngModel]="bio()"
+        (ngModelChange)="onModelChange('bio', $event)"
+        class="w-full rounded-xl! min-h-30"
+        placeholder="Un poco sobre ti, tus hobbies..."
+        style="resize: none"
+      >
+      </textarea>
+    </div>
+  </div>
+</div>

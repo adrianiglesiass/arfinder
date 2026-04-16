@@ -1,0 +1,74 @@
+<div class="animate-fadein">
+  <h2 class="font-serif text-3xl text-primary mb-2">Añade tus fotos</h2>
+
+  <button
+    type="button"
+    class="w-full border-2 border-dashed border-gray-200 rounded-4xl p-10 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-50 hover:border-accent transition-all group bg-transparent"
+    (click)="openFileInput()"
+    (keydown)="handleKeyDown($event)"
+    [disabled]="isLoading()"
+    aria-label="Subir fotos del perfil"
+  >
+    <div
+      class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-2xl text-gray-400 group-hover:text-accent mb-4"
+    >
+      <i class="pi pi-camera"></i>
+    </div>
+    <h3 class="font-medium text-primary mb-1">Sube tus fotos o arrástralas aquí</h3>
+    <p class="text-xs text-gray-400">JPG, PNG o WEBP. Máximo 5MB.</p>
+  </button>
+
+  <input
+    #fileInputRef
+    type="file"
+    multiple
+    accept="image/jpeg,image/png,image/webp"
+    class="hidden"
+    (change)="onFileSelected($event)"
+  />
+
+  @if (localPhotos().length > 0 || uploadedPhotos().length > 0) {
+    <div class="mt-8">
+      <p class="text-xs font-medium text-primary mb-3">Arrastra para personalizar el orden:</p>
+      <div
+        cdkDropList
+        #photoList="cdkDropList"
+        [cdkDropListData]="allPhotos()"
+        class="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-2xl min-h-30"
+        (cdkDropListDropped)="onPhotosReordered($event)"
+      >
+        @for (photo of allPhotos(); track photo.id; let i = $index) {
+          <div
+            cdkDrag
+            class="relative group/photo cursor-grab active:cursor-grabbing hover:scale-[1.01] active:scale-[1.02]"
+            [attr.aria-label]="'Foto ' + (i + 1) + ', arrastra para reordenar'"
+          >
+            <div
+              class="w-24 h-24 rounded-2xl bg-gray-100 overflow-hidden relative shadow-sm transition-all group-hover/photo:shadow-md group-hover/photo:ring-1 group-hover/photo:ring-primary/20"
+            >
+              <img
+                [src]="'file' in photo ? photo.preview : photo.photo_url"
+                [alt]="'Foto de perfil ' + (i + 1)"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <button
+              type="button"
+              (click)="deletePhotoItem(photo)"
+              class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm cursor-pointer transition-all opacity-0 group-hover/photo:opacity-100"
+              aria-label="Eliminar esta foto"
+            >
+              <i class="pi pi-times text-xs"></i>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="mt-4 text-center text-gray-500 text-sm">
+      <i class="pi pi-spinner pi-spin"></i> Subiendo fotos...
+    </div>
+  }
+</div>

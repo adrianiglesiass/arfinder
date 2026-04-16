@@ -1,29 +1,31 @@
-import { Component, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { Component, inject, input, output } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
-import { CityService } from '@infrastructure/api/city/city.service';
+import { CitySearchService } from '@infrastructure/services/city-search.service';
 import { AutoCompleteModule } from 'primeng/autocomplete';
-import { of } from 'rxjs';
 
 @Component({
   selector: 'app-search',
-  imports: [AutoCompleteModule],
+  imports: [AutoCompleteModule, FormsModule],
   templateUrl: './search.html',
 })
 export class Search {
-  private cityService = inject(CityService);
-  searchQuery = signal<string>('');
+  protected citySearchService = inject(CitySearchService);
+  initialCity = input<string>('');
+  citySelected = output<string>();
 
-  cityResource = rxResource({
-    params: () => this.searchQuery(),
-    stream: ({ params: query }) => {
-      if (query.length < 2) return of([]);
-
-      return this.cityService.searchCities(query);
-    },
-  });
+  constructor() {
+    if (this.initialCity()) {
+      this.citySearchService.selectCity(this.initialCity());
+    }
+  }
 
   onCitySearch(event: { query: string }) {
-    this.searchQuery.set(event.query);
+    this.citySearchService.onCitySearch(event);
+  }
+
+  onCitySelect(city: string) {
+    this.citySearchService.selectCity(city);
+    this.citySelected.emit(city);
   }
 }
