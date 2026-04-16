@@ -5,9 +5,7 @@ import { MessageService } from 'primeng/api';
 
 import { ProfilePhotoResponse } from '@core/api/api.models';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class PhotoUploadService {
   private readonly profileApiService = inject(ProfileApiService);
   private readonly messageService = inject(MessageService);
