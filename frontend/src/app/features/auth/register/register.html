@@ -69,24 +69,13 @@
     </button>
 
     <div class="relative py-2">
-      <p-divider align="center">
-        <span class="text-xs text-gray-400 font-medium uppercase tracking-widest px-2"
-          >O únete con</span
-        >
-      </p-divider>
+      <p-divider align="center"> </p-divider>
     </div>
 
-    <button
-      pButton
-      type="button"
+    <app-auth-social-button
       [loading]="isLoading()"
-      (click)="onRegisterWithGoogle()"
-      class="w-full py-3.5 rounded-2xl! font-medium text-sm border-gray-200! text-gray-700! bg-white! hover:bg-gray-50! active:scale-95 transition-all"
-    >
-      <div class="flex items-center justify-center gap-0.5">
-        <i class="pi pi-google"></i>
-        <span>oogle</span>
-      </div>
-    </button>
+      (action)="onRegisterWithGoogle()"
+      label="Continúa con Google"
+    />
   </form>
 </app-auth-card>
