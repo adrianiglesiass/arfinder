@@ -1,0 +1,12 @@
+<button
+  pButton
+  type="button"
+  [loading]="loading()"
+  (click)="action.emit()"
+  class="w-full py-3.5 rounded-2xl! font-medium text-sm border-gray-200! text-gray-700! bg-white! hover:bg-gray-50! active:scale-95 transition-all"
+>
+  <div class="flex items-center justify-center gap-2">
+    <img src="/assets/icons/google-logo.svg" alt="Google" class="w-5 h-5" />
+    <span>{{ label() }}</span>
+  </div>
+</button>

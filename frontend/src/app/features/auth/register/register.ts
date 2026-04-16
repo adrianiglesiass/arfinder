@@ -20,6 +20,7 @@ import {
 import { ErrorService } from '@core/errors';
 
 import { AuthCard } from '@shared/components/auth-card/auth-card';
+import { AuthSocialButton } from '@shared/components/auth-social-button/auth-social-button';
 import { FieldError } from '@shared/components/field-error/field-error';
 import { isControlInvalid } from '@shared/utils/form.utils';
 
@@ -34,6 +35,7 @@ import { isControlInvalid } from '@shared/utils/form.utils';
     DividerModule,
     FieldError,
     AuthCard,
+    AuthSocialButton,
   ],
   templateUrl: './register.html',
 })
