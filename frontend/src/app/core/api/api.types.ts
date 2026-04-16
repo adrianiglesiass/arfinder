@@ -4,40 +4,6 @@
  */
 
 export interface paths {
-  '/auth/register': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Register */
-    post: operations['register_auth_register_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/login': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Login */
-    post: operations['login_auth_login_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
   '/auth/me': {
     parameters: {
       query?: never;
@@ -225,7 +191,8 @@ export interface paths {
     /** Get Conversation Messages */
     get: operations['get_conversation_messages_conversations__conversation_id__messages_get'];
     put?: never;
-    post?: never;
+    /** Send New Message */
+    post: operations['send_new_message_conversations__conversation_id__messages_post'];
     delete?: never;
     options?: never;
     head?: never;
@@ -343,6 +310,11 @@ export interface components {
       sent_at: string;
       /** Is Read */
       is_read: boolean;
+    };
+    /** MessageCreate */
+    MessageCreate: {
+      /** Content */
+      content: string;
     };
     /** MessageResponse */
     MessageResponse: {
@@ -510,28 +482,11 @@ export interface components {
      * @enum {string}
      */
     ScheduleEnum: 'morning' | 'afternoon' | 'night' | 'flexible';
-    /** Token */
-    Token: {
-      /** Access Token */
-      access_token: string;
-      /** Token Type */
-      token_type: string;
-    };
     /**
      * TypeEnum
      * @enum {string}
      */
     TypeEnum: 'looking_for_flat' | 'looking_for_roommate';
-    /** UserCreate */
-    UserCreate: {
-      /**
-       * Email
-       * Format: email
-       */
-      email: string;
-      /** Password */
-      password: string;
-    };
     /** UserResponse */
     UserResponse: {
       /** Id */
@@ -578,100 +533,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  register_auth_register_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UserCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['UserResponse'];
-        };
-      };
-      /** @description Invalid request body or parameters */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Conflict — resource already exists */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  login_auth_login_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UserCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Token'];
-        };
-      };
-      /** @description Invalid request body or parameters */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
   me_auth_me_get: {
     parameters: {
       query?: never;
@@ -743,13 +604,13 @@ export interface operations {
       query?: {
         city?: string | null;
         budget_max?: number | null;
-        has_pets?: boolean | null;
-        is_smoker?: boolean | null;
+        has_pets?: boolean | string | null;
+        is_smoker?: boolean | string | null;
         schedule?: components['schemas']['ScheduleEnum'] | null;
         profile_type?: components['schemas']['TypeEnum'] | null;
         gender?: string | null;
-        age_min?: number | null;
-        age_max?: number | null;
+        age_min?: number | string | null;
+        age_max?: number | string | null;
         skip?: number;
         limit?: number;
       };
@@ -1489,6 +1350,62 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['MessageResponse'][];
+        };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  send_new_message_conversations__conversation_id__messages_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        conversation_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MessageCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MessageResponse'];
         };
       };
       /** @description Invalid request body or parameters */

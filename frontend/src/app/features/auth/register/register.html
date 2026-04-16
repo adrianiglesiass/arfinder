@@ -1,81 +1,8 @@
-<app-auth-card [activeTab]="'register'">
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
-    <div class="flex flex-col gap-1.5">
-      <label
-        for="register-email"
-        class="block text-xs font-semibold text-gray-500 uppercase tracking-wider"
-        >Email</label
-      >
-      <input
-        id="register-email"
-        pInputText
-        type="email"
-        placeholder="ejemplo@arfinder.com"
-        formControlName="email"
-        [invalid]="isInvalid('email')"
-        class="w-full rounded-xl!"
-      />
-      <app-field-error [control]="form.get('email')!" />
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label
-        for="register-password"
-        class="block text-xs font-semibold text-gray-500 uppercase tracking-wider"
-        >Contraseña</label
-      >
-      <p-password
-        inputId="register-password"
-        formControlName="password"
-        placeholder="••••••••"
-        [toggleMask]="true"
-        [fluid]="true"
-        [invalid]="isInvalid('password')"
-      />
-      <app-field-error [control]="form.get('password')!" />
-    </div>
-
-    <div class="flex flex-col gap-1.5">
-      <label
-        for="register-confirm-password"
-        class="block text-xs font-semibold text-gray-500 uppercase tracking-wider"
-        >Confirmar contraseña</label
-      >
-      <input
-        id="register-confirm-password"
-        pInputText
-        type="password"
-        placeholder="••••••••"
-        formControlName="confirmPassword"
-        [invalid]="isPasswordMismatch()"
-        class="w-full rounded-xl!"
-      />
-      @if (isPasswordMismatch()) {
-        <small class="text-red-500 text-xs mt-1">Las contraseñas no coinciden.</small>
-      }
-    </div>
-
-    @if (errorMessage()) {
-      <p-message severity="error" size="small" variant="simple">{{ errorMessage() }}</p-message>
-    }
-
-    <button
-      pButton
-      type="submit"
-      [loading]="isLoading()"
-      class="w-full py-4 rounded-2xl! font-semibold text-base mt-2 active:scale-95 transition-all"
-    >
-      Registrarse
-    </button>
-
-    <div class="relative py-2">
-      <p-divider align="center"> </p-divider>
-    </div>
-
-    <app-auth-social-button
-      [loading]="isLoading()"
-      (action)="onRegisterWithGoogle()"
-      label="Continúa con Google"
-    />
-  </form>
-</app-auth-card>
+<app-auth-form
+  mode="register"
+  [isLoading]="isLoading()"
+  [errorMessage]="errorMessage()"
+  [fieldErrors]="fieldErrors()"
+  (submitted)="onFormSubmit($event)"
+  (socialAuth)="onSocialAuth()"
+></app-auth-form>
