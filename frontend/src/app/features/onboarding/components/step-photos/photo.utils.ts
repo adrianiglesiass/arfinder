@@ -9,7 +9,7 @@ export interface LocalPhoto {
 export type CombinedPhoto = LocalPhoto | ProfilePhotoResponse;
 
 const PHOTO_VALIDATION = {
-  MAX_SIZE: 5 * 1024 * 1024,
+  MAX_SIZE: 10 * 1024 * 1024,
   ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
 };
 

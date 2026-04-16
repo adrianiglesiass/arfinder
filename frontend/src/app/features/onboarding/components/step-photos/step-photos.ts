@@ -30,7 +30,7 @@ import { PhotoUploadService } from './services/photo-upload.service';
 @Component({
   selector: 'app-step-photos',
   imports: [ToastModule, DragDropModule],
-  providers: [MessageService],
+  providers: [MessageService, PhotoUploadService, PhotoStorageService],
   templateUrl: './step-photos.html',
 })
 export class StepPhotos implements AfterViewInit {
@@ -47,8 +47,11 @@ export class StepPhotos implements AfterViewInit {
   isLoading = signal(false);
   isReordering = signal(false);
   private storedOrder = signal<string[]>([]);
+  private isUploadingFinal = signal(false);
 
-  allPhotos = computed(() => {
+  displayPhotos = signal<CombinedPhoto[]>([]);
+
+  readonly allPhotos = computed(() => {
     const combined = [...this.localPhotos(), ...this.uploadedPhotos()];
     return applyStoredOrder(combined, this.storedOrder());
   });
@@ -165,12 +168,14 @@ export class StepPhotos implements AfterViewInit {
     if (this.localPhotos().length === 0) return;
 
     this.isLoading.set(true);
-    const photos = this.localPhotos();
+    this.isUploadingFinal.set(true);
+    const photos = [...this.localPhotos()];
+    const uploadedResults: ProfilePhotoResponse[] = [];
 
     for (const localPhoto of photos) {
       try {
         const response = await this.profileService.addPhoto(localPhoto.file);
-        this.replaceLocalWithUploaded(localPhoto.id, response);
+        uploadedResults.push(response);
         URL.revokeObjectURL(localPhoto.preview);
       } catch (err) {
         console.error('Error uploading photo', err);
@@ -178,14 +183,13 @@ export class StepPhotos implements AfterViewInit {
       }
     }
 
-    this.isLoading.set(false);
-  }
-
-  private replaceLocalWithUploaded(localId: string, uploaded: ProfilePhotoResponse) {
-    this.localPhotos.set(this.localPhotos().filter((p) => p.id !== localId));
-    this.uploadedPhotos.set([...this.uploadedPhotos(), uploaded]);
+    this.localPhotos.set([]);
+    this.uploadedPhotos.set([...this.uploadedPhotos(), ...uploadedResults]);
     this.persistLocalPhotos();
     this.persistOrder();
+
+    this.isLoading.set(false);
+    this.isUploadingFinal.set(false);
   }
 
   async reorderPhotos() {
@@ -208,26 +212,18 @@ export class StepPhotos implements AfterViewInit {
       return;
     }
 
-    const data = event.container.data;
-    moveItemInArray(data, event.previousIndex, event.currentIndex);
+    const reorderedPhotos = [...this.allPhotos()];
+    moveItemInArray(reorderedPhotos, event.previousIndex, event.currentIndex);
 
-    const newLocal: LocalPhoto[] = [];
-    const newUploaded: ProfilePhotoResponse[] = [];
-
-    for (const photo of data) {
-      if (isLocalPhoto(photo)) {
-        newLocal.push(photo);
-      } else {
-        newUploaded.push(photo as ProfilePhotoResponse);
-      }
-    }
-
-    this.localPhotos.set(newLocal);
-    this.uploadedPhotos.set(newUploaded);
-    this.persistLocalPhotos();
+    const newOrder = reorderedPhotos.map((photo) => getPhotoKey(photo));
+    this.storedOrder.set(newOrder);
     this.persistOrder();
 
-    if (newUploaded.length > 0) {
+    const uploadedPhotoIds = reorderedPhotos
+      .filter((photo) => !isLocalPhoto(photo))
+      .map((photo) => (photo as ProfilePhotoResponse).id);
+
+    if (uploadedPhotoIds.length > 0) {
       this.reorderPhotos();
     }
   }

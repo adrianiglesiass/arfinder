@@ -7,9 +7,7 @@ export interface StoredLocalPhoto {
   fileType: string;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class PhotoStorageService {
   private readonly PENDING_PHOTOS_KEY = 'arfinder_pending_photos';
   private readonly PHOTO_ORDER_KEY = 'arfinder_pending_photos_order';
