@@ -110,7 +110,7 @@ export default class VerifyEmail implements AfterViewInit {
 
     try {
       await this.authService.verifyEmail(this.email(), otp);
-      await this.router.navigate(['']);
+      await this.authService.navigatePostAuth();
     } catch (error: unknown) {
       if (error instanceof HttpErrorResponse) {
         const { general } = this.errorService.processError(error);
