@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, output } from '@angular/core';
+import { Component, computed, effect, inject, input, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
@@ -54,6 +54,14 @@ export class AuthForm {
   readonly fieldErrors = input<AuthFormFieldErrors>([]);
   readonly submitted = output<AuthFormPayload>();
   readonly socialAuth = output<void>();
+  isRegisterMode = computed(() => this.mode() === 'register');
+  submitLabel = computed(() => (this.mode() === 'login' ? 'Iniciar sesión' : 'Registrarse'));
+
+  submitClass = computed(() =>
+    this.mode() === 'login'
+      ? 'w-full py-3.5 rounded-2xl! font-medium text-sm mt-1 active:scale-95'
+      : 'w-full py-4 rounded-2xl! font-semibold text-base mt-2 active:scale-95 transition-all'
+  );
 
   private readonly fb = inject(FormBuilder);
 

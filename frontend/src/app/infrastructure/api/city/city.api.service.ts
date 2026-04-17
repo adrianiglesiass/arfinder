@@ -9,7 +9,7 @@ import { CitySearchResponse } from '@core/api/api.models';
 @Injectable({
   providedIn: 'root',
 })
-export class CityService {
+export class CityApiService {
   private readonly http = inject(HttpClient);
   private readonly APIURL = `${environment.APIURL}/cities/search`;
 

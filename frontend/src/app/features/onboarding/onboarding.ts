@@ -1,10 +1,10 @@
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { CitySearchService } from '@infrastructure/services/city-search.service';
 import { ProgressBarModule } from 'primeng/progressbar';
 
 import { ProfileCreate, ScheduleEnum, TypeEnum } from '@core/api/api.models';
+import { CitySearchService } from '@core/location/city-search.service';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
 import { ProfileService } from '@core/profile/profile.service';
 
@@ -62,10 +62,24 @@ export default class Onboarding {
 
   progress = computed(() => (this.currentStep() / this.totalSteps) * 100);
 
+  safeForm = computed(() => ({
+    name: this.form().name ?? '',
+    city: this.form().city ?? '',
+    bio: this.form().bio ?? '',
+    max_budget: this.form().max_budget ?? 700,
+    has_pets: this.form().has_pets ?? false,
+    is_smoker: this.form().is_smoker ?? false,
+    age: this.form().age,
+  }));
+
   stepTitle = computed(() => {
     const titles = ['Perfil', 'Objetivo', 'Estilo', 'Fotos'];
     return titles[this.currentStep() - 1];
   });
+
+  isFirstStep = computed(() => this.currentStep() === 1);
+  isLastStep = computed(() => this.currentStep() === this.totalSteps);
+  submitLabel = computed(() => (this.isLastStep() ? 'Ir a explorar' : 'Continuar'));
 
   updateForm(newData: Partial<ProfileCreate>) {
     this.form.update((prev) => ({ ...prev, ...newData }));

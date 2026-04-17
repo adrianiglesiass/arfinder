@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { SliderModule } from 'primeng/slider';
@@ -15,6 +15,24 @@ export class StepObjective {
   budget = input<number>(700);
 
   dataChange = output<Partial<ProfileCreate>>();
+
+  isLookingForFlat = computed(() => this.type() === 'looking_for_flat');
+  isLookingForRoommate = computed(() => this.type() === 'looking_for_roommate');
+
+  budgetLabel = computed(() =>
+    this.isLookingForFlat() ? 'Presupuesto máximo' : 'Precio de la habitación'
+  );
+
+  flatIconClass = computed(() =>
+    this.isLookingForFlat() ? 'bg-accent text-white' : 'bg-gray-50 text-primary'
+  );
+
+  roommateIconClass = computed(() =>
+    this.isLookingForRoommate() ? 'bg-accent text-white' : 'bg-gray-50 text-primary'
+  );
+
+  flatCardClass = computed(() => this.cardClasses(this.isLookingForFlat()));
+  roommateCardClass = computed(() => this.cardClasses(this.isLookingForRoommate()));
 
   setType(val: TypeEnum) {
     this.dataChange.emit({ type: val });

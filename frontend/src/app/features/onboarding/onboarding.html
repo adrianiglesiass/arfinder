@@ -27,10 +27,10 @@
       @switch (currentStep()) {
         @case (1) {
           <app-step-profile
-            [name]="form().name ?? ''"
-            [age]="form().age"
-            [city]="form().city ?? ''"
-            [bio]="form().bio ?? ''"
+            [name]="safeForm().name"
+            [age]="safeForm().age"
+            [city]="safeForm().city"
+            [bio]="safeForm().bio"
             (changed)="updateForm($event)"
           />
         }
@@ -38,7 +38,7 @@
         @case (2) {
           <app-step-objective
             [type]="form().type!"
-            [budget]="form().max_budget ?? 700"
+            [budget]="safeForm().max_budget"
             (dataChange)="updateForm($event)"
           />
         }
@@ -46,8 +46,8 @@
         @case (3) {
           <app-step-lifestyle
             [schedule]="form().schedule!"
-            [hasPets]="form().has_pets ?? false"
-            [isSmoker]="form().is_smoker ?? false"
+            [hasPets]="safeForm().has_pets"
+            [isSmoker]="safeForm().is_smoker"
             (dataChange)="updateForm($event)"
           />
         }
@@ -62,7 +62,7 @@
       <button
         type="button"
         class="text-gray-500 font-medium text-sm hover:text-primary transition-colors cursor-pointer"
-        [class.invisible]="currentStep() === 1"
+        [class.invisible]="isFirstStep()"
         (click)="prevStep()"
       >
         Atrás
@@ -73,7 +73,7 @@
         class="bg-primary text-white cursor-pointer px-8 py-3 rounded-2xl font-medium text-sm hover:shadow-lg hover:shadow-primary/30 active:brightness-90 transition-all duration-200"
         (click)="nextStep()"
       >
-        {{ currentStep() === totalSteps ? 'Ir a explorar' : 'Continuar' }}
+        {{ submitLabel() }}
       </button>
     </div>
   </div>

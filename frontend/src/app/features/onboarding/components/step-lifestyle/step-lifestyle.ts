@@ -30,4 +30,10 @@ export class StepLifestyle {
   updateToggle(field: keyof ProfileCreate, val: boolean) {
     this.dataChange.emit({ [field]: val });
   }
+
+  getScheduleClass(val: ScheduleEnum) {
+    return this.schedule() === val
+      ? 'bg-primary text-white border-primary'
+      : 'bg-white text-gray-700 border-gray-200 hover:border-primary';
+  }
 }

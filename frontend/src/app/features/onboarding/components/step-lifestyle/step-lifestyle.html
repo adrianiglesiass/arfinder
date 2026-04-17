@@ -15,11 +15,7 @@
           <button
             type="button"
             (click)="setSchedule(s.value)"
-            [class]="
-              schedule() === s.value
-                ? 'bg-primary text-white border-primary'
-                : 'bg-white text-gray-700 border-gray-200 hover:border-primary'
-            "
+            [class]="getScheduleClass(s.value)"
             class="px-5 py-2.5 rounded-full border text-sm font-medium transition-all duration-200 cursor-pointer"
           >
             {{ s.label }}

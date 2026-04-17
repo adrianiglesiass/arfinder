@@ -4,7 +4,7 @@
 
     <p-autoComplete
       [(ngModel)]="citySearchService.selectedCity"
-      [suggestions]="citySearchService.cityResource.value() ?? []"
+      [suggestions]="citySuggestions()"
       (completeMethod)="onCitySearch($event)"
       (onSelect)="onCitySelect($event.value)"
       [minLength]="2"
