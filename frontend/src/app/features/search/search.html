@@ -22,14 +22,6 @@
         </div>
       </ng-template>
     </p-autoComplete>
-
-    @if (citySearchService.cityResource.isLoading()) {
-      <div
-        class="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex items-center pointer-events-none"
-      >
-        <i class="pi pi-spin pi-spinner text-primary"></i>
-      </div>
-    }
   </div>
 
   @if (citySearchService.cityResource.error()) {

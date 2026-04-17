@@ -32,8 +32,14 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
       if (err.status === 401) {
-        authService.logout();
-        router.navigate(['/login']);
+        const authPaths = ['/login', '/register', '/verify-email'];
+        const onAuthPage = authPaths.some((p) => router.url.startsWith(p));
+
+        if (!onAuthPage) {
+          from(authService.logout()).subscribe(() => {
+            router.navigate(['/login']);
+          });
+        }
       }
       return throwError(() => err);
     })
