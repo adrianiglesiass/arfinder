@@ -13,6 +13,8 @@ describe('StepProfile', () => {
 
     fixture = TestBed.createComponent(StepProfile);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('name', 'Test User');
+    fixture.componentRef.setInput('age', 26);
     await fixture.whenStable();
   });
 

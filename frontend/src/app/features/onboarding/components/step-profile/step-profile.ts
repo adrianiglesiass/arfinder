@@ -15,10 +15,11 @@ import { Search } from '@features/search/search';
   templateUrl: './step-profile.html',
 })
 export class StepProfile {
-  name = input<string>('');
-  age = input<number | undefined>();
-  bio = input<string>('');
+  name = input.required<string>();
+  age = input.required<number>();
   city = input<string>('');
+  bio = input<string>('');
+  showErrors = input<boolean>(false);
 
   changed = output<Partial<ProfileCreate>>();
 

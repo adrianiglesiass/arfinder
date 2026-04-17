@@ -15,6 +15,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
+
     provideHttpClient(withInterceptors([jwtInterceptor, authErrorInterceptor])),
     {
       provide: InsForgeClient,

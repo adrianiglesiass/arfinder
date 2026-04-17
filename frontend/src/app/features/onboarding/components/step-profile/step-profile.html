@@ -1,26 +1,43 @@
-<div class="animate-in fade-in slide-in-from-right-4 duration-300">
-  <h2 class="text-3xl font-serif text-primary mb-2">Cuéntanos sobre ti</h2>
-  <p class="text-gray-500 mb-8">Esta información nos ayuda a sugerirte los mejores perfiles.</p>
+<div>
+  <div class="mb-10 text-center md:text-left">
+    <h2 class="text-3xl font-bold text-primary mb-3">Cuéntanos sobre ti</h2>
+    <p class="text-gray-400 font-medium">
+      Esta información nos ayuda a sugerirte los mejores perfiles.
+    </p>
+  </div>
 
-  <div class="space-y-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="flex flex-col gap-2">
-        <label for="fullName" class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          Nombre completo
+  <div class="space-y-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div class="flex flex-col gap-3">
+        <label
+          for="fullName"
+          class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+        >
+          Nombre completo <span class="text-red-400">*</span>
         </label>
         <input
           pInputText
           id="fullName"
           [ngModel]="name()"
           (ngModelChange)="onModelChange('name', $event)"
-          class="w-full rounded-xl!"
+          class="w-full rounded-2xl! py-4 px-6 border transition-colors duration-200 shadow-none bg-white font-medium"
+          [class]="showErrors() && !name().trim() ? 'border-red-400' : 'border-gray-border'"
           placeholder="Ej. Alex García"
         />
+        @if (showErrors() && !name().trim()) {
+          <span
+            class="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-wider animate-fade-in"
+            >Campo obligatorio</span
+          >
+        }
       </div>
 
-      <div class="flex flex-col gap-2">
-        <label for="age" class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          Edad
+      <div class="flex flex-col gap-3">
+        <label
+          for="age"
+          class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+        >
+          Edad <span class="text-red-400">*</span>
         </label>
         <input
           pInputText
@@ -28,21 +45,36 @@
           type="number"
           [ngModel]="age()"
           (ngModelChange)="onModelChange('age', $event)"
-          class="w-full rounded-xl!"
+          class="w-full rounded-2xl! py-4 px-6 border transition-colors duration-200 shadow-none bg-white font-medium"
+          [class]="showErrors() && !age() ? 'border-red-400' : 'border-gray-border'"
           placeholder="Ej. 26"
         />
+        @if (showErrors() && !age()) {
+          <span
+            class="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-wider animate-fade-in"
+            >Campo obligatorio</span
+          >
+        }
       </div>
     </div>
 
-    <div class="flex flex-col gap-2">
-      <label for="city" class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+    <div class="flex flex-col gap-3">
+      <label for="city" class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
         Ciudad
       </label>
-      <app-search [initialCity]="city()" (citySelected)="onCitySelect($event)" />
+      <div [class.ring-1.ring-red-400.rounded-2xl]="showErrors() && !city().trim()">
+        <app-search [initialCity]="city()" (citySelected)="onCitySelect($event)" />
+      </div>
+      @if (showErrors() && !city().trim()) {
+        <span
+          class="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-wider animate-fade-in"
+          >Campo obligatorio</span
+        >
+      }
     </div>
 
-    <div class="flex flex-col gap-2">
-      <label for="bio" class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+    <div class="flex flex-col gap-3">
+      <label for="bio" class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
         Biografía
       </label>
       <textarea
@@ -50,8 +82,8 @@
         id="bio"
         [ngModel]="bio()"
         (ngModelChange)="onModelChange('bio', $event)"
-        class="w-full rounded-xl! min-h-30"
-        placeholder="Un poco sobre ti, tus hobbies..."
+        class="w-full rounded-2xl! min-h-40 py-5 px-6 border border-gray-border shadow-none bg-white font-medium"
+        placeholder="Escribe algo sobre ti, tus intereses o lo que buscas en un compañero de piso..."
         style="resize: none"
       >
       </textarea>

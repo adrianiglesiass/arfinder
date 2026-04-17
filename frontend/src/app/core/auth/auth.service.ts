@@ -22,28 +22,58 @@ export class AuthService {
   private readonly router = inject(Router);
 
   currentUser = signal<UserResponse | null>(null);
+  private sdkReadyPromise: Promise<void> | null = null;
+  private syncPromise: Promise<void> | null = null;
 
   async init(): Promise<void> {
-    const { data } = await this.insforge.auth.getCurrentUser();
-
-    if (data?.user) {
-      await this.syncUser();
-
-      const currentUrl = window.location.pathname;
-      if (
-        currentUrl.includes('/login') ||
-        currentUrl.includes('/register') ||
-        currentUrl.includes('/auth/callback')
-      ) {
-        await this.navigatePostAuth();
-      }
+    if (this.sdkReadyPromise) {
+      return this.sdkReadyPromise;
     }
+
+    this.sdkReadyPromise = (async () => {
+      try {
+        const { data } = await this.insforge.auth.getCurrentUser();
+
+        if (data?.user) {
+          this.syncPromise = this.syncUser().then(() => {
+            const currentUrl = window.location.pathname;
+            if (
+              currentUrl.includes('/login') ||
+              currentUrl.includes('/register') ||
+              currentUrl.includes('/auth/callback')
+            ) {
+              this.navigatePostAuth();
+            }
+          });
+        } else {
+          this.syncPromise = Promise.resolve();
+        }
+      } catch (error) {
+        console.error('Auth initialization failed', error);
+        this.syncPromise = Promise.resolve();
+      }
+    })();
+
+    return this.sdkReadyPromise;
   }
 
   async getToken(): Promise<string | null> {
+    if (this.sdkReadyPromise) {
+      await this.sdkReadyPromise;
+    }
+
     const headers = this.insforge.getHttpClient().getHeaders();
     const authHeader = headers['Authorization'] || headers['authorization'];
-    return authHeader ? authHeader.replace('Bearer ', '') : null;
+    if (authHeader) {
+      return authHeader.replace('Bearer ', '');
+    }
+
+    try {
+      const { data } = await this.insforge.auth.refreshSession();
+      return data?.accessToken ?? null;
+    } catch {
+      return null;
+    }
   }
 
   async loginWithGoogle(): Promise<void> {
@@ -112,6 +142,7 @@ export class AuthService {
   }
 
   async isAuthenticated(): Promise<boolean> {
+    await this.init();
     const { data } = await this.insforge.auth.getCurrentUser();
     return !!data?.user;
   }

@@ -2,81 +2,130 @@
 @import 'primeicons/primeicons.css';
 
 @theme {
-  --color-primary: #111827;
-  --color-accent: #0f766e;
-  --color-accentLight: #ccfbf1;
+  --color-primary: #18181b;
+  --color-accent: #18181b;
+  --color-accent-soft: rgba(24, 24, 27, 0.03);
+  --color-gray-border: #e4e4e7;
+  --color-gray-soft: #ffffff;
 
-  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --shadow-premium: 0 4px 12px 0 rgba(0, 0, 0, 0.03);
+  --shadow-glass: none;
 
   --font-family-sans: 'Plus Jakarta Sans', sans-serif;
   --font-family-serif: 'Playfair Display', serif;
+
+  --ease-apple: cubic-bezier(0.28, 0.11, 0.32, 1);
 }
 
 @layer base {
+  button {
+    @apply transition-all duration-200;
+  }
+  button:active {
+    opacity: 0.8;
+  }
   body {
-    background-color: #fafafa;
+    background-color: var(--color-gray-soft);
     color: var(--color-primary);
     font-family: var(--font-family-sans);
     -webkit-font-smoothing: antialiased;
   }
 
-  * {
-    box-sizing: border-box;
+  input[pInputText],
+  textarea[pTextarea] {
+    @apply bg-white border-gray-border transition-all duration-300;
+    &:focus {
+      @apply border-primary/20! ring-4! ring-primary/5! shadow-none!;
+    }
+    &::placeholder {
+      @apply text-gray-400 font-normal;
+    }
   }
-}
 
-.glass-nav {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
-  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-.cdk-drag-animating {
-  transition:
-    transform 180ms cubic-bezier(0.2, 0, 0, 1),
-    box-shadow 180ms ease;
-}
-
-.cdk-drag-placeholder {
-  opacity: 0;
-}
-
-.cdk-drag-preview {
-  border-radius: 1rem;
-  box-shadow: 0 18px 40px rgba(17, 24, 39, 0.18);
-  transform: scale(1.03);
-}
-
-.photo-drag-item {
-  transition:
-    transform 180ms cubic-bezier(0.2, 0, 0, 1),
-    opacity 180ms ease,
-    box-shadow 180ms ease;
-  will-change: transform, opacity;
-}
-
-.cdk-drop-list-dragging .photo-drag-item {
-  transition-duration: 180ms;
+  .premium-card {
+    @apply bg-white border border-gray-border rounded-3xl p-8;
+  }
 }
 
 @layer utilities {
+  .animating-step {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+  }
+
   .animate-card-enter {
-    animation: auth-card-enter 220ms ease-out both;
+    animation: auth-card-enter 600ms var(--ease-apple) both;
   }
 
   .animate-fade-in {
-    animation: fade-in 220ms ease-out both;
+    animation: fade-in 600ms var(--ease-apple) both;
+  }
+
+  .slide-in-right {
+    animation: slide-in-right 700ms var(--ease-apple) both;
+  }
+  .slide-out-left {
+    animation: slide-out-left 700ms var(--ease-apple) both;
+  }
+  .slide-in-left {
+    animation: slide-in-left 700ms var(--ease-apple) both;
+  }
+  .slide-out-right {
+    animation: slide-out-right 700ms var(--ease-apple) both;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-left {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(30px);
+    opacity: 0;
   }
 }
 
 @keyframes auth-card-enter {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -87,10 +136,12 @@
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
+}
+
+.cdk-drop-list-dragging {
+  overflow: hidden !important;
 }

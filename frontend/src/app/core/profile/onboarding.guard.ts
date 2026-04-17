@@ -4,18 +4,19 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { ProfileApiService } from '@infrastructure/api/profile/profile.api.service';
 
-export const profileGuard: CanActivateFn = async () => {
+export const onboardingGuard: CanActivateFn = async () => {
   const profileApi = inject(ProfileApiService);
   const router = inject(Router);
 
   try {
     await profileApi.getMyProfile();
-    return true;
+
+    await router.navigate(['/']);
+    return false;
   } catch (error) {
     if (error instanceof HttpErrorResponse && error.status === 404) {
-      await router.navigate(['/onboarding']);
-      return false;
+      return true;
     }
-    return false;
+    return true;
   }
 };

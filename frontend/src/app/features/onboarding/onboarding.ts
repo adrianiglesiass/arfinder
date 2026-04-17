@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -15,7 +16,7 @@ import { StepProfile } from '@features/onboarding/components/step-profile/step-p
 
 @Component({
   selector: 'app-onboarding',
-  imports: [ProgressBarModule, StepProfile, StepObjective, StepLifestyle, StepPhotos],
+  imports: [ProgressBarModule, StepProfile, StepObjective, StepLifestyle, StepPhotos, DecimalPipe],
   templateUrl: './onboarding.html',
 })
 export default class Onboarding {
@@ -27,6 +28,8 @@ export default class Onboarding {
   stepPhotos = viewChild(StepPhotos);
 
   currentStep = signal(1);
+  direction = signal<'forward' | 'backward'>('forward');
+  showErrors = signal(false);
   totalSteps = 4;
 
   form = signal<Partial<ProfileCreate>>({
@@ -79,6 +82,17 @@ export default class Onboarding {
 
   isFirstStep = computed(() => this.currentStep() === 1);
   isLastStep = computed(() => this.currentStep() === this.totalSteps);
+
+  isStep1Valid = computed(() => {
+    const f = this.form();
+    return !!(f.name?.trim() && f.age && f.city?.trim());
+  });
+
+  isCurrentStepValid = computed(() => {
+    if (this.currentStep() === 1) return this.isStep1Valid();
+    return true;
+  });
+
   submitLabel = computed(() => (this.isLastStep() ? 'Ir a explorar' : 'Continuar'));
 
   updateForm(newData: Partial<ProfileCreate>) {
@@ -86,7 +100,15 @@ export default class Onboarding {
   }
 
   async nextStep() {
+    if (!this.isCurrentStepValid()) {
+      this.showErrors.set(true);
+      return;
+    }
+
+    this.showErrors.set(false);
+
     if (this.currentStep() < this.totalSteps) {
+      this.direction.set('forward');
       this.currentStep.update((step) => step + 1);
     } else {
       await this.profileService.saveOnboarding(this.form() as ProfileCreate);
@@ -104,6 +126,10 @@ export default class Onboarding {
   }
 
   prevStep() {
-    if (this.currentStep() > 1) this.currentStep.update((s) => s - 1);
+    this.showErrors.set(false);
+    if (this.currentStep() > 1) {
+      this.direction.set('backward');
+      this.currentStep.update((s) => s - 1);
+    }
   }
 }
