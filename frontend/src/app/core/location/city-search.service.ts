@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 
-import { CityService } from '@infrastructure/api/city/city.service';
+import { CityApiService } from '@infrastructure/api/city/city.api.service';
 import { of } from 'rxjs';
 
 const SELECTED_CITY_KEY = 'arfinder_selected_city';
@@ -10,7 +10,7 @@ const SELECTED_CITY_KEY = 'arfinder_selected_city';
   providedIn: 'root',
 })
 export class CitySearchService {
-  private cityService = inject(CityService);
+  private cityService = inject(CityApiService);
   private searchQuery = signal<string>('');
   selectedCity = signal<string>(this.loadSelectedCity());
 

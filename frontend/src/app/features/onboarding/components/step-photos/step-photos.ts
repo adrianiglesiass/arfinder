@@ -1,4 +1,5 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -14,6 +15,7 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
 import { ProfilePhotoResponse } from '@core/api/api.models';
+import { ErrorService } from '@core/errors';
 import { ProfileService } from '@core/profile/profile.service';
 
 import {
@@ -38,6 +40,7 @@ export class StepPhotos implements AfterViewInit {
   private readonly messageService = inject(MessageService);
   private readonly photoUploadService = inject(PhotoUploadService);
   private readonly photoStorageService = inject(PhotoStorageService);
+  private readonly errorService = inject(ErrorService);
 
   fileInputRef = viewChild<ElementRef<HTMLInputElement>>('fileInputRef');
 
@@ -51,10 +54,16 @@ export class StepPhotos implements AfterViewInit {
 
   displayPhotos = signal<CombinedPhoto[]>([]);
 
+  hasPhotos = computed(() => this.localPhotos().length > 0 || this.uploadedPhotos().length > 0);
+
   readonly allPhotos = computed(() => {
     const combined = [...this.localPhotos(), ...this.uploadedPhotos()];
     return applyStoredOrder(combined, this.storedOrder());
   });
+
+  getPhotoUrl(photo: CombinedPhoto): string {
+    return 'file' in photo ? photo.preview : photo.photo_url;
+  }
 
   async ngAfterViewInit() {
     await this.restoreFromStorage();
@@ -62,8 +71,12 @@ export class StepPhotos implements AfterViewInit {
   }
 
   async loadPhotos() {
-    const photos = await this.photoUploadService.getPhotos();
-    this.uploadedPhotos.set(photos);
+    try {
+      const photos = await this.photoUploadService.getPhotos();
+      this.uploadedPhotos.set(photos);
+    } catch (error) {
+      console.error('Error loading photos:', error);
+    }
   }
 
   private async restoreFromStorage() {
@@ -151,8 +164,10 @@ export class StepPhotos implements AfterViewInit {
     try {
       await this.photoUploadService.deletePhoto(photoId);
       this.uploadedPhotos.set(this.uploadedPhotos().filter((p) => p.id !== photoId));
-    } catch {
-      // Error already shown in service
+      this.toast('Foto eliminada', 'success');
+    } catch (error: unknown) {
+      const { general } = this.errorService.processError(error as HttpErrorResponse);
+      this.toast(general || 'Error al eliminar la foto', 'error');
     }
   }
 
@@ -200,8 +215,10 @@ export class StepPhotos implements AfterViewInit {
     this.isReordering.set(true);
     try {
       await this.photoUploadService.reorderPhotos(photoIds);
-    } catch {
-      // Error already shown in service
+      this.toast('Orden de fotos actualizado', 'success');
+    } catch (error: unknown) {
+      const { general } = this.errorService.processError(error as HttpErrorResponse);
+      this.toast(general || 'Error al actualizar el orden de fotos', 'error');
     } finally {
       this.isReordering.set(false);
     }

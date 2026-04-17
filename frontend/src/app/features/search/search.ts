@@ -1,8 +1,9 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { CitySearchService } from '@infrastructure/services/city-search.service';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+
+import { CitySearchService } from '@core/location/city-search.service';
 
 @Component({
   selector: 'app-search',
@@ -10,9 +11,11 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
   templateUrl: './search.html',
 })
 export class Search {
-  protected citySearchService = inject(CitySearchService);
+  protected readonly citySearchService = inject(CitySearchService);
   initialCity = input<string>('');
   citySelected = output<string>();
+
+  citySuggestions = computed(() => this.citySearchService.cityResource.value() ?? []);
 
   constructor() {
     if (this.initialCity()) {

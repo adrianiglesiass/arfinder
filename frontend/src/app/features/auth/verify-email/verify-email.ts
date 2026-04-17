@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
+  computed,
   ElementRef,
   inject,
   input,
@@ -43,6 +44,10 @@ export default class VerifyEmail implements AfterViewInit {
   resendLoading = signal<boolean>(false);
   resendDisabled = signal<boolean>(false);
   countdown = signal<number>(0);
+
+  resendLabel = computed(() =>
+    this.resendDisabled() ? `Reenviar en ${this.countdown()}s` : 'Reenviar código'
+  );
 
   email = input.required<string>();
 

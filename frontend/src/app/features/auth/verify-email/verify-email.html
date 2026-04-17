@@ -32,7 +32,7 @@
       <div class="text-center mt-4">
         <p class="text-sm text-gray-500 mb-2">¿No recibiste el código?</p>
         <p-button
-          [label]="resendDisabled() ? 'Reenviar en ' + countdown() + 's' : 'Reenviar código'"
+          [label]="resendLabel()"
           variant="text"
           [loading]="resendLoading()"
           [disabled]="resendDisabled()"

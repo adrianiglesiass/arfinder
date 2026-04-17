@@ -29,14 +29,14 @@
         formControlName="password"
         placeholder="••••••••"
         [toggleMask]="true"
-        [feedback]="mode() === 'register'"
+        [feedback]="isRegisterMode()"
         [fluid]="true"
         [invalid]="isInvalid('password')"
       />
       <app-field-error [control]="form.get('password')!" />
     </div>
 
-    @if (mode() === 'register') {
+    @if (isRegisterMode()) {
       <div class="flex flex-col gap-1.5 animate-fade-in">
         <label
           for="confirm-password"
@@ -66,12 +66,8 @@
 
     <app-auth-submit-button
       [loading]="isLoading()"
-      [label]="mode() === 'login' ? 'Iniciar sesión' : 'Registrarse'"
-      [buttonClass]="
-        mode() === 'login'
-          ? 'w-full py-3.5 rounded-2xl! font-medium text-sm mt-1 active:scale-95'
-          : 'w-full py-4 rounded-2xl! font-semibold text-base mt-2 active:scale-95 transition-all'
-      "
+      [label]="submitLabel()"
+      [buttonClass]="submitClass()"
     />
 
     <div class="relative py-2">
