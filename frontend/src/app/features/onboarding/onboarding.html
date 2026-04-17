@@ -2,75 +2,124 @@
   <div class="max-w-3xl mx-auto w-full pt-12 px-6 pb-16">
     <button
       type="button"
-      class="text-gray-400 hover:text-primary text-sm flex items-center gap-2 mb-8 transition-colors cursor-pointer"
+      class="text-gray-400 hover:text-primary text-xs font-semibold flex items-center gap-2 mb-10 transition-all cursor-pointer group"
       (click)="router.navigate(['/auth'])"
     >
-      <i class="pi pi-arrow-left"></i> Salir
+      <i class="pi pi-arrow-left transition-transform group-hover:-translate-x-1"></i>
+      Volver
     </button>
 
-    <div class="mb-12">
-      <div
-        class="flex justify-between text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3"
-      >
-        <span>Paso {{ currentStep() }} de {{ totalSteps }}</span>
-        <span class="text-gray-400">{{ stepTitle() }}</span>
+    <div class="mb-14">
+      <div class="flex justify-between items-end mb-4">
+        <div>
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1.5 block"
+            >Paso {{ currentStep() }} de {{ totalSteps }}</span
+          >
+          <h1 class="text-3xl font-bold text-primary">{{ stepTitle() }}</h1>
+        </div>
+        <span class="text-[11px] font-bold text-gray-300 tracking-widest"
+          >{{ progress() | number: '1.0-0' }}%</span
+        >
       </div>
-      <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+      <div class="h-1 bg-gray-100 rounded-full overflow-hidden">
         <div
-          class="h-full bg-primary transition-all duration-500 ease-out rounded-full"
+          class="h-full bg-primary transition-all duration-700 ease-apple rounded-full"
           [style.width.%]="progress()"
         ></div>
       </div>
     </div>
 
-    <div class="relative min-h-105">
-      @switch (currentStep()) {
-        @case (1) {
-          <app-step-profile
-            [name]="safeForm().name"
-            [age]="safeForm().age"
-            [city]="safeForm().city"
-            [bio]="safeForm().bio"
-            (changed)="updateForm($event)"
-          />
-        }
+    <div class="relative min-h-130 pt-4">
+      <div class="relative w-full h-full">
+        @switch (currentStep()) {
+          @case (1) {
+            <div
+              class="w-full"
+              [animate.enter]="direction() === 'forward' ? 'slide-in-right' : 'slide-in-left'"
+              [animate.leave]="
+                direction() === 'forward'
+                  ? 'slide-out-left animating-step'
+                  : 'slide-out-right animating-step'
+              "
+            >
+              <app-step-profile
+                [name]="safeForm().name"
+                [age]="safeForm().age ?? 0"
+                [city]="safeForm().city"
+                [bio]="safeForm().bio"
+                [showErrors]="showErrors()"
+                (changed)="updateForm($event)"
+              />
+            </div>
+          }
 
-        @case (2) {
-          <app-step-objective
-            [type]="form().type!"
-            [budget]="safeForm().max_budget"
-            (dataChange)="updateForm($event)"
-          />
-        }
+          @case (2) {
+            <div
+              class="w-full"
+              [animate.enter]="direction() === 'forward' ? 'slide-in-right' : 'slide-in-left'"
+              [animate.leave]="
+                direction() === 'forward'
+                  ? 'slide-out-left animating-step'
+                  : 'slide-out-right animating-step'
+              "
+            >
+              <app-step-objective
+                [type]="form().type!"
+                [budget]="safeForm().max_budget"
+                (dataChange)="updateForm($event)"
+              />
+            </div>
+          }
 
-        @case (3) {
-          <app-step-lifestyle
-            [schedule]="form().schedule!"
-            [hasPets]="safeForm().has_pets"
-            [isSmoker]="safeForm().is_smoker"
-            (dataChange)="updateForm($event)"
-          />
-        }
+          @case (3) {
+            <div
+              class="w-full"
+              [animate.enter]="direction() === 'forward' ? 'slide-in-right' : 'slide-in-left'"
+              [animate.leave]="
+                direction() === 'forward'
+                  ? 'slide-out-left animating-step'
+                  : 'slide-out-right animating-step'
+              "
+            >
+              <app-step-lifestyle
+                [schedule]="form().schedule!"
+                [hasPets]="safeForm().has_pets"
+                [isSmoker]="safeForm().is_smoker"
+                (dataChange)="updateForm($event)"
+              />
+            </div>
+          }
 
-        @case (4) {
-          <app-step-photos />
+          @case (4) {
+            <div
+              class="w-full"
+              [animate.enter]="direction() === 'forward' ? 'slide-in-right' : 'slide-in-left'"
+              [animate.leave]="
+                direction() === 'forward'
+                  ? 'slide-out-left animating-step'
+                  : 'slide-out-right animating-step'
+              "
+            >
+              <app-step-photos />
+            </div>
+          }
         }
-      }
+      </div>
     </div>
 
-    <div class="mt-12 flex justify-between items-center pt-6 border-t border-gray-100">
+    <div class="mt-20 flex justify-between items-center pt-8 border-t border-gray-border">
       <button
         type="button"
-        class="text-gray-500 font-medium text-sm hover:text-primary transition-colors cursor-pointer"
+        class="text-gray-400 font-bold text-[13px] hover:text-primary transition-colors cursor-pointer px-4 py-2"
         [class.invisible]="isFirstStep()"
         (click)="prevStep()"
       >
-        Atrás
+        Anterior
       </button>
 
       <button
         type="button"
-        class="bg-primary text-white cursor-pointer px-8 py-3 rounded-2xl font-medium text-sm hover:shadow-lg hover:shadow-primary/30 active:brightness-90 transition-all duration-200"
+        class="bg-primary text-white cursor-pointer px-12 py-3.5 rounded-full font-bold text-[13px] transition-all duration-200 hover:opacity-90 active:opacity-80"
         (click)="nextStep()"
       >
         {{ submitLabel() }}
