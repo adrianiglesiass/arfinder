@@ -2,14 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 
-import { ProfileApiService } from '@infrastructure/api/profile/profile.api.service';
+import { ProfileService } from '@core/profile/profile.service';
 
 export const profileGuard: CanActivateFn = async () => {
-  const profileApi = inject(ProfileApiService);
+  const profileService = inject(ProfileService);
   const router = inject(Router);
 
   try {
-    await profileApi.getMyProfile();
+    await profileService.loadProfile();
     return true;
   } catch (error) {
     if (error instanceof HttpErrorResponse && error.status === 404) {

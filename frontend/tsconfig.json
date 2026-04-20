@@ -19,6 +19,7 @@
       "@features/*": ["./src/app/features/*"],
       "@shared/*": ["./src/app/shared/*"],
       "@infrastructure/*": ["./src/app/infrastructure/*"],
+      "@app/*": ["./src/app/*"],
       "@env/*": ["./src/environments/*"]
     }
   },

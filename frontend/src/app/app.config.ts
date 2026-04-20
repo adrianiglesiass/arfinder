@@ -2,14 +2,13 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 
+import { routes } from '@app/app.routes';
 import { environment } from '@env/environment';
 import { InsForgeClient } from '@insforge/sdk';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 
 import { authErrorInterceptor, jwtInterceptor } from '@core/interceptors/jwt-interceptor';
-
-import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [

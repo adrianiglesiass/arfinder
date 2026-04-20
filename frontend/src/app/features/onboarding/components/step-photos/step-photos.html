@@ -3,24 +3,26 @@
     <h2 class="text-3xl font-bold text-primary mb-3">Añade tus fotos</h2>
   </div>
 
-  <button
-    type="button"
-    class="w-full border border-gray-border rounded-4xl p-12 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/20 transition-all group bg-white"
-    (click)="openFileInput()"
-    (keydown)="handleKeyDown($event)"
-    [disabled]="isLoading()"
-    aria-label="Subir fotos del perfil"
+  <div
+    cdkDropList
+    #photoList="cdkDropList"
+    [cdkDropListData]="photoSlots()"
+    cdkDropListOrientation="mixed"
+    class="grid grid-cols-2 md:grid-cols-3 gap-4"
+    (cdkDropListDropped)="onPhotosReordered($event)"
   >
-    <div
-      class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-xl text-gray-300 transition-all duration-300 group-hover:text-primary mb-6"
-    >
-      <i class="pi pi-camera"></i>
-    </div>
-    <h3 class="font-bold text-primary mb-2">Sube tus fotos</h3>
-    <p class="text-[13px] text-gray-400 font-medium">
-      Arrastra tus archivos aquí o haz clic para seleccionar.
-    </p>
-  </button>
+    @for (photo of photoSlots(); track $index) {
+      <app-photo-card
+        [photo]="photo"
+        [index]="$index"
+        (added)="openFileInput()"
+        (deleted)="deletePhotoItem($event)"
+        cdkDrag
+        [cdkDragDisabled]="!photo"
+        class="block w-full h-full"
+      />
+    }
+  </div>
 
   <input
     #fileInputRef
@@ -32,60 +34,12 @@
   />
 
   @if (hasPhotos()) {
-    <div class="mt-14">
-      <div class="flex items-center justify-between mb-6 px-1">
-        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-          Tus fotos ({{ allPhotos().length }})
-        </p>
-        <p
-          class="text-[9px] font-bold text-primary uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full"
-        >
-          Reordenar
-        </p>
-      </div>
-
-      <div
-        cdkDropList
-        #photoList="cdkDropList"
-        [cdkDropListData]="allPhotos()"
-        cdkDropListOrientation="mixed"
-        class="flex flex-wrap gap-5 p-8 bg-white rounded-4xl min-h-30 border border-gray-border"
-        (cdkDropListDropped)="onPhotosReordered($event)"
+    <div class="mt-8 flex justify-center">
+      <p
+        class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] bg-gray-50 px-4 py-2 rounded-full border border-gray-100"
       >
-        @for (photo of allPhotos(); track photo.id; let i = $index) {
-          <div
-            cdkDrag
-            class="photo-drag-item relative group/photo cursor-grab active:cursor-grabbing"
-            [attr.aria-label]="'Foto ' + (i + 1) + ', arrastra para reordenar'"
-          >
-            <div
-              cdkDragHandle
-              class="w-20 h-20 rounded-2xl bg-gray-50 overflow-hidden relative border border-gray-border transition-colors duration-200"
-            >
-              <img
-                [src]="getPhotoUrl(photo)"
-                [alt]="'Foto de perfil ' + (i + 1)"
-                class="w-full h-full object-cover"
-              />
-              @if (i === 0) {
-                <div
-                  class="absolute bottom-0 inset-x-0 bg-primary/90 text-white text-[7px] font-bold py-1 text-center uppercase tracking-widest"
-                >
-                  PRINCIPAL
-                </div>
-              }
-            </div>
-            <button
-              type="button"
-              (click)="deletePhotoItem(photo)"
-              class="absolute -top-1.5 -right-1.5 bg-white text-gray-400 border border-gray-border w-6 h-6 rounded-full flex items-center justify-center text-xs cursor-pointer transition-all hover:text-primary opacity-0 group-hover/photo:opacity-100"
-              aria-label="Eliminar esta foto"
-            >
-              <i class="pi pi-times text-[10px]"></i>
-            </button>
-          </div>
-        }
-      </div>
+        {{ allPhotos().length }} de {{ MAX_PHOTOS }} fotos seleccionadas
+      </p>
     </div>
   }
 

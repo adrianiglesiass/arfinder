@@ -1,5 +1,5 @@
 <nav
-  class="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-nav border-t border-t-[#00000018] pb-1"
+  class="fixed bottom-6 left-6 right-6 z-50 md:hidden glass-nav rounded-3xl mx-auto max-w-md overflow-hidden shadow-2xl"
 >
   <div class="flex justify-around items-center h-16 w-full">
     @for (item of navItems; track item.link) {
@@ -8,7 +8,7 @@
         routerLinkActive
         #rla="routerLinkActive"
         class="flex flex-col items-center justify-center gap-1 no-underline transition-all duration-200 min-w-17.5"
-        [ngClass]="rla.isActive ? 'text-primary scale-110' : 'text-gray-400'"
+        [ngClass]="rla.isActive ? 'text-primary scale-110' : 'text-zinc-500'"
       >
         <div class="h-8 flex items-center justify-center relative">
           <i [class]="item.icon + ' text-xl'"></i>
@@ -20,7 +20,7 @@
             </span>
           }
         </div>
-        <span class="text-[10px] font-medium leading-none">{{ item.label }}</span>
+        <span class="text-[10px] font-semibold leading-none">{{ item.label }}</span>
       </a>
     }
 
@@ -40,12 +40,18 @@
               : 'border-gray-200 shadow-sm'
           "
         >
-          <img [src]="avatarUrl()" alt="Perfil" class="w-full h-full object-cover" />
+          @if (avatarUrl()) {
+            <img [src]="avatarUrl()" alt="Perfil" class="w-full h-full object-cover" />
+          } @else {
+            <div class="w-full h-full flex items-center justify-center bg-zinc-100 text-zinc-400">
+              <i class="pi pi-user text-sm"></i>
+            </div>
+          }
         </div>
       </div>
       <span
-        class="text-[10px] font-medium leading-none"
-        [ngClass]="rlaProfile.isActive ? 'text-primary' : 'text-gray-400'"
+        class="text-[10px] font-semibold leading-none"
+        [ngClass]="rlaProfile.isActive ? 'text-primary' : 'text-zinc-500'"
       >
         Perfil
       </span>

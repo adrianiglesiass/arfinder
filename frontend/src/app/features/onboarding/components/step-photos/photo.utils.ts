@@ -19,7 +19,7 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
   }
 
   if (file.size > PHOTO_VALIDATION.MAX_SIZE) {
-    return { valid: false, error: 'La foto no debe exceder 5MB' };
+    return { valid: false, error: 'La foto no debe exceder 10MB' };
   }
 
   return { valid: true };

@@ -1,3 +1,3 @@
-export * from './error-response.model';
-export * from './error-messages';
-export * from './error.service';
+export * from '@core/errors/error-response.model';
+export * from '@core/errors/error-messages';
+export * from '@core/errors/error.service';
