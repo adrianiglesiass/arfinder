@@ -1,5 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+
+import { ProfileService } from '@core/profile/profile.service';
 
 @Component({
   selector: 'app-navbar-user-menu',
@@ -7,7 +9,6 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
 })
 export class NavbarUserMenu {
-  avatarUrl = signal<string | null>(
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'
-  );
+  private readonly profileService = inject(ProfileService);
+  avatarUrl = this.profileService.profilePhotoUrl;
 }

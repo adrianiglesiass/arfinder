@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 
 import { ProfileApiService } from '@infrastructure/api/profile/profile.api.service';
 
@@ -14,6 +14,19 @@ export class ProfileService {
   private readonly authApi = inject(ProfileApiService);
 
   currentProfile = signal<ProfileResponse | null>(null);
+  profilePhotoUrl = computed(() => {
+    const profile = this.currentProfile();
+    if (profile?.photos && profile.photos.length > 0) {
+      return profile.photos[0].photo_url;
+    }
+    return null;
+  });
+
+  async loadProfile(): Promise<ProfileResponse> {
+    const profile = await this.authApi.getMyProfile();
+    this.currentProfile.set(profile);
+    return profile;
+  }
 
   async saveOnboarding(data: ProfileCreate): Promise<void> {
     try {

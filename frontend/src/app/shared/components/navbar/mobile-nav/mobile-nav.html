@@ -40,7 +40,13 @@
               : 'border-gray-200 shadow-sm'
           "
         >
-          <img [src]="avatarUrl()" alt="Perfil" class="w-full h-full object-cover" />
+          @if (avatarUrl()) {
+            <img [src]="avatarUrl()" alt="Perfil" class="w-full h-full object-cover" />
+          } @else {
+            <div class="w-full h-full flex items-center justify-center bg-zinc-100 text-zinc-400">
+              <i class="pi pi-user text-sm"></i>
+            </div>
+          }
         </div>
       </div>
       <span

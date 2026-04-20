@@ -18,6 +18,7 @@ import { ProfilePhotoResponse } from '@core/api/api.models';
 import { ErrorService } from '@core/errors';
 import { ProfileService } from '@core/profile/profile.service';
 
+import { PhotoCard } from '@features/onboarding/components/step-photos/photo-card/photo-card';
 import {
   applyStoredOrder,
   CombinedPhoto,
@@ -25,13 +26,13 @@ import {
   isLocalPhoto,
   LocalPhoto,
   validateFile,
-} from './photo.utils';
-import { PhotoStorageService } from './services/photo-storage.service';
-import { PhotoUploadService } from './services/photo-upload.service';
+} from '@features/onboarding/components/step-photos/photo.utils';
+import { PhotoStorageService } from '@features/onboarding/components/step-photos/services/photo-storage.service';
+import { PhotoUploadService } from '@features/onboarding/components/step-photos/services/photo-upload.service';
 
 @Component({
   selector: 'app-step-photos',
-  imports: [ToastModule, DragDropModule],
+  imports: [ToastModule, DragDropModule, PhotoCard],
   providers: [MessageService, PhotoUploadService, PhotoStorageService],
   templateUrl: './step-photos.html',
 })
@@ -54,6 +55,7 @@ export class StepPhotos implements AfterViewInit {
 
   displayPhotos = signal<CombinedPhoto[]>([]);
 
+  readonly MAX_PHOTOS = 6;
   hasPhotos = computed(() => this.localPhotos().length > 0 || this.uploadedPhotos().length > 0);
 
   readonly allPhotos = computed(() => {
@@ -61,9 +63,10 @@ export class StepPhotos implements AfterViewInit {
     return applyStoredOrder(combined, this.storedOrder());
   });
 
-  getPhotoUrl(photo: CombinedPhoto): string {
-    return 'file' in photo ? photo.preview : photo.photo_url;
-  }
+  readonly photoSlots = computed(() => {
+    const photos = this.allPhotos();
+    return Array.from({ length: this.MAX_PHOTOS }, (_, i) => photos[i] || null);
+  });
 
   async ngAfterViewInit() {
     await this.restoreFromStorage();
@@ -112,17 +115,22 @@ export class StepPhotos implements AfterViewInit {
     fileInput?.nativeElement.click();
   }
 
-  handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      this.openFileInput();
-    }
-  }
-
   async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const files = Array.from(input.files);
+      const currentCount = this.allPhotos().length;
+      const availableSlots = this.MAX_PHOTOS - currentCount;
+
+      if (availableSlots <= 0) {
+        this.toast(`Ya has alcanzado el límite de ${this.MAX_PHOTOS} fotos`, 'error');
+        input.value = '';
+        return;
+      }
+
+      const files = Array.from(input.files).slice(0, availableSlots);
+      if (Array.from(input.files).length > availableSlots) {
+        this.toast(`Solo se pueden añadir ${availableSlots} fotos más`, 'warning');
+      }
 
       for (const file of files) {
         const validation = validateFile(file);
