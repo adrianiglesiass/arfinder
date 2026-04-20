@@ -9,7 +9,7 @@
   --color-gray-soft: #ffffff;
 
   --shadow-premium: 0 4px 12px 0 rgba(0, 0, 0, 0.03);
-  --shadow-glass: none;
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
 
   --font-family-sans: 'Plus Jakarta Sans', sans-serif;
   --font-family-serif: 'Playfair Display', serif;
@@ -75,6 +75,10 @@
   }
   .slide-out-right {
     animation: slide-out-right 700ms var(--ease-apple) both;
+  }
+
+  .glass-nav {
+    @apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-(--shadow-glass);
   }
 }
 
