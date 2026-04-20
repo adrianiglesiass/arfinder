@@ -1,4 +1,4 @@
-import type { components } from './api.types';
+import type { components } from '@core/api/api.types';
 
 export type UserResponse = components['schemas']['UserResponse'];
 

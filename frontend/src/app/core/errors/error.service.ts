@@ -2,12 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
-import { DEFAULT_ERROR_MESSAGE, getErrorMessage } from './error-messages';
+import { DEFAULT_ERROR_MESSAGE, getErrorMessage } from '@core/errors/error-messages';
 import {
   FieldValidationError,
   isErrorResponse,
   isFieldValidationErrors,
-} from './error-response.model';
+} from '@core/errors/error-response.model';
 
 @Injectable({
   providedIn: 'root',
