@@ -33,7 +33,7 @@ import { PhotoUploadService } from '@features/onboarding/components/step-photos/
 @Component({
   selector: 'app-step-photos',
   imports: [ToastModule, DragDropModule, PhotoCard],
-  providers: [MessageService, PhotoUploadService, PhotoStorageService],
+  providers: [PhotoUploadService, PhotoStorageService],
   templateUrl: './step-photos.html',
 })
 export class StepPhotos implements AfterViewInit {
@@ -165,7 +165,7 @@ export class StepPhotos implements AfterViewInit {
     }
     this.localPhotos.set(this.localPhotos().filter((p) => p.id !== photoId));
     this.persistLocalPhotos();
-    this.toast('Foto removida', 'info');
+    this.toast('Foto eliminada', 'info');
   }
 
   async deletePhoto(photoId: number) {
@@ -195,24 +195,28 @@ export class StepPhotos implements AfterViewInit {
     const photos = [...this.localPhotos()];
     const uploadedResults: ProfilePhotoResponse[] = [];
 
-    for (const localPhoto of photos) {
-      try {
-        const response = await this.profileService.addPhoto(localPhoto.file);
-        uploadedResults.push(response);
-        URL.revokeObjectURL(localPhoto.preview);
-      } catch (err) {
-        console.error('Error uploading photo', err);
-        this.toast('Error al subir una foto', 'error');
+    try {
+      for (const localPhoto of photos) {
+        try {
+          const response = await this.profileService.addPhoto(localPhoto.file);
+          uploadedResults.push(response);
+          URL.revokeObjectURL(localPhoto.preview);
+        } catch (err: unknown) {
+          console.error('Error uploading photo', err);
+          const { general } = this.errorService.processError(err as HttpErrorResponse);
+          this.toast(general || 'Error al subir una foto', 'error');
+          throw err;
+        }
       }
+
+      this.localPhotos.set([]);
+      this.uploadedPhotos.set([...this.uploadedPhotos(), ...uploadedResults]);
+      this.persistLocalPhotos();
+      this.persistOrder();
+    } finally {
+      this.isLoading.set(false);
+      this.isUploadingFinal.set(false);
     }
-
-    this.localPhotos.set([]);
-    this.uploadedPhotos.set([...this.uploadedPhotos(), ...uploadedResults]);
-    this.persistLocalPhotos();
-    this.persistOrder();
-
-    this.isLoading.set(false);
-    this.isUploadingFinal.set(false);
   }
 
   async reorderPhotos() {

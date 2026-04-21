@@ -10,12 +10,15 @@ export type CombinedPhoto = LocalPhoto | ProfilePhotoResponse;
 
 const PHOTO_VALIDATION = {
   MAX_SIZE: 10 * 1024 * 1024,
-  ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
+  ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'],
 };
 
 export function validateFile(file: File): { valid: boolean; error?: string } {
-  if (!PHOTO_VALIDATION.ALLOWED_TYPES.includes(file.type)) {
-    return { valid: false, error: 'Solo se permiten JPG, PNG o WEBP' };
+  if (
+    !PHOTO_VALIDATION.ALLOWED_TYPES.includes(file.type) &&
+    !file.name.toLowerCase().match(/\.(heic|heif)$/)
+  ) {
+    return { valid: false, error: 'Formatos soportados: JPG, PNG, WEBP, GIF o HEIC' };
   }
 
   if (file.size > PHOTO_VALIDATION.MAX_SIZE) {

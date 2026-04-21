@@ -28,20 +28,26 @@
     #fileInputRef
     type="file"
     multiple
-    accept="image/jpeg,image/png,image/webp"
+    accept=".jpg,.jpeg,.png,.webp,.gif,.heic,.heif,image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
     class="hidden"
     (change)="onFileSelected($event)"
   />
 
-  @if (hasPhotos()) {
-    <div class="mt-6 flex justify-center">
+  <div class="mt-8 flex flex-col items-center gap-3">
+    <p
+      class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] px-4 py-2 bg-gray-50/50 rounded-full border border-gray-100"
+    >
+      Formatos: JPG, PNG, WEBP, GIF, HEIC • Máx 10MB
+    </p>
+
+    @if (hasPhotos()) {
       <p
-        class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] bg-gray-50 px-4 py-2 rounded-full border border-gray-100"
+        class="text-[10px] font-bold text-primary uppercase tracking-[0.2em] px-4 py-2 bg-primary/5 rounded-full border border-primary/10"
       >
         {{ allPhotos().length }} de {{ MAX_PHOTOS }} fotos seleccionadas
       </p>
-    </div>
-  }
+    }
+  </div>
 
   @if (isLoading()) {
     <div

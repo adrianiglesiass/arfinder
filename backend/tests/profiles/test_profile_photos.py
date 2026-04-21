@@ -27,7 +27,7 @@ async def test_upload_profile_photo_success(client, auth_headers, db, profile):
     with patch(
         "cloudinary.uploader.upload", return_value=mock_upload_result
     ) as mock_upload:
-        file_content = b"fake image content"
+        file_content = b"\xff\xd8\xff\xe0" + b"fake image content"
         file = BytesIO(file_content)
         file.name = "test.jpg"
 
@@ -44,7 +44,7 @@ async def test_upload_profile_photo_success(client, auth_headers, db, profile):
 
 @pytest.mark.asyncio
 async def test_upload_profile_photo_file_too_large(client, auth_headers, profile):
-    large_content = b"0" * (11 * 1024 * 1024)
+    large_content = b"\xff\xd8\xff\xe0" + (b"0" * (11 * 1024 * 1024))
     file = BytesIO(large_content)
 
     response = client.post(
@@ -63,7 +63,7 @@ def test_list_profile_photos(client, auth_headers, profile, db):
     }
 
     with patch("cloudinary.uploader.upload", return_value=mock_upload_result):
-        file_content = b"fake image content"
+        file_content = b"\xff\xd8\xff\xe0" + b"fake image content"
         file = BytesIO(file_content)
         client.post(
             "/profiles/me/photos",
@@ -83,7 +83,7 @@ def test_delete_profile_photo(client, auth_headers, profile, db):
     }
 
     with patch("cloudinary.uploader.upload", return_value=mock_upload_result):
-        file_content = b"fake image content"
+        file_content = b"\xff\xd8\xff\xe0" + b"fake image content"
         file = BytesIO(file_content)
         upload_res = client.post(
             "/profiles/me/photos",

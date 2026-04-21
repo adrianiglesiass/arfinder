@@ -6,6 +6,7 @@ import { DEFAULT_ERROR_MESSAGE, getErrorMessage } from '@core/errors/error-messa
 import {
   FieldValidationError,
   isErrorResponse,
+  isFastApiError,
   isFieldValidationErrors,
 } from '@core/errors/error-response.model';
 
@@ -14,9 +15,20 @@ import {
 })
 export class ErrorService {
   getErrorMessage(error: HttpErrorResponse): string {
-    if (isErrorResponse(error.error)) {
-      const { code } = error.error;
-      return getErrorMessage(code);
+    const errorBody = error.error as unknown;
+
+    if (isFastApiError(errorBody)) {
+      return errorBody.detail.map((d) => d.msg).join('. ');
+    }
+
+    if (isErrorResponse(errorBody)) {
+      const { code, detail } = errorBody;
+      if (code) {
+        return getErrorMessage(code);
+      }
+      if (typeof detail === 'string') {
+        return detail;
+      }
     }
 
     return DEFAULT_ERROR_MESSAGE;
