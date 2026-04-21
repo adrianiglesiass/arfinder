@@ -1,18 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
-import { ProfileService } from '@core/profile/profile.service';
+import { NavbarUserMenu } from '@shared/components/navbar/navbar-user-menu/navbar-user-menu';
 
 @Component({
   selector: 'app-mobile-nav',
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, NavbarUserMenu],
   templateUrl: './mobile-nav.html',
 })
 export class MobileNav {
-  private readonly profileService = inject(ProfileService);
-  avatarUrl = this.profileService.profilePhotoUrl;
-
   navItems = [
     { label: 'Explorar', icon: 'pi pi-search', link: '/explore' },
     { label: 'Mensajes', icon: 'pi pi-envelope', link: '/mensajes' },

@@ -1,15 +1,6 @@
 <div class="min-h-screen bg-white">
   <div class="max-w-3xl mx-auto w-full pt-12 px-6 pb-16">
-    <button
-      type="button"
-      class="text-gray-400 hover:text-primary text-xs font-semibold flex items-center gap-2 mb-10 transition-all cursor-pointer group"
-      (click)="router.navigate(['/auth'])"
-    >
-      <i class="pi pi-arrow-left transition-transform group-hover:-translate-x-1"></i>
-      Volver
-    </button>
-
-    <div class="mb-14">
+    <div class="mb-10">
       <div class="flex justify-between items-end mb-4">
         <div>
           <span class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1.5 block"
@@ -17,7 +8,7 @@
           >
           <h1 class="text-3xl font-bold text-primary">{{ stepTitle() }}</h1>
         </div>
-        <span class="text-[11px] font-bold text-gray-300 tracking-widest"
+        <span class="text-[11px] font-bold text-gray-500 tracking-widest"
           >{{ progress() | number: '1.0-0' }}%</span
         >
       </div>
@@ -29,7 +20,7 @@
       </div>
     </div>
 
-    <div class="relative min-h-130 pt-4">
+    <div class="relative pt-4">
       <div class="relative w-full h-full">
         @switch (currentStep()) {
           @case (1) {
@@ -107,7 +98,7 @@
       </div>
     </div>
 
-    <div class="mt-20 flex justify-between items-center pt-8 border-t border-gray-border">
+    <div class="mt-12 flex justify-between items-center pt-8 border-t border-gray-border">
       <button
         type="button"
         class="text-gray-400 font-bold text-[13px] hover:text-primary transition-colors cursor-pointer px-4 py-2"

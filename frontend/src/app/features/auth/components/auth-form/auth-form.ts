@@ -56,11 +56,8 @@ export class AuthForm {
   readonly socialAuth = output<void>();
   isRegisterMode = computed(() => this.mode() === 'register');
   submitLabel = computed(() => (this.mode() === 'login' ? 'Iniciar sesión' : 'Registrarse'));
-
-  submitClass = computed(() =>
-    this.mode() === 'login'
-      ? 'w-full py-3.5 rounded-2xl! font-medium text-sm mt-1 active:scale-95'
-      : 'w-full py-4 rounded-2xl! font-semibold text-base mt-2 active:scale-95 transition-all'
+  submitClass = computed(
+    () => 'w-full py-4  rounded-2xl! font-semibold text-base mt-2 active:scale-95 transition-all'
   );
 
   private readonly fb = inject(FormBuilder);

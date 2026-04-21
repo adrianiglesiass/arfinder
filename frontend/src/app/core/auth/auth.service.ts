@@ -23,7 +23,6 @@ export class AuthService {
 
   currentUser = signal<UserResponse | null>(null);
   private sdkReadyPromise: Promise<void> | null = null;
-  private syncPromise: Promise<void> | null = null;
 
   async init(): Promise<void> {
     if (this.sdkReadyPromise) {
@@ -35,7 +34,7 @@ export class AuthService {
         const { data } = await this.insforge.auth.getCurrentUser();
 
         if (data?.user) {
-          this.syncPromise = this.syncUser().then(() => {
+          this.syncUser().then(() => {
             const currentUrl = window.location.pathname;
             if (
               currentUrl.includes('/login') ||
@@ -45,12 +44,9 @@ export class AuthService {
               this.navigatePostAuth();
             }
           });
-        } else {
-          this.syncPromise = Promise.resolve();
         }
       } catch (error) {
         console.error('Auth initialization failed', error);
-        this.syncPromise = Promise.resolve();
       }
     })();
 
