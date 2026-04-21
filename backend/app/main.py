@@ -14,6 +14,8 @@ from app.core.realtime_bridge import realtime_bridge
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if settings.ENVIRONMENT == "production" and settings.DEBUG:
+        raise RuntimeError("DEBUG mode must be disabled in production environment")
     await realtime_bridge.start()
     yield
     await realtime_bridge.stop()
