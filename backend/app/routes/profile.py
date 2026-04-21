@@ -1,5 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from app.core.file_validation import validate_image_header
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
@@ -107,6 +108,11 @@ async def upload_profile_photo(
 ):
     if file.size and file.size > _MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="File exceeds 10MB limit")
+
+    header = await file.read(2048)
+    validate_image_header(header)
+    await file.seek(0)
+
     return await profile_photo_service.upload(db, current_user.id, file.file)
 
 

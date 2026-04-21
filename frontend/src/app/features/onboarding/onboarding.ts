@@ -1,10 +1,14 @@
 import { DecimalPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { MessageService } from 'primeng/api';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { ToastModule } from 'primeng/toast';
 
 import { ProfileCreate, ScheduleEnum, TypeEnum } from '@core/api/api.models';
+import { ErrorService } from '@core/errors';
 import { CitySearchService } from '@core/location/city-search.service';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
 import { ProfileService } from '@core/profile/profile.service';
@@ -16,7 +20,16 @@ import { StepProfile } from '@features/onboarding/components/step-profile/step-p
 
 @Component({
   selector: 'app-onboarding',
-  imports: [ProgressBarModule, StepProfile, StepObjective, StepLifestyle, StepPhotos, DecimalPipe],
+  imports: [
+    ProgressBarModule,
+    ToastModule,
+    StepProfile,
+    StepObjective,
+    StepLifestyle,
+    StepPhotos,
+    DecimalPipe,
+  ],
+  providers: [MessageService],
   templateUrl: './onboarding.html',
 })
 export default class Onboarding {
@@ -24,6 +37,8 @@ export default class Onboarding {
   protected readonly router = inject(Router);
   private readonly persistenceService = inject(OnboardingPersistenceService);
   private readonly citySearchService = inject(CitySearchService);
+  private readonly messageService = inject(MessageService);
+  private readonly errorService = inject(ErrorService);
 
   stepPhotos = viewChild(StepPhotos);
 
@@ -111,17 +126,28 @@ export default class Onboarding {
       this.direction.set('forward');
       this.currentStep.update((step) => step + 1);
     } else {
-      await this.profileService.saveOnboarding(this.form() as ProfileCreate);
+      try {
+        await this.profileService.saveOnboarding(this.form() as ProfileCreate);
 
-      this.persistenceService.clearAll();
-      this.citySearchService.clearSelectedCity();
+        this.persistenceService.clearAll();
+        this.citySearchService.clearSelectedCity();
 
-      const photos = this.stepPhotos();
-      if (photos) {
-        await photos.uploadPendingPhotos();
+        const photos = this.stepPhotos();
+        if (photos) {
+          await photos.uploadPendingPhotos();
+        }
+
+        this.router.navigate(['']);
+      } catch (error: unknown) {
+        console.error('Error in onboarding:', error);
+        const { general } = this.errorService.processError(error as HttpErrorResponse);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error al crear el perfil',
+          detail: general || 'Ocurrió un error inesperado al guardar tus datos.',
+          life: 5000,
+        });
       }
-
-      this.router.navigate(['']);
     }
   }
 

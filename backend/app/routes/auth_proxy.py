@@ -1,29 +1,32 @@
 from fastapi.encoders import jsonable_encoder
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, EmailStr, Field
 
 from app.core.security import insforge
+from app.core.rate_limit import rate_limiter
 
-router = APIRouter(prefix="/auth/proxy", tags=["auth-proxy"])
+router = APIRouter(
+    prefix="/auth/proxy", tags=["auth-proxy"], dependencies=[Depends(rate_limiter)]
+)
 
 
 class AuthLogin(BaseModel):
-    email: EmailStr
-    password: str
+    email: EmailStr = Field(..., max_length=255)
+    password: str = Field(..., max_length=128)
 
 
 class AuthRegister(BaseModel):
-    email: EmailStr
-    password: str
+    email: EmailStr = Field(..., max_length=255)
+    password: str = Field(..., min_length=8, max_length=128)
 
 
 class AuthVerify(BaseModel):
-    email: EmailStr
-    otp: str
+    email: EmailStr = Field(..., max_length=255)
+    otp: str = Field(..., min_length=1, max_length=10)
 
 
 class AuthResend(BaseModel):
-    email: EmailStr
+    email: EmailStr = Field(..., max_length=255)
 
 
 @router.post("/login")

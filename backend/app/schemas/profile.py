@@ -2,7 +2,7 @@ from datetime import date
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.types import UTCDatetime
 
@@ -22,35 +22,35 @@ class TypeEnum(str, Enum):
 class ProfileCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    name: str
-    age: int
-    city: str
-    bio: Optional[str] = None
-    max_budget: Optional[int] = None
+    name: str = Field(..., max_length=150)
+    age: int = Field(..., ge=18, le=120)
+    city: str = Field(..., max_length=150)
+    bio: Optional[str] = Field(None, max_length=2000)
+    max_budget: Optional[int] = Field(None, ge=0, le=1000000)
     has_pets: bool = False
     is_smoker: bool = False
     schedule: Optional[ScheduleEnum] = None
-    gender: Optional[str] = None
+    gender: Optional[str] = Field(None, max_length=50)
     available_from: Optional[date] = None
     type: TypeEnum
-    room_description: Optional[str] = None
+    room_description: Optional[str] = Field(None, max_length=3000)
 
 
 class ProfileUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    name: Optional[str] = None
-    age: Optional[int] = None
-    city: Optional[str] = None
-    bio: Optional[str] = None
-    max_budget: Optional[int] = None
+    name: Optional[str] = Field(None, max_length=150)
+    age: Optional[int] = Field(None, ge=18, le=120)
+    city: Optional[str] = Field(None, max_length=150)
+    bio: Optional[str] = Field(None, max_length=2000)
+    max_budget: Optional[int] = Field(None, ge=0, le=1000000)
     has_pets: Optional[bool] = None
     is_smoker: Optional[bool] = None
     schedule: Optional[ScheduleEnum] = None
-    gender: Optional[str] = None
+    gender: Optional[str] = Field(None, max_length=50)
     available_from: Optional[date] = None
     type: Optional[TypeEnum] = None
-    room_description: Optional[str] = None
+    room_description: Optional[str] = Field(None, max_length=3000)
 
 
 class ProfilePhotoResponse(BaseModel):

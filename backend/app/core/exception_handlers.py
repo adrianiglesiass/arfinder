@@ -11,10 +11,54 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     )
 
 
+PYDANTIC_MESSAGES = {
+    "greater_than_equal": "debe ser mayor o igual a {limit_value}",
+    "less_than_equal": "debe ser menor o igual a {limit_value}",
+    "string_too_long": "no puede tener más de {limit_value} caracteres",
+    "string_too_short": "debe tener al menos {limit_value} caracteres",
+    "value_error.missing": "es un campo obligatorio",
+    "type_error.integer": "debe ser un número entero",
+    "value_error.email": "debe ser un correo electrónico válido",
+    "enum": "debe ser uno de: {expected}",
+}
+
+FIELD_NAMES = {
+    "age": "La edad",
+    "name": "El nombre",
+    "city": "La ciudad",
+    "bio": "La biografía",
+    "max_budget": "El presupuesto máximo",
+    "room_description": "La descripción de la habitación",
+    "gender": "El género",
+    "available_from": "La fecha de disponibilidad",
+    "type": "El tipo de perfil",
+}
+
+
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = []
+    for error in exc.errors():
+        error_type = error.get("type")
+        field = error.get("loc")[-1]
+
+        translated_field = FIELD_NAMES.get(field, field)
+
+        msg_template = PYDANTIC_MESSAGES.get(error_type)
+        if msg_template:
+            ctx = error.get("ctx", {})
+            try:
+                new_msg = f"{translated_field} {msg_template.format(**ctx)}"
+            except (KeyError, ValueError):
+                new_msg = f"{translated_field}: {error.get('msg')}"
+        else:
+            new_msg = f"{translated_field}: {error.get('msg')}"
+
+        error["msg"] = new_msg
+        errors.append(error)
+
     return JSONResponse(
         status_code=422,
-        content={"detail": exc.errors()},
+        content={"detail": errors},
     )
 
 
