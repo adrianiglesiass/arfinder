@@ -31,6 +31,7 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "Arfinder"
+    ENVIRONMENT: str = "development"
     DEBUG: bool = False
     DEV_BYPASS_TOKEN: str | None = None
 

@@ -5,15 +5,15 @@ services:
     image: postgres:15-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root1234
+      POSTGRES_USER: arfinder_user
+      POSTGRES_PASSWORD: TVprI5Ipni4KNQzDOewAOHkKBI0965CJ
       POSTGRES_DB: arfinder_db
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
       - '5432:5432'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d arfinder_db"]
+      test: ["CMD-SHELL", "pg_isready -U arfinder_user -d arfinder_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,8 +23,8 @@ services:
     image: postgres:15-alpine
     restart: 'no'
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root1234
+      POSTGRES_USER: arfinder_test_user
+      POSTGRES_PASSWORD: TVprI5Ipni4KNQzDOewAOHkKBI0965CJ
       POSTGRES_DB: arfinder_test_db
     tmpfs:
       - /var/lib/postgresql/data
