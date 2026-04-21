@@ -5,11 +5,17 @@ import { Router } from '@angular/router';
 import { environment } from '@env/environment';
 import { AuthApiService } from '@infrastructure/api/auth/auth.api.service';
 import { ProfileApiService } from '@infrastructure/api/profile/profile.api.service';
-import { InsForgeClient } from '@insforge/sdk';
+import { type AuthSession, InsForgeClient } from '@insforge/sdk';
 import { CreateUserResponse, VerifyEmailResponse } from '@insforge/shared-schemas';
 
 import type { UserResponse } from '@core/api/api.models';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
+
+interface InsForgeInternal {
+  tokenManager: {
+    saveSession: (session: AuthSession) => void;
+  };
+}
 
 @Injectable({
   providedIn: 'root',
@@ -81,9 +87,19 @@ export class AuthService {
   }
 
   async login(credentials: { email: string; password: string }): Promise<void> {
-    const { data, error } = await this.insforge.auth.signInWithPassword(credentials);
-    if (error) throw error;
-    if (data) {
+    const data = await this.authApi.proxyLogin(credentials);
+    if (data?.accessToken) {
+      this.insforge.getHttpClient().setAuthToken(data.accessToken);
+      this.insforge.getHttpClient().setRefreshToken(data.refreshToken ?? null);
+
+      if (data.user) {
+        const internal = this.insforge as unknown as InsForgeInternal;
+        internal.tokenManager.saveSession({
+          accessToken: data.accessToken,
+          user: data.user,
+        });
+      }
+
       await this.syncUser();
     }
   }
@@ -92,12 +108,20 @@ export class AuthService {
     email: string;
     password: string;
   }): Promise<CreateUserResponse | null> {
-    const { data, error } = await this.insforge.auth.signUp({
-      email: credentials.email,
-      password: credentials.password,
-    });
-    if (error) throw error;
+    const data = await this.authApi.proxyRegister(credentials);
     if (data) {
+      if (data.accessToken) {
+        this.insforge.getHttpClient().setAuthToken(data.accessToken);
+        this.insforge.getHttpClient().setRefreshToken(data.refreshToken ?? null);
+
+        if (data.user) {
+          const internal = this.insforge as unknown as InsForgeInternal;
+          internal.tokenManager.saveSession({
+            accessToken: data.accessToken,
+            user: data.user,
+          });
+        }
+      }
       if (!data.requireEmailVerification) {
         await this.syncUser();
       }
@@ -106,14 +130,20 @@ export class AuthService {
   }
 
   async verifyEmail(email: string, otp: string): Promise<VerifyEmailResponse | null> {
-    const { data, error } = await this.insforge.auth.verifyEmail({
-      email,
-      otp,
-    });
-
-    if (error) throw error;
-
+    const data = await this.authApi.proxyVerifyEmail({ email, otp });
     if (data) {
+      if (data.accessToken) {
+        this.insforge.getHttpClient().setAuthToken(data.accessToken);
+        this.insforge.getHttpClient().setRefreshToken(data.refreshToken ?? null);
+
+        if (data.user) {
+          const internal = this.insforge as unknown as InsForgeInternal;
+          internal.tokenManager.saveSession({
+            accessToken: data.accessToken,
+            user: data.user,
+          });
+        }
+      }
       await this.syncUser();
     }
     return data;
@@ -125,10 +155,7 @@ export class AuthService {
   }
 
   async resendVerificationEmail(email: string): Promise<void> {
-    const { error } = await this.insforge.auth.resendVerificationEmail({
-      email,
-    });
-    if (error) throw error;
+    await this.authApi.proxyResendVerification({ email });
   }
 
   async logout(): Promise<void> {
@@ -148,6 +175,15 @@ export class AuthService {
       const user = await this.authApi.getMe();
       this.currentUser.set(user);
       this.onboardingPersistence.ensureUser(user.id);
+
+      const token = await this.getToken();
+      if (token) {
+        const internal = this.insforge as unknown as InsForgeInternal;
+        internal.tokenManager.saveSession({
+          accessToken: token,
+          user: user as unknown as AuthSession['user'],
+        });
+      }
     } catch {
       this.currentUser.set(null);
       this.onboardingPersistence.clearAll();
