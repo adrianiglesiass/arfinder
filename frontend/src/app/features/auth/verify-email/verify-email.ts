@@ -5,7 +5,6 @@ import {
   computed,
   ElementRef,
   inject,
-  input,
   signal,
   viewChildren,
 } from '@angular/core';
@@ -32,6 +31,12 @@ import { AuthCard } from '@features/auth/components/auth-card/auth-card';
   templateUrl: './verify-email.html',
 })
 export default class VerifyEmail implements AfterViewInit {
+  constructor() {
+    const router = inject(Router);
+    if (!this.email()) {
+      router.navigate(['/login']);
+    }
+  }
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -49,7 +54,7 @@ export default class VerifyEmail implements AfterViewInit {
     this.resendDisabled() ? `Reenviar en ${this.countdown()}s` : 'Reenviar código'
   );
 
-  email = input.required<string>();
+  email = signal<string>(sessionStorage.getItem('arfinder_pending_email') || '');
 
   form = this.fb.group({
     otp: this.fb.array(

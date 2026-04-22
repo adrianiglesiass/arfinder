@@ -1,3 +1,4 @@
+from app.core.config import settings
 import asyncio
 from fastapi import HTTPException, Request, status
 from pyrate_limiter import Duration, Limiter, Rate
@@ -7,6 +8,8 @@ limiter = Limiter(auth_rate)
 
 
 async def rate_limiter(request: Request):
+    if settings.ENVIRONMENT == "testing":
+        return
 
     client_ip = request.client.host if request.client else "unknown"
 

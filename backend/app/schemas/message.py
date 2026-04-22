@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.types import UTCDatetime
 
@@ -16,4 +16,4 @@ class MessageResponse(BaseModel):
 
 
 class MessageCreate(BaseModel):
-    content: str
+    content: str = Field(..., max_length=5000)
