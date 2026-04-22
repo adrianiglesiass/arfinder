@@ -12,13 +12,18 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
 
 
 PYDANTIC_MESSAGES = {
-    "greater_than_equal": "debe ser mayor o igual a {limit_value}",
-    "less_than_equal": "debe ser menor o igual a {limit_value}",
-    "string_too_long": "no puede tener más de {limit_value} caracteres",
-    "string_too_short": "debe tener al menos {limit_value} caracteres",
+    "greater_than_equal": "debe ser mayor o igual a {ge}",
+    "less_than_equal": "debe ser menor o igual a {le}",
+    "greater_than": "debe ser mayor a {gt}",
+    "less_than": "debe ser menor a {lt}",
+    "string_too_long": "no puede tener más de {max_length} caracteres",
+    "string_too_short": "debe tener al menos {min_length} caracteres",
     "value_error.missing": "es un campo obligatorio",
+    "missing": "es un campo obligatorio",
     "type_error.integer": "debe ser un número entero",
+    "integer_parsing": "debe ser un número entero",
     "value_error.email": "debe ser un correo electrónico válido",
+    "value_error.number.not_ge": "debe ser mayor o igual a {ge}",
     "enum": "debe ser uno de: {expected}",
 }
 
@@ -32,6 +37,9 @@ FIELD_NAMES = {
     "gender": "El género",
     "available_from": "La fecha de disponibilidad",
     "type": "El tipo de perfil",
+    "has_pets": "Las mascotas",
+    "is_smoker": "El hábito de fumar",
+    "schedule": "El horario",
 }
 
 

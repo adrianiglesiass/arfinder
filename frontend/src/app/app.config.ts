@@ -1,5 +1,10 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  inject,
+  provideAppInitializer,
+  provideZoneChangeDetection,
+} from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 
 import { routes } from '@app/app.routes';
@@ -8,12 +13,17 @@ import { InsForgeClient } from '@insforge/sdk';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 
+import { AuthService } from '@core/auth/auth.service';
 import { authErrorInterceptor, jwtInterceptor } from '@core/interceptors/jwt-interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
+    provideAppInitializer(() => {
+      const authService = inject(AuthService);
+      return authService.init();
+    }),
 
     provideHttpClient(withInterceptors([jwtInterceptor, authErrorInterceptor])),
     {

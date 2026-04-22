@@ -40,16 +40,15 @@ export class AuthService {
         const { data } = await this.insforge.auth.getCurrentUser();
 
         if (data?.user) {
-          this.syncUser().then(() => {
-            const currentUrl = window.location.pathname;
-            if (
-              currentUrl.includes('/login') ||
-              currentUrl.includes('/register') ||
-              currentUrl.includes('/auth/callback')
-            ) {
-              this.navigatePostAuth();
-            }
-          });
+          await this.syncUser();
+
+          const currentUrl = window.location.pathname;
+          const authPaths = ['/login', '/register', '/verify-email', '/auth/callback'];
+          const isAtAuthPage = authPaths.some((p) => currentUrl.includes(p));
+
+          if (isAtAuthPage) {
+            await this.navigatePostAuth();
+          }
         }
       } catch (error) {
         console.error('Auth initialization failed', error);
@@ -60,14 +59,14 @@ export class AuthService {
   }
 
   async getToken(): Promise<string | null> {
-    if (this.sdkReadyPromise) {
-      await this.sdkReadyPromise;
-    }
-
     const headers = this.insforge.getHttpClient().getHeaders();
     const authHeader = headers['Authorization'] || headers['authorization'];
     if (authHeader) {
       return authHeader.replace('Bearer ', '');
+    }
+
+    if (this.sdkReadyPromise) {
+      await this.sdkReadyPromise;
     }
 
     try {
@@ -87,19 +86,10 @@ export class AuthService {
   }
 
   async login(credentials: { email: string; password: string }): Promise<void> {
-    const data = await this.authApi.proxyLogin(credentials);
+    const { data, error } = await this.insforge.auth.signInWithPassword(credentials);
+    if (error) throw error;
+
     if (data?.accessToken) {
-      this.insforge.getHttpClient().setAuthToken(data.accessToken);
-      this.insforge.getHttpClient().setRefreshToken(data.refreshToken ?? null);
-
-      if (data.user) {
-        const internal = this.insforge as unknown as InsForgeInternal;
-        internal.tokenManager.saveSession({
-          accessToken: data.accessToken,
-          user: data.user,
-        });
-      }
-
       await this.syncUser();
     }
   }
@@ -108,21 +98,11 @@ export class AuthService {
     email: string;
     password: string;
   }): Promise<CreateUserResponse | null> {
-    const data = await this.authApi.proxyRegister(credentials);
-    if (data) {
-      if (data.accessToken) {
-        this.insforge.getHttpClient().setAuthToken(data.accessToken);
-        this.insforge.getHttpClient().setRefreshToken(data.refreshToken ?? null);
+    const { data, error } = await this.insforge.auth.signUp(credentials);
+    if (error) throw error;
 
-        if (data.user) {
-          const internal = this.insforge as unknown as InsForgeInternal;
-          internal.tokenManager.saveSession({
-            accessToken: data.accessToken,
-            user: data.user,
-          });
-        }
-      }
-      if (!data.requireEmailVerification) {
+    if (data) {
+      if (!data.requireEmailVerification && data.accessToken) {
         await this.syncUser();
       }
     }
@@ -130,20 +110,10 @@ export class AuthService {
   }
 
   async verifyEmail(email: string, otp: string): Promise<VerifyEmailResponse | null> {
-    const data = await this.authApi.proxyVerifyEmail({ email, otp });
-    if (data) {
-      if (data.accessToken) {
-        this.insforge.getHttpClient().setAuthToken(data.accessToken);
-        this.insforge.getHttpClient().setRefreshToken(data.refreshToken ?? null);
+    const { data, error } = await this.insforge.auth.verifyEmail({ email, otp });
+    if (error) throw error;
 
-        if (data.user) {
-          const internal = this.insforge as unknown as InsForgeInternal;
-          internal.tokenManager.saveSession({
-            accessToken: data.accessToken,
-            user: data.user,
-          });
-        }
-      }
+    if (data?.accessToken) {
       await this.syncUser();
     }
     return data;
