@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, status, Header
+import secrets
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
@@ -32,7 +33,9 @@ async def sync_cleanup(
     db: Session = Depends(get_db),
 ):
 
-    if not x_sync_token or x_sync_token != settings.DEV_BYPASS_TOKEN:
+    if not x_sync_token or not secrets.compare_digest(
+        x_sync_token, settings.DEV_BYPASS_TOKEN
+    ):
         return {"error": "Unauthorized"}, 401
 
     result = cleanup_orphaned_users(db)

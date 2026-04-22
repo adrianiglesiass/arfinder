@@ -41,9 +41,8 @@ export default class Register {
     try {
       const response = await this.authService.register(credentials);
       if (response?.requireEmailVerification) {
-        await this.router.navigate(['/verify-email'], {
-          queryParams: { email: credentials.email },
-        });
+        sessionStorage.setItem('arfinder_pending_email', credentials.email);
+        await this.router.navigate(['/verify-email']);
         return;
       }
       await this.authService.login(credentials);

@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from app.core.file_validation import validate_image_header
+from app.core.rate_limit import rate_limiter
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
@@ -99,6 +100,7 @@ async def update_my_profile(
 @router.post(
     "/me/photos",
     response_model=ProfilePhotoResponse,
+    dependencies=[Depends(rate_limiter)],
     responses={**PROTECTED, 413: {"description": "File too large"}},
 )
 async def upload_profile_photo(

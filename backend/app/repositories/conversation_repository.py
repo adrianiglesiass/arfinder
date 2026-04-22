@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Session
-from app.models import Conversation
+from sqlalchemy.orm import Session, joinedload
+from app.models import Conversation, User, Profile
 
 
 def get_conversation_by_id(db: Session, conversation_id: int) -> Conversation | None:
@@ -22,6 +22,14 @@ def get_conversation_between_users(
 def get_conversations_by_user(db: Session, user_id: int) -> list[Conversation]:
     return (
         db.query(Conversation)
+        .options(
+            joinedload(Conversation.user1)
+            .joinedload(User.profile)
+            .selectinload(Profile.photos),
+            joinedload(Conversation.user2)
+            .joinedload(User.profile)
+            .selectinload(Profile.photos),
+        )
         .filter((Conversation.user1_id == user_id) | (Conversation.user2_id == user_id))
         .order_by(Conversation.id.desc())
         .all()
