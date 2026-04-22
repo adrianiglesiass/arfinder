@@ -28,9 +28,8 @@ class RealtimeBridge:
         self._ws_url = settings.INSFORGE_URL
 
     async def _relay_message(self, payload_str: str):
-        """Reenvía la notificación de la DB a InsForge via Socket.IO"""
         try:
-            print(f"[RealtimeBridge] Received notification: {payload_str}")
+            logger.info(f"[RealtimeBridge] Received notification: {payload_str}")
             payload = json.loads(payload_str)
             channel = payload.get("channel")
             event = payload.get("event")
@@ -45,21 +44,18 @@ class RealtimeBridge:
                     "realtime:publish",
                     {"channel": channel, "event": event, "payload": data},
                 )
-                print(
+                logger.info(
                     f"[RealtimeBridge] Relayed event '{event}' to channel '{channel}'"
                 )
-                logger.info(f"Relayed event '{event}' to channel '{channel}'")
             else:
-                print(
+                logger.warning(
                     f"[RealtimeBridge] Discarded event '{event}' - InsForge WS disconnected"
                 )
-                logger.warning(f"Discarded event '{event}' - InsForge WS disconnected")
 
         except Exception as e:
             logger.error(f"Error relaying message: {e}")
 
     async def _listen_postgres(self):
-        """Mantiene la conexión LISTEN con Postgres con backoff exponencial"""
         backoff = INITIAL_BACKOFF
 
         while self.is_running:
@@ -72,7 +68,7 @@ class RealtimeBridge:
 
                 cursor = self.pg_conn.cursor()
                 cursor.execute("LISTEN insforge_realtime;")
-                print(
+                logger.info(
                     "[RealtimeBridge] Connected to Postgres and listening on 'insforge_realtime'"
                 )
 
@@ -92,10 +88,9 @@ class RealtimeBridge:
                     await asyncio.sleep(0.1)
 
             except Exception as e:
-                print(
+                logger.error(
                     f"[RealtimeBridge] Postgres listener error: {e}. Retrying in {backoff}s..."
                 )
-                logger.error(f"Postgres listener error: {e}. Retrying in {backoff}s...")
                 if self.pg_conn:
                     try:
                         self.pg_conn.close()
@@ -106,28 +101,29 @@ class RealtimeBridge:
                 backoff = min(backoff * BACKOFF_FACTOR, MAX_BACKOFF)
 
     async def _manage_websocket(self):
-        """Mantiene la conexión Socket.IO con InsForge"""
-        print("[RealtimeBridge] WS manager started")
+        logger.info("[RealtimeBridge] WS manager started")
         ws_url = self._ws_url
 
         while self.is_running:
             if not self.sio.connected:
                 try:
-                    print(f"[RealtimeBridge] Connecting to InsForge at {ws_url}...")
+                    logger.info(
+                        f"[RealtimeBridge] Connecting to InsForge at {ws_url}..."
+                    )
                     auth = {"apiKey": settings.INSFORGE_API_KEY}
 
                     await self.sio.connect(
                         ws_url, auth=auth, wait_timeout=15, transports=["websocket"]
                     )
-                    print("[RealtimeBridge] Connected to InsForge Realtime")
+                    logger.info("[RealtimeBridge] Connected to InsForge Realtime")
                 except Exception as e:
-                    print(f"[RealtimeBridge] InsForge WS connection failed: {e}")
+                    logger.error(f"[RealtimeBridge] InsForge WS connection failed: {e}")
 
             await asyncio.sleep(20)
 
     async def start(self):
         self.is_running = True
-        print("[RealtimeBridge] Starting background tasks...")
+        logger.info("[RealtimeBridge] Starting background tasks...")
         self._listener_task = asyncio.create_task(self._listen_postgres())
         self._ws_task = asyncio.create_task(self._manage_websocket())
 
