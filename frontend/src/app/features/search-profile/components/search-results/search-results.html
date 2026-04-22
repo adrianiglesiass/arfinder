@@ -1,0 +1,50 @@
+@if (resource.isLoading()) {
+  <!--
+  <div
+    class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 auto-rows-fr animate-fade-in"
+  >
+  -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 auto-rows-fr animate-fade-in">
+    @for (i of [0, 1, 2, 3, 4, 5]; track i) {
+      <div class="bg-white border border-gray-border rounded-2xl overflow-hidden">
+        <div class="aspect-4/5 bg-gray-100 animate-pulse"></div>
+        <div class="p-4 space-y-2.5">
+          <div class="h-4 w-2/3 bg-gray-100 rounded-full animate-pulse"></div>
+          <div class="h-3 w-1/2 bg-gray-100 rounded-full animate-pulse"></div>
+        </div>
+      </div>
+    }
+  </div>
+} @else if (resource.error()) {
+  <div
+    class="flex flex-col items-center justify-center text-center py-20 px-6 bg-white border border-gray-border rounded-3xl animate-fade-in"
+  >
+    <i class="pi pi-exclamation-triangle text-3xl text-red-400 mb-4"></i>
+    <h3 class="text-lg font-bold text-primary">No pudimos cargar los perfiles</h3>
+    <p class="text-sm text-gray-400 font-medium mt-2 max-w-sm">
+      Revisa tu conexión o inténtalo de nuevo en unos segundos.
+    </p>
+    <app-button class="mt-6" (click)="retry()">Reintentar</app-button>
+  </div>
+} @else if (!resource.value()?.length) {
+  <div
+    class="flex flex-col items-center justify-center text-center py-20 px-6 bg-white border border-gray-border rounded-3xl animate-fade-in"
+  >
+    <span class="material-symbols-rounded text-5xl text-gray-300 mb-4">search_off</span>
+    <h3 class="text-lg font-bold text-primary">Sin resultados</h3>
+    <p class="text-sm text-gray-400 font-medium mt-2 max-w-sm">
+      No encontramos perfiles con estos filtros. Prueba a relajar alguno de ellos.
+    </p>
+  </div>
+} @else {
+  <!--
+  <div
+    class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 animate-fade-in"
+  >
+  -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-fade-in">
+    @for (profile of resource.value(); track profile.id) {
+      <app-profile-card [profile]="profile" />
+    }
+  </div>
+}

@@ -99,22 +99,13 @@
     </div>
 
     <div class="mt-12 flex justify-between items-center pt-8 border-t border-gray-border">
-      <button
-        type="button"
-        class="text-gray-400 font-bold text-[13px] hover:text-primary transition-colors cursor-pointer px-4 py-2"
-        [class.invisible]="isFirstStep()"
-        (click)="prevStep()"
-      >
+      <app-button variant="ghost" size="sm" [class.invisible]="isFirstStep()" (click)="prevStep()">
         Anterior
-      </button>
+      </app-button>
 
-      <button
-        type="button"
-        class="bg-primary text-white cursor-pointer px-12 py-3.5 rounded-full font-bold text-[13px] transition-all duration-200 hover:opacity-90 active:opacity-80"
-        (click)="nextStep()"
-      >
+      <app-button (click)="nextStep()">
         {{ submitLabel() }}
-      </button>
+      </app-button>
     </div>
   </div>
 </div>

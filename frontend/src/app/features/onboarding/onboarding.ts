@@ -9,9 +9,10 @@ import { ToastModule } from 'primeng/toast';
 
 import { ProfileCreate, ScheduleEnum, TypeEnum } from '@core/api/api.models';
 import { ErrorService } from '@core/errors';
-import { CitySearchService } from '@core/location/city-search.service';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
 import { ProfileService } from '@core/profile/profile.service';
+
+import { Button } from '@shared/components/button/button';
 
 import { StepLifestyle } from '@features/onboarding/components/step-lifestyle/step-lifestyle';
 import { StepObjective } from '@features/onboarding/components/step-objective/step-objective';
@@ -28,6 +29,7 @@ import { StepProfile } from '@features/onboarding/components/step-profile/step-p
     StepLifestyle,
     StepPhotos,
     DecimalPipe,
+    Button,
   ],
   providers: [MessageService],
   templateUrl: './onboarding.html',
@@ -36,7 +38,6 @@ export default class Onboarding {
   protected readonly profileService = inject(ProfileService);
   protected readonly router = inject(Router);
   private readonly persistenceService = inject(OnboardingPersistenceService);
-  private readonly citySearchService = inject(CitySearchService);
   private readonly messageService = inject(MessageService);
   private readonly errorService = inject(ErrorService);
 
@@ -131,7 +132,6 @@ export default class Onboarding {
         await this.profileService.saveOnboarding(this.form() as ProfileCreate);
 
         this.persistenceService.clearAll();
-        this.citySearchService.clearSelectedCity();
 
         const photos = this.stepPhotos();
         if (photos) {

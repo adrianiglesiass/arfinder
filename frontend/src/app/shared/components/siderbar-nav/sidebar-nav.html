@@ -1,0 +1,45 @@
+<aside class="sticky top-0 h-screen flex flex-col overflow-y-auto">
+  <div class="flex flex-col gap-2 px-2 xl:px-4 py-6 flex-1">
+    <a
+      routerLink="/"
+      class="no-underline flex items-center justify-center xl:justify-start xl:px-3 mb-4 h-10"
+      aria-label="Arfinder"
+    >
+      <i class="pi pi-home text-accent text-2xl xl:hidden"></i>
+      <span class="hidden xl:inline">
+        <app-arfinder-logo size="sm" />
+      </span>
+    </a>
+
+    <nav class="flex flex-col gap-1">
+      @for (item of items; track item.link) {
+        <a
+          [routerLink]="item.link"
+          routerLinkActive
+          #rla="routerLinkActive"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="group flex items-center gap-4 px-3 py-3 rounded-full transition-colors no-underline hover:bg-gray-50 justify-center xl:justify-start"
+          [class.font-bold]="rla.isActive"
+          [class.text-primary]="rla.isActive"
+          [class.text-zinc-600]="!rla.isActive"
+        >
+          <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
+            <i [class]="item.icon + ' text-xl'"></i>
+            @if (item.badge) {
+              <span
+                class="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] min-w-4 h-4 px-1 rounded-full inline-flex items-center justify-center font-bold leading-none"
+              >
+                {{ item.badge }}
+              </span>
+            }
+          </div>
+          <span class="hidden xl:inline text-[15px]">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  </div>
+
+  <div class="px-2 xl:px-4 pb-6">
+    <app-sidebar-user-item />
+  </div>
+</aside>

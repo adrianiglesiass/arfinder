@@ -1,5 +1,23 @@
-<div class="pb-20 md:pb-0">
-  <app-navbar />
-  <router-outlet />
+<div class="min-h-screen pb-20 md:pb-0">
+  <div
+    class="grid grid-cols-1 md:grid-cols-[72px_minmax(0,1fr)] lg:grid-cols-[72px_minmax(0,1fr)_320px] xl:grid-cols-[260px_minmax(0,1fr)_360px] 2xl:grid-cols-[280px_minmax(0,1fr)_380px]"
+  >
+    <div class="hidden md:block border-r border-gray-100">
+      <app-sidebar-nav />
+    </div>
+
+    <main class="min-w-0">
+      <router-outlet />
+    </main>
+
+    <aside class="hidden lg:block border-l border-gray-100">
+      <div class="sticky top-0 h-screen overflow-y-auto py-6 px-4">
+        @if (rightPanel.template(); as tpl) {
+          <ng-container [ngTemplateOutlet]="tpl" />
+        }
+      </div>
+    </aside>
+  </div>
+
   <app-mobile-nav />
 </div>

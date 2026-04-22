@@ -14,14 +14,14 @@
             ? 'bg-primary text-white border-primary shadow-sm'
             : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
         "
-        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-300 outline-none group"
+        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 outline-none group"
         aria-label="Seleccionar opción: Busco piso"
         [aria-pressed]="isLookingForFlat()"
         (keydown.enter)="setType('looking_for_flat')"
         (keydown.space)="setType('looking_for_flat')"
       >
         <div
-          class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-6 transition-all duration-300"
+          class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-6 transition-all duration-200"
           [class]="
             isLookingForFlat()
               ? 'bg-white/10 text-white'
@@ -48,14 +48,14 @@
             ? 'bg-primary text-white border-primary shadow-sm'
             : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
         "
-        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-300 outline-none group"
+        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 outline-none group"
         aria-label="Seleccionar opción: Tengo piso"
         [aria-pressed]="isLookingForRoommate()"
         (keydown.enter)="setType('looking_for_roommate')"
         (keydown.space)="setType('looking_for_roommate')"
       >
         <div
-          class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-6 transition-all duration-300"
+          class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-6 transition-all duration-200"
           [class]="
             isLookingForRoommate()
               ? 'bg-white/10 text-white'

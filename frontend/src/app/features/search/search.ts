@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -12,15 +12,18 @@ import { CitySearchService } from '@core/location/city-search.service';
 })
 export class Search {
   protected readonly citySearchService = inject(CitySearchService);
-  initialCity = input<string>('');
-  citySelected = output<string>();
+
+  readonly city = input<string>('');
+  readonly citySelected = output<string>();
+
+  protected readonly value = signal<string>('');
 
   citySuggestions = computed(() => this.citySearchService.cityResource.value() ?? []);
 
   constructor() {
-    if (this.initialCity()) {
-      this.citySearchService.selectCity(this.initialCity());
-    }
+    effect(() => {
+      this.value.set(this.city());
+    });
   }
 
   onCitySearch(event: { query: string }) {
@@ -28,7 +31,7 @@ export class Search {
   }
 
   onCitySelect(city: string) {
-    this.citySearchService.selectCity(city);
+    this.value.set(city);
     this.citySelected.emit(city);
   }
 }

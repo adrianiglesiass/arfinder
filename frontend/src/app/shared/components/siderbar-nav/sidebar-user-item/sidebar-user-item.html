@@ -1,0 +1,19 @@
+<p-menu #userMenu [model]="items" [popup]="true" appendTo="body" styleClass="w-48" />
+
+<button
+  type="button"
+  (click)="userMenu.toggle($event)"
+  class="w-full flex items-center gap-4 px-3 py-3 rounded-full transition-colors hover:bg-gray-50 justify-center xl:justify-start cursor-pointer"
+  aria-label="Abrir menú de usuario"
+>
+  <div class="w-12 h-12 rounded-full overflow-hidden border border-gray-200 shrink-0">
+    @if (avatarUrl()) {
+      <img [src]="avatarUrl()" alt="Avatar" class="w-full h-full object-cover" />
+    } @else {
+      <div class="w-full h-full flex items-center justify-center bg-zinc-100 text-zinc-400">
+        <i class="pi pi-user text-xs"></i>
+      </div>
+    }
+  </div>
+  <span class="hidden xl:inline text-[15px] text-zinc-600 font-medium">Perfil</span>
+</button>
