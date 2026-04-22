@@ -1,9 +1,9 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 
-export const verifyEmailGuard: CanActivateFn = (route) => {
+export const verifyEmailGuard: CanActivateFn = () => {
   const router = inject(Router);
-  const email = route.queryParamMap.get('email');
+  const email = sessionStorage.getItem('arfinder_pending_email');
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

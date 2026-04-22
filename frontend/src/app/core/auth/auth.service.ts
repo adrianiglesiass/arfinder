@@ -47,7 +47,7 @@ export class AuthService {
           const isAtAuthPage = authPaths.some((p) => currentUrl.includes(p));
 
           if (isAtAuthPage) {
-            await this.navigatePostAuth();
+            this.navigatePostAuth();
           }
         }
       } catch (error) {

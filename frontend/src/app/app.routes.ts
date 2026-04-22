@@ -24,6 +24,10 @@ export const routes: Routes = [
     canActivate: [verifyEmailGuard],
     loadComponent: () => import('@features/auth/verify-email/verify-email'),
   },
+  {
+    path: 'auth/callback',
+    loadComponent: () => import('@features/auth/callback/callback'),
+  },
 
   {
     path: 'onboarding',
