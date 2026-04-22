@@ -70,7 +70,8 @@ export default class Onboarding {
     }
 
     effect(() => {
-      this.persistenceService.saveForm(this.form());
+      const currentForm = this.form();
+      this.persistenceService.saveForm(currentForm);
     });
 
     effect(() => {
