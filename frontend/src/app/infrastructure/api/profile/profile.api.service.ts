@@ -26,6 +26,10 @@ export class ProfileApiService {
     return firstValueFrom(this.http.get<ProfileResponse>(`${this.APIURL}/me`));
   }
 
+  getById(profileId: number): Promise<ProfileResponse> {
+    return firstValueFrom(this.http.get<ProfileResponse>(`${this.APIURL}/${profileId}`));
+  }
+
   updateProfile(profile: ProfileUpdate): Promise<ProfileResponse> {
     return firstValueFrom(this.http.patch<ProfileResponse>(`${this.APIURL}/me`, profile));
   }

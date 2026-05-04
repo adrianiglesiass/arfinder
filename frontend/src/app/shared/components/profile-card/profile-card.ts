@@ -1,5 +1,6 @@
 import { NgClass } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import type { ProfileSummary, ScheduleEnum, TypeEnum } from '@core/api/api.models';
 
@@ -19,7 +20,7 @@ const SCHEDULE_LABELS: Record<ScheduleEnum, string> = {
 
 @Component({
   selector: 'app-profile-card',
-  imports: [NgClass, ProfileBadge],
+  imports: [NgClass, ProfileBadge, RouterLink],
   templateUrl: './profile-card.html',
 })
 export class ProfileCard {

@@ -25,11 +25,11 @@
         >
           <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
             <i [class]="item.icon + ' text-xl'"></i>
-            @if (item.badge) {
+            @if (item.badge?.(); as badge) {
               <span
                 class="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] min-w-4 h-4 px-1 rounded-full inline-flex items-center justify-center font-bold leading-none"
               >
-                {{ item.badge }}
+                {{ badge }}
               </span>
             }
           </div>
