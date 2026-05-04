@@ -1,0 +1,22 @@
+@if (label()) {
+  <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">
+    {{ label() }}
+  </span>
+}
+
+<div class="flex flex-wrap gap-2">
+  @for (opt of options(); track opt.label) {
+    <button
+      type="button"
+      (click)="select(opt)"
+      [class]="
+        isSelected(opt)
+          ? 'bg-primary text-white border-primary shadow-sm'
+          : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
+      "
+      class="px-5 py-2.5 rounded-full border text-[12px] font-bold tracking-tight transition-all duration-200 cursor-pointer"
+    >
+      {{ opt.label }}
+    </button>
+  }
+</div>

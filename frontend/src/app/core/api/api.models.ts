@@ -1,4 +1,4 @@
-import type { components } from '@core/api/api.types';
+import type { components, operations } from '@core/api/api.types';
 
 export type UserResponse = components['schemas']['UserResponse'];
 
@@ -27,3 +27,7 @@ export type HTTPValidationError = components['schemas']['HTTPValidationError'];
 export type ValidationError = components['schemas']['ValidationError'];
 
 export type CitySearchResponse = string[];
+
+export type ProfileSearchFilters = NonNullable<
+  operations['search_profiles_get']['parameters']['query']
+>;

@@ -1,0 +1,86 @@
+<aside class="flex flex-col gap-5 p-4 md:p-5">
+  <header class="flex items-center justify-between">
+    <div>
+      <h2 class="text-base font-bold text-primary">Filtros</h2>
+      <p class="text-[11px] text-gray-400 font-medium mt-0.5">
+        @if (activeCount()) {
+          {{ activeCount() }} activo{{ activeCount() === 1 ? '' : 's' }}
+        } @else {
+          Refina tu búsqueda
+        }
+      </p>
+    </div>
+    @if (activeCount()) {
+      <button
+        type="button"
+        (click)="reset()"
+        class="text-[10px] font-bold text-gray-400 hover:text-primary uppercase tracking-wider cursor-pointer"
+      >
+        Limpiar
+      </button>
+    }
+  </header>
+
+  <div class="flex flex-col gap-2">
+    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
+      Ciudad
+    </span>
+    <app-search [city]="city()" (citySelected)="setCity($event)" />
+  </div>
+
+  <app-filter-chip-group
+    label="¿Qué busca?"
+    [options]="typeOptions"
+    [value]="profileType()"
+    (changed)="setType($event)"
+  />
+
+  <app-filter-chip-group
+    label="Horario"
+    [options]="scheduleOptions"
+    [value]="schedule()"
+    (changed)="setSchedule($event)"
+  />
+
+  <div class="flex flex-col gap-3">
+    <div class="flex items-center justify-between ml-1">
+      <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+        Presupuesto máximo
+      </span>
+      <span class="text-xs font-bold text-primary tabular-nums">
+        @if (budgetMax()) {
+          {{ budgetMax() }} €
+        } @else {
+          Sin límite
+        }
+      </span>
+    </div>
+    <div class="px-1">
+      <p-slider
+        inputId="budgetSlider"
+        [ngModel]="budgetSliderValue()"
+        (ngModelChange)="setBudgetMax($event)"
+        [min]="budgetMin"
+        [max]="budgetMaxLimit"
+        [step]="budgetStep"
+        class="w-full"
+      />
+    </div>
+  </div>
+
+  <app-filter-chip-group
+    label="Mascotas"
+    [options]="triStateOptions"
+    [value]="hasPets()"
+    [allowDeselect]="false"
+    (changed)="setHasPets($event)"
+  />
+
+  <app-filter-chip-group
+    label="Fumador"
+    [options]="triStateOptions"
+    [value]="isSmoker()"
+    [allowDeselect]="false"
+    (changed)="setIsSmoker($event)"
+  />
+</aside>

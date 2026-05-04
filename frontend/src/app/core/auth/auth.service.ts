@@ -14,6 +14,12 @@ import { OnboardingPersistenceService } from '@core/profile/onboarding-persisten
 interface InsForgeInternal {
   tokenManager: {
     saveSession: (session: AuthSession) => void;
+    clearSession: () => void;
+    getAccessToken: () => string | null;
+  };
+  http?: {
+    setAuthToken: (token: string | null) => void;
+    setRefreshToken: (token: string | null) => void;
   };
 }
 
@@ -29,44 +35,109 @@ export class AuthService {
 
   currentUser = signal<UserResponse | null>(null);
   private sdkReadyPromise: Promise<void> | null = null;
+  private invalidatePromise: Promise<void> | null = null;
+  private readonly SDK_SESSION_KEY = 'insforge_saved_session';
+  private readonly PUBLIC_PATHS = ['/login', '/register', '/verify-email', '/auth/callback'];
 
-  async init(): Promise<void> {
-    if (this.sdkReadyPromise) {
-      return this.sdkReadyPromise;
-    }
-
-    this.sdkReadyPromise = (async () => {
-      try {
-        const { data } = await this.insforge.auth.getCurrentUser();
-
-        if (data?.user) {
-          await this.syncUser();
-
-          const currentUrl = window.location.pathname;
-          const authPaths = ['/login', '/register', '/verify-email', '/auth/callback'];
-          const isAtAuthPage = authPaths.some((p) => currentUrl.includes(p));
-
-          if (isAtAuthPage) {
-            this.navigatePostAuth();
-          }
-        }
-      } catch (error) {
-        console.error('Auth initialization failed', error);
+  private saveSdkSessionToStorage(session: { accessToken?: string; user?: unknown } | null) {
+    try {
+      if (!session) {
+        sessionStorage.removeItem(this.SDK_SESSION_KEY);
+        return;
       }
-    })();
+      sessionStorage.setItem(this.SDK_SESSION_KEY, JSON.stringify(session));
+    } catch {
+      /* empty */
+    }
+  }
+
+  private loadSdkSessionFromStorage(): { accessToken?: string; user?: unknown } | null {
+    try {
+      const raw = sessionStorage.getItem(this.SDK_SESSION_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as { accessToken?: string; user?: unknown };
+    } catch {
+      return null;
+    }
+  }
+
+  init(): Promise<void> {
+    if (this.sdkReadyPromise) return this.sdkReadyPromise;
+
+    this.restoreSdkSessionSync();
+
+    this.sdkReadyPromise = Promise.resolve();
+
+    void this.backgroundSync();
 
     return this.sdkReadyPromise;
   }
 
-  async getToken(): Promise<string | null> {
-    const headers = this.insforge.getHttpClient().getHeaders();
-    const authHeader = headers['Authorization'] || headers['authorization'];
-    if (authHeader) {
-      return authHeader.replace('Bearer ', '');
-    }
+  private restoreSdkSessionSync(): void {
+    try {
+      const saved = this.loadSdkSessionFromStorage();
+      if (!saved?.accessToken) return;
+      const internal = this.insforge as unknown as InsForgeInternal;
+      internal?.tokenManager?.saveSession?.({
+        accessToken: saved.accessToken,
+        user: saved.user as AuthSession['user'],
+      });
 
-    if (this.sdkReadyPromise) {
-      await this.sdkReadyPromise;
+      internal?.http?.setAuthToken?.(saved.accessToken);
+    } catch {
+      /* empty */
+    }
+  }
+
+  private async backgroundSync(): Promise<void> {
+    const hadRestoredSession = !!this.loadSdkSessionFromStorage()?.accessToken;
+
+    try {
+      const { data, error } = await this.insforge.auth.getCurrentUser();
+
+      if (error || !data?.user) {
+        if (hadRestoredSession) await this.invalidateSession();
+        return;
+      }
+
+      await this.syncUser();
+
+      if (this.PUBLIC_PATHS.some((p) => window.location.pathname.includes(p))) {
+        this.navigatePostAuth();
+      }
+    } catch {
+      /* empty */
+    }
+  }
+
+  invalidateSession(): Promise<void> {
+    if (this.invalidatePromise) return this.invalidatePromise;
+
+    this.invalidatePromise = (async () => {
+      try {
+        await this.logout();
+        if (!this.PUBLIC_PATHS.some((p) => window.location.pathname.startsWith(p))) {
+          await this.router.navigate(['/login']);
+        }
+      } finally {
+        setTimeout(() => {
+          this.invalidatePromise = null;
+        }, 0);
+      }
+    })();
+
+    return this.invalidatePromise;
+  }
+
+  async getToken(): Promise<string | null> {
+    if (!this.sdkReadyPromise) this.restoreSdkSessionSync();
+
+    try {
+      const internal = this.insforge as unknown as InsForgeInternal;
+      const userToken = internal?.tokenManager?.getAccessToken?.();
+      if (userToken) return userToken;
+    } catch {
+      /* empty */
     }
 
     try {
@@ -90,6 +161,7 @@ export class AuthService {
     if (error) throw error;
 
     if (data?.accessToken) {
+      this.saveSdkSessionToStorage({ accessToken: data.accessToken, user: data.user });
       await this.syncUser();
     }
   }
@@ -103,6 +175,7 @@ export class AuthService {
 
     if (data) {
       if (!data.requireEmailVerification && data.accessToken) {
+        this.saveSdkSessionToStorage({ accessToken: data.accessToken, user: data.user });
         await this.syncUser();
       }
     }
@@ -114,6 +187,7 @@ export class AuthService {
     if (error) throw error;
 
     if (data?.accessToken) {
+      this.saveSdkSessionToStorage({ accessToken: data.accessToken, user: data.user });
       await this.syncUser();
     }
     return data;
@@ -125,19 +199,68 @@ export class AuthService {
   }
 
   async resendVerificationEmail(email: string): Promise<void> {
-    await this.authApi.proxyResendVerification({ email });
+    interface ResendableInsForgeClient {
+      auth?: {
+        resendVerification?: (args: { email: string }) => Promise<{ error?: unknown }>;
+        sendVerificationEmail?: (args: { email: string }) => Promise<{ error?: unknown }>;
+      };
+      getHttpClient?: () => { post: (path: string, body: unknown) => Promise<unknown> };
+    }
+
+    const client = this.insforge as unknown as ResendableInsForgeClient;
+
+    if (client?.auth?.resendVerification) {
+      const { error } = await client.auth.resendVerification({ email });
+      if (error) throw error;
+      return;
+    }
+
+    if (client?.auth?.sendVerificationEmail) {
+      const { error } = await client.auth.sendVerificationEmail({ email });
+      if (error) throw error;
+      return;
+    }
+
+    if (client?.getHttpClient) {
+      try {
+        const http = client.getHttpClient();
+        await http.post('/auth/send-verification', { email });
+        return;
+      } catch {
+        /* empty */
+      }
+    }
+
+    throw new Error('Unable to resend verification email: SDK does not expose a resend method');
   }
 
   async logout(): Promise<void> {
-    await this.insforge.auth.signOut();
+    try {
+      await this.insforge.auth.signOut();
+    } catch {
+      /* empty */
+    }
     this.currentUser.set(null);
     this.onboardingPersistence.clearAll();
+    this.saveSdkSessionToStorage(null);
   }
 
   async isAuthenticated(): Promise<boolean> {
     await this.init();
-    const { data } = await this.insforge.auth.getCurrentUser();
-    return !!data?.user;
+
+    try {
+      const internal = this.insforge as unknown as InsForgeInternal;
+      if (internal?.tokenManager?.getAccessToken?.()) return true;
+    } catch {
+      /* empty */
+    }
+
+    try {
+      const { data } = await this.insforge.auth.getCurrentUser();
+      return !!data?.user;
+    } catch {
+      return false;
+    }
   }
 
   private async syncUser(): Promise<void> {
@@ -153,6 +276,8 @@ export class AuthService {
           accessToken: token,
           user: user as unknown as AuthSession['user'],
         });
+
+        this.saveSdkSessionToStorage({ accessToken: token, user });
       }
     } catch {
       this.currentUser.set(null);

@@ -187,19 +187,21 @@ export class StepPhotos implements AfterViewInit {
     }
   }
 
-  async uploadPendingPhotos() {
-    if (this.localPhotos().length === 0) return;
+  async uploadPendingPhotos(): Promise<ProfilePhotoResponse[]> {
+    const localsInUiOrder = this.allPhotos().filter(isLocalPhoto) as LocalPhoto[];
+    if (localsInUiOrder.length === 0) return [];
 
     this.isLoading.set(true);
     this.isUploadingFinal.set(true);
-    const photos = [...this.localPhotos()];
     const uploadedResults: ProfilePhotoResponse[] = [];
+    const localKeyToRemoteKey = new Map<string, string>();
 
     try {
-      for (const localPhoto of photos) {
+      for (const localPhoto of localsInUiOrder) {
         try {
           const response = await this.profileService.addPhoto(localPhoto.file);
           uploadedResults.push(response);
+          localKeyToRemoteKey.set(`local:${localPhoto.id}`, `remote:${response.id}`);
           URL.revokeObjectURL(localPhoto.preview);
         } catch (err: unknown) {
           console.error('Error uploading photo', err);
@@ -209,24 +211,49 @@ export class StepPhotos implements AfterViewInit {
         }
       }
 
+      const newStoredOrder = this.storedOrder().map((k) => localKeyToRemoteKey.get(k) ?? k);
+      this.storedOrder.set(newStoredOrder);
+      this.photoStorageService.persistOrder(newStoredOrder);
+
       this.localPhotos.set([]);
       this.uploadedPhotos.set([...this.uploadedPhotos(), ...uploadedResults]);
       this.persistLocalPhotos();
-      this.persistOrder();
+      return uploadedResults;
     } finally {
       this.isLoading.set(false);
       this.isUploadingFinal.set(false);
     }
   }
 
-  async reorderPhotos() {
-    const photoIds = this.uploadedPhotos().map((p) => p.id);
+  async reorderPhotos(orderedIds?: number[]) {
+    const photoIds: number[] =
+      orderedIds && orderedIds.length
+        ? orderedIds
+        : (this.allPhotos()
+            .filter((p) => !isLocalPhoto(p))
+            .map((p) => (p as ProfilePhotoResponse).id)
+            .filter(Boolean) as number[]);
 
     if (photoIds.length === 0) return;
 
     this.isReordering.set(true);
     try {
-      await this.photoUploadService.reorderPhotos(photoIds);
+      const updated = await this.photoUploadService.reorderPhotos(photoIds);
+      if (updated && Array.isArray(updated)) {
+        const sorted = updated.sort((a, b) => a.order - b.order);
+        this.uploadedPhotos.set(sorted);
+
+        const newOrderKeys = sorted.map((p) => getPhotoKey(p));
+        this.storedOrder.set(newOrderKeys);
+        this.photoStorageService.persistOrder(newOrderKeys);
+
+        await new Promise((res) => setTimeout(res, 150));
+        try {
+          await this.profileService.loadProfile();
+        } catch {
+          /* empty */
+        }
+      }
       this.toast('Orden de fotos actualizado', 'success');
     } catch (error: unknown) {
       const { general } = this.errorService.processError(error as HttpErrorResponse);
@@ -234,6 +261,7 @@ export class StepPhotos implements AfterViewInit {
     } finally {
       this.isReordering.set(false);
     }
+    return this.uploadedPhotos();
   }
 
   onPhotosReordered(event: CdkDragDrop<CombinedPhoto[]>) {

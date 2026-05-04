@@ -46,9 +46,11 @@ export class ProfileApiService {
     return firstValueFrom(this.http.delete<void>(`${this.APIURL}/me/photos/${photoId}`));
   }
 
-  reorderPhotos(photoIds: number[]): Promise<void> {
+  reorderPhotos(photoIds: number[]): Promise<ProfilePhotoResponse[]> {
     return firstValueFrom(
-      this.http.patch<void>(`${this.APIURL}/me/photos/reorder`, { photo_ids: photoIds })
+      this.http.patch<ProfilePhotoResponse[]>(`${this.APIURL}/me/photos/reorder`, {
+        ordered_ids: photoIds,
+      })
     );
   }
 }

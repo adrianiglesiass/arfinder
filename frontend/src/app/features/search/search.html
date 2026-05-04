@@ -3,7 +3,7 @@
     <i class="pi pi-map-marker absolute left-4 top-1/2 -translate-y-1/2 z-10 text-gray-400"></i>
 
     <p-autoComplete
-      [(ngModel)]="citySearchService.selectedCity"
+      [(ngModel)]="value"
       [suggestions]="citySuggestions()"
       (completeMethod)="onCitySearch($event)"
       (onSelect)="onCitySelect($event.value)"
@@ -11,7 +11,7 @@
       placeholder="Selecciona una ciudad"
       class="w-full"
       [inputStyle]="{ 'padding-left': '2.8rem' }"
-      inputStyleClass="w-full bg-gray-50 border border-gray-200 rounded-xl! py-3 px-5 text-gray-700 placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all duration-200"
+      inputStyleClass="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-5 text-gray-700 placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all duration-200"
       [showEmptyMessage]="!citySearchService.cityResource.isLoading()"
       emptyMessage="No se encontraron ciudades"
     >
@@ -26,7 +26,7 @@
 
   @if (citySearchService.cityResource.error()) {
     <div
-      class="flex items-center gap-2 mt-2 px-3 py-2 bg-red-50 border border-red-100 rounded-xl! animate-in fade-in duration-300"
+      class="flex items-center gap-2 mt-2 px-3 py-2 bg-red-50 border border-red-100 rounded-xl animate-in fade-in duration-200"
     >
       <i class="pi pi-exclamation-circle text-red-500 text-xs"></i>
       <span class="text-xs text-red-600 font-medium">No se pudo cargar la lista de ciudades</span>

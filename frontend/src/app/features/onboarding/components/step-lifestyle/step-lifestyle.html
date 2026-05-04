@@ -24,7 +24,7 @@
                   ? 'bg-primary text-white border-primary shadow-sm'
                   : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
               "
-              class="px-8 py-3.5 rounded-2xl border text-[13px] font-bold transition-all duration-300 cursor-pointer"
+              class="px-8 py-3.5 rounded-2xl border text-[13px] font-bold transition-all duration-200 cursor-pointer"
             >
               {{ s.label }}
             </button>
@@ -38,7 +38,7 @@
         <div class="flex items-center justify-between py-6 group">
           <label for="hasPetsToggle" class="flex items-center gap-4 cursor-pointer">
             <div
-              class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-lg transition-all duration-300"
+              class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-lg transition-all duration-200"
               [class]="hasPets() ? 'text-primary' : 'text-gray-300'"
             >
               <span class="material-symbols-rounded">pets</span>
@@ -60,7 +60,7 @@
         <div class="flex items-center justify-between py-6 group">
           <label for="isSmokerToggle" class="flex items-center gap-4 cursor-pointer">
             <div
-              class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-lg transition-all duration-300"
+              class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-lg transition-all duration-200"
               [class]="isSmoker() ? 'text-primary' : 'text-gray-300'"
             >
               <span class="material-symbols-rounded">smoking_rooms</span>

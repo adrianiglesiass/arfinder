@@ -1,6 +1,5 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 
 import { catchError, throwError } from 'rxjs';
 import { from, switchMap } from 'rxjs';
@@ -27,19 +26,11 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
 
 export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-  const router = inject(Router);
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
       if (err.status === 401) {
-        const authPaths = ['/login', '/register', '/verify-email'];
-        const onAuthPage = authPaths.some((p) => router.url.startsWith(p));
-
-        if (!onAuthPage) {
-          from(authService.logout()).subscribe(() => {
-            router.navigate(['/login']);
-          });
-        }
+        void authService.invalidateSession();
       }
       return throwError(() => err);
     })

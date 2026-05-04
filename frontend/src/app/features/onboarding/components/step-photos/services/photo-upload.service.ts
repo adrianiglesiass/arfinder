@@ -8,9 +8,10 @@ import { ProfilePhotoResponse } from '@core/api/api.models';
 export class PhotoUploadService {
   private readonly profileApiService = inject(ProfileApiService);
 
-  async reorderPhotos(photoIds: number[]): Promise<void> {
-    if (photoIds.length === 0) return;
-    await this.profileApiService.reorderPhotos(photoIds);
+  async reorderPhotos(photoIds: number[]): Promise<ProfilePhotoResponse[]> {
+    if (photoIds.length === 0) return [];
+    const updated = await this.profileApiService.reorderPhotos(photoIds);
+    return updated;
   }
 
   async deletePhoto(photoId: number): Promise<void> {

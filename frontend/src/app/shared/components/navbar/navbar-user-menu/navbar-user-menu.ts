@@ -17,7 +17,7 @@ export class NavbarUserMenu {
   private readonly profileService = inject(ProfileService);
   private readonly router = inject(Router);
 
-  avatarUrl = this.profileService.profilePhotoUrl;
+  readonly avatarUrl = this.profileService.profilePhotoUrl;
 
   items: MenuItem[] = [
     {
@@ -33,8 +33,8 @@ export class NavbarUserMenu {
     {
       label: 'Cerrar sesión',
       icon: 'pi pi-sign-out ',
-      linkClass: 'group text-red-500! hover:bg-red-600! hover:text-white!',
-      iconClass: 'text-red-500! group-hover:text-white!',
+      linkClass: 'group text-red-500 hover:bg-red-600 hover:text-white',
+      iconClass: 'text-red-500 group-hover:text-white',
       command: async () => {
         await this.handleLogout();
       },

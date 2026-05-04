@@ -24,10 +24,6 @@ export const routes: Routes = [
     canActivate: [verifyEmailGuard],
     loadComponent: () => import('@features/auth/verify-email/verify-email'),
   },
-  {
-    path: 'auth/callback',
-    loadComponent: () => import('@features/auth/callback/callback'),
-  },
 
   {
     path: 'onboarding',
@@ -39,7 +35,13 @@ export const routes: Routes = [
     path: '',
     component: Layout,
     canActivate: [authGuard, profileGuard],
-    children: [],
+    children: [
+      { path: '', redirectTo: 'explore', pathMatch: 'full' },
+      {
+        path: 'explore',
+        loadComponent: () => import('@features/search-profile/search-profile'),
+      },
+    ],
   },
 
   {

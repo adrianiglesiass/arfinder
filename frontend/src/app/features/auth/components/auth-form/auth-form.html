@@ -13,7 +13,7 @@
         placeholder="ejemplo@arfinder.com"
         formControlName="email"
         [invalid]="isInvalid('email')"
-        class="w-full rounded-xl!"
+        class="w-full rounded-xl"
       />
       <app-field-error [control]="form.get('email')!" />
     </div>
@@ -50,7 +50,7 @@
           placeholder="••••••••"
           formControlName="confirmPassword"
           [invalid]="isPasswordMismatch()"
-          class="w-full rounded-xl!"
+          class="w-full rounded-xl"
         />
         @if (isPasswordMismatch()) {
           <small class="text-red-500 text-xs mt-1">Las contraseñas no coinciden.</small>
@@ -64,20 +64,17 @@
       </p-message>
     }
 
-    <app-auth-submit-button
-      [loading]="isLoading()"
-      [label]="submitLabel()"
-      [buttonClass]="submitClass()"
-    />
+    <app-button type="submit" [loading]="isLoading()" class="w-full mt-1">
+      {{ submitLabel() }}
+    </app-button>
 
     <div class="relative py-2">
       <p-divider align="center"></p-divider>
     </div>
 
-    <app-auth-social-button
-      [loading]="isLoading()"
-      (action)="onSocialAuth()"
-      label="Continúa con Google"
-    />
+    <app-button variant="secondary" [loading]="isLoading()" (click)="onSocialAuth()" class="w-full">
+      <img src="/assets/icons/google-logo.svg" alt="Google" class="w-5 h-5" />
+      <span>Continúa con Google</span>
+    </app-button>
   </form>
 </app-auth-card>

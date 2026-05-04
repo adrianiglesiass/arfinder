@@ -1,7 +1,6 @@
 import { Component, computed, effect, inject, input, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
@@ -15,12 +14,11 @@ import {
 } from '@core/auth/password.validators';
 import type { FieldValidationError } from '@core/errors/error-response.model';
 
+import { Button } from '@shared/components/button/button';
 import { FieldError } from '@shared/components/field-error/field-error';
 import { isControlInvalid } from '@shared/utils/form.utils';
 
 import { AuthCard } from '@features/auth/components/auth-card/auth-card';
-import { AuthSocialButton } from '@features/auth/components/auth-social-button/auth-social-button';
-import { AuthSubmitButton } from '@features/auth/components/auth-submit-button/auth-submit-button';
 
 export type AuthMode = 'login' | 'register';
 export interface AuthFormPayload {
@@ -35,15 +33,13 @@ export type AuthFormFieldErrors = FieldValidationError[];
   selector: 'app-auth-form',
   imports: [
     ReactiveFormsModule,
-    ButtonModule,
     InputTextModule,
     MessageModule,
     PasswordModule,
     DividerModule,
     FieldError,
     AuthCard,
-    AuthSocialButton,
-    AuthSubmitButton,
+    Button,
   ],
   templateUrl: './auth-form.html',
 })
@@ -56,9 +52,6 @@ export class AuthForm {
   readonly socialAuth = output<void>();
   isRegisterMode = computed(() => this.mode() === 'register');
   submitLabel = computed(() => (this.mode() === 'login' ? 'Iniciar sesión' : 'Registrarse'));
-  submitClass = computed(
-    () => 'w-full py-4  rounded-2xl! font-semibold text-base mt-2 active:scale-95 transition-all'
-  );
 
   private readonly fb = inject(FormBuilder);
 

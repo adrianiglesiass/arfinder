@@ -1,5 +1,7 @@
+@layer theme, base, primeng, components, utilities;
+
 @import 'tailwindcss';
-@import 'primeicons/primeicons.css';
+@import 'primeicons/primeicons.css' layer(base);
 
 @theme {
   --color-primary: #18181b;
