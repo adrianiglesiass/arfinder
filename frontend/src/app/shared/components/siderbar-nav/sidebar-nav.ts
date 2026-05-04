@@ -3,8 +3,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { ArfinderLogo } from '@shared/components/arfinder-logo/arfinder-logo';
 
-// import { NavbarUserMenu } from '@shared/components/navbar/navbar-user-menu/navbar-user-menu';
-
 import { SidebarUserItem } from './sidebar-user-item/sidebar-user-item';
 
 interface NavItem {

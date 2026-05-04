@@ -1,13 +1,14 @@
 import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { MessageService } from 'primeng/api';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 
-import { ProfileCreate, ScheduleEnum, TypeEnum } from '@core/api/api.models';
+import { ProfileCreate, ProfilePhotoResponse, ScheduleEnum, TypeEnum } from '@core/api/api.models';
+import { AuthService } from '@core/auth/auth.service';
 import { ErrorService } from '@core/errors';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
 import { ProfileService } from '@core/profile/profile.service';
@@ -16,6 +17,7 @@ import { Button } from '@shared/components/button/button';
 
 import { StepLifestyle } from '@features/onboarding/components/step-lifestyle/step-lifestyle';
 import { StepObjective } from '@features/onboarding/components/step-objective/step-objective';
+import { isLocalPhoto } from '@features/onboarding/components/step-photos/photo.utils';
 import { StepPhotos } from '@features/onboarding/components/step-photos/step-photos';
 import { StepProfile } from '@features/onboarding/components/step-profile/step-profile';
 
@@ -34,8 +36,9 @@ import { StepProfile } from '@features/onboarding/components/step-profile/step-p
   providers: [MessageService],
   templateUrl: './onboarding.html',
 })
-export default class Onboarding {
+export default class Onboarding implements OnInit {
   protected readonly profileService = inject(ProfileService);
+  protected readonly authService = inject(AuthService);
   protected readonly router = inject(Router);
   private readonly persistenceService = inject(OnboardingPersistenceService);
   private readonly messageService = inject(MessageService);
@@ -46,6 +49,7 @@ export default class Onboarding {
   currentStep = signal(1);
   direction = signal<'forward' | 'backward'>('forward');
   showErrors = signal(false);
+  isReady = signal(false);
   totalSteps = 4;
 
   form = signal<Partial<ProfileCreate>>({
@@ -61,6 +65,17 @@ export default class Onboarding {
   });
 
   constructor() {
+    effect(() => {
+      const currentForm = this.form();
+      this.persistenceService.saveForm(currentForm);
+    });
+
+    effect(() => {
+      this.persistenceService.saveCurrentStep(this.currentStep());
+    });
+  }
+
+  ngOnInit(): void {
     const savedForm = this.persistenceService.loadForm();
     if (savedForm) {
       this.form.set({ ...this.form(), ...savedForm });
@@ -70,14 +85,16 @@ export default class Onboarding {
       this.currentStep.set(savedStep);
     }
 
-    effect(() => {
-      const currentForm = this.form();
-      this.persistenceService.saveForm(currentForm);
-    });
+    this.isReady.set(true);
 
-    effect(() => {
-      this.persistenceService.saveCurrentStep(this.currentStep());
-    });
+    (async () => {
+      try {
+        await this.authService.init();
+        await this.profileService.loadProfile();
+      } catch {
+        /* empty */
+      }
+    })();
   }
 
   progress = computed(() => (this.currentStep() / this.totalSteps) * 100);
@@ -135,7 +152,24 @@ export default class Onboarding {
 
         const photos = this.stepPhotos();
         if (photos) {
-          await photos.uploadPendingPhotos();
+          const uploaded = await photos.uploadPendingPhotos();
+
+          if (uploaded && Array.isArray(uploaded) && uploaded.length > 0) {
+            const allCombined = photos.allPhotos();
+
+            const orderedIds = allCombined
+              .filter((p) => !isLocalPhoto(p))
+              .map((p) => (p as ProfilePhotoResponse).id)
+              .filter(Boolean) as number[];
+
+            if (orderedIds.length > 0) {
+              try {
+                await photos.reorderPhotos(orderedIds);
+              } catch (err) {
+                console.error('Failed to reorder after upload', err);
+              }
+            }
+          }
         }
 
         this.router.navigate(['']);
