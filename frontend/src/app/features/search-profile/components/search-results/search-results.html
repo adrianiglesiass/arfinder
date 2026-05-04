@@ -37,12 +37,8 @@
     </p>
   </div>
 } @else {
-  <!--
-  <div
-    class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 animate-fade-in"
-  >
-  -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-fade-in">
+  <!-- <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-fade-in"> -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 animate-fade-in">
     @for (profile of resource.value(); track profile.id) {
       <app-profile-card [profile]="profile" />
     }
