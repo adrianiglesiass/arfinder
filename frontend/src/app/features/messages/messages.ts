@@ -3,6 +3,7 @@ import {
   afterNextRender,
   Component,
   computed,
+  effect,
   ElementRef,
   inject,
   OnDestroy,
@@ -31,6 +32,8 @@ interface ChatHeader {
   photo_url: string | null;
 }
 
+const PAGE_SIZE = 50;
+
 @Component({
   selector: 'app-messages',
   imports: [CommonModule, RouterLink, FormsModule],
@@ -38,6 +41,7 @@ interface ChatHeader {
 })
 export default class Messages implements OnInit, OnDestroy {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('topSentinel') topSentinel?: ElementRef<HTMLDivElement>;
 
   private readonly route = inject(ActivatedRoute);
   private readonly conversationApi = inject(ConversationApiService);
@@ -51,6 +55,9 @@ export default class Messages implements OnInit, OnDestroy {
   messages = signal<MessageResponse[]>([]);
   newMessage = signal('');
   isLoading = signal(true);
+  hasMoreMessages = signal(false);
+  isLoadingOlder = signal(false);
+  initialScrollDone = signal(false);
 
   readonly myUserId = computed(() => {
     const id = this.authService.currentUser()?.id;
@@ -79,9 +86,17 @@ export default class Messages implements OnInit, OnDestroy {
   private unsubMessage: (() => void) | null = null;
   private unsubRead: (() => void) | null = null;
   private selectionEpoch = 0;
+  private intersectionObserver: IntersectionObserver | null = null;
+  private observedSentinel: HTMLElement | null = null;
 
   constructor() {
     afterNextRender(() => this.scrollToBottom());
+    effect(() => {
+      const active = this.chatActive();
+      const hasMore = this.hasMoreMessages();
+      const ready = this.initialScrollDone();
+      queueMicrotask(() => this.syncSentinelObserver(active && hasMore && ready));
+    });
   }
 
   async ngOnInit(): Promise<void> {
@@ -129,6 +144,7 @@ export default class Messages implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.unsubMessage?.();
     this.unsubRead?.();
+    this.disconnectIntersectionObserver();
     this.store.setActiveConversation(null);
   }
 
@@ -138,6 +154,9 @@ export default class Messages implements OnInit, OnDestroy {
     this.selectedConversation.set(null);
     this.draftRecipient.set(null);
     this.messages.set([]);
+    this.hasMoreMessages.set(false);
+    this.isLoadingOlder.set(false);
+    this.initialScrollDone.set(false);
   }
 
   async selectConversation(conv: ConversationResponse): Promise<void> {
@@ -145,17 +164,68 @@ export default class Messages implements OnInit, OnDestroy {
     this.draftRecipient.set(null);
     this.selectedConversation.set(conv);
     this.messages.set([]);
+    this.hasMoreMessages.set(false);
+    this.isLoadingOlder.set(false);
+    this.initialScrollDone.set(false);
     this.store.setActiveConversation(conv.id);
     void this.realtimeService.subscribeConversation(conv.id);
 
     try {
-      const msgs = await this.conversationApi.getMessages(conv.id);
+      const msgs = await this.conversationApi.getMessages(conv.id, { limit: PAGE_SIZE });
       if (epoch !== this.selectionEpoch) return;
       this.messages.set(msgs);
-      await this.conversationApi.markAsRead(conv.id);
-      setTimeout(() => this.scrollToBottom(), 50);
+      this.hasMoreMessages.set(msgs.length === PAGE_SIZE);
+      void this.conversationApi.markAsRead(conv.id);
+
+      requestAnimationFrame(() => {
+        if (epoch !== this.selectionEpoch) return;
+        this.scrollToBottom();
+        requestAnimationFrame(() => {
+          if (epoch !== this.selectionEpoch) return;
+          this.initialScrollDone.set(true);
+        });
+      });
     } catch {
       /* empty */
+    }
+  }
+
+  async loadOlderMessages(): Promise<void> {
+    if (!this.initialScrollDone()) return;
+    if (this.isLoadingOlder() || !this.hasMoreMessages()) return;
+    const conv = this.selectedConversation();
+    if (!conv) return;
+    const firstReal = this.messages().find((m) => m.id > 0);
+    if (!firstReal) return;
+
+    const epoch = this.selectionEpoch;
+    this.isLoadingOlder.set(true);
+
+    const container = this.messagesContainer?.nativeElement;
+    const prevHeight = container?.scrollHeight ?? 0;
+    const prevTop = container?.scrollTop ?? 0;
+
+    try {
+      const older = await this.conversationApi.getMessages(conv.id, {
+        beforeId: firstReal.id,
+        limit: PAGE_SIZE,
+      });
+      if (epoch !== this.selectionEpoch) return;
+
+      if (older.length < PAGE_SIZE) this.hasMoreMessages.set(false);
+      if (older.length === 0) return;
+
+      this.messages.update((msgs) => [...older, ...msgs]);
+
+      requestAnimationFrame(() => {
+        const el = this.messagesContainer?.nativeElement;
+        if (!el) return;
+        el.scrollTop = el.scrollHeight - prevHeight + prevTop;
+      });
+    } catch {
+      /* empty */
+    } finally {
+      if (epoch === this.selectionEpoch) this.isLoadingOlder.set(false);
     }
   }
 
@@ -327,5 +397,37 @@ export default class Messages implements OnInit, OnDestroy {
   private scrollToBottom(): void {
     const el = this.messagesContainer?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  private syncSentinelObserver(shouldObserve: boolean): void {
+    const sentinel = this.topSentinel?.nativeElement ?? null;
+    const root = this.messagesContainer?.nativeElement ?? null;
+
+    if (!shouldObserve || !sentinel || !root) {
+      this.disconnectIntersectionObserver();
+      return;
+    }
+
+    if (this.observedSentinel === sentinel && this.intersectionObserver) return;
+
+    this.disconnectIntersectionObserver();
+    if (typeof IntersectionObserver === 'undefined') return;
+
+    this.intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) void this.loadOlderMessages();
+        }
+      },
+      { root, rootMargin: '120px 0px 0px 0px', threshold: 0 }
+    );
+    this.intersectionObserver.observe(sentinel);
+    this.observedSentinel = sentinel;
+  }
+
+  private disconnectIntersectionObserver(): void {
+    this.intersectionObserver?.disconnect();
+    this.intersectionObserver = null;
+    this.observedSentinel = null;
   }
 }

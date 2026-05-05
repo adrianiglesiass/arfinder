@@ -121,6 +121,16 @@
         </header>
 
         <div class="flex-1 overflow-y-auto px-3 sm:px-4 py-3 space-y-1.5" #messagesContainer>
+          @if (hasMoreMessages()) {
+            <div #topSentinel aria-hidden="true" class="h-1 w-full"></div>
+          }
+          @if (isLoadingOlder()) {
+            <div class="flex justify-center py-2">
+              <div
+                class="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"
+              ></div>
+            </div>
+          }
           @for (msg of messages(); track msg.id) {
             <div class="flex" [class.justify-end]="isMyMessage(msg.sender_id)">
               <div
