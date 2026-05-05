@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+
+import { ConversationStore } from '@core/conversations/conversation.store';
 
 import { ArfinderLogo } from '@shared/components/arfinder-logo/arfinder-logo';
 
@@ -9,7 +11,7 @@ interface NavItem {
   label: string;
   icon: string;
   link: string;
-  badge?: string;
+  badge?: () => string | null;
 }
 
 @Component({
@@ -18,8 +20,21 @@ interface NavItem {
   templateUrl: './sidebar-nav.html',
 })
 export class SidebarNav {
+  private readonly store = inject(ConversationStore);
+
+  readonly unreadBadge = computed(() => {
+    const total = this.store.totalUnread();
+    if (total <= 0) return null;
+    return total > 99 ? '99+' : String(total);
+  });
+
   readonly items: NavItem[] = [
     { label: 'Explorar', icon: 'pi pi-search', link: '/explore' },
-    { label: 'Mensajes', icon: 'pi pi-envelope', link: '/mensajes', badge: '9+' },
+    {
+      label: 'Mensajes',
+      icon: 'pi pi-envelope',
+      link: '/mensajes',
+      badge: () => this.unreadBadge(),
+    },
   ];
 }

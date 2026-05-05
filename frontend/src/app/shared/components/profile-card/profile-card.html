@@ -1,5 +1,6 @@
-<article
-  class="group flex flex-col h-full bg-white border border-gray-border rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-premium) cursor-pointer"
+<a
+  [routerLink]="['/profile', profile().id]"
+  class="group flex flex-col h-full bg-white border border-gray-border rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-premium) cursor-pointer block text-decoration-none"
 >
   <div class="relative aspect-4/5 bg-gray-50 overflow-hidden">
     @if (hasPhotos()) {
@@ -94,4 +95,4 @@
       }
     </div>
   </div>
-</article>
+</a>

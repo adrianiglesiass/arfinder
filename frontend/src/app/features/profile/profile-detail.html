@@ -1,0 +1,175 @@
+<div class="min-h-screen bg-gray-50">
+  @if (isLoading()) {
+    <div class="flex items-center justify-center min-h-[60vh]">
+      <div class="flex flex-col items-center gap-4">
+        <div
+          class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"
+        ></div>
+        <p class="text-gray-500 font-medium">Cargando perfil...</p>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <span class="material-symbols-rounded text-6xl text-gray-300">person_off</span>
+      <p class="text-gray-500 font-medium">{{ error() }}</p>
+      <a routerLink="/explore" class="text-primary font-semibold hover:underline">
+        Volver a explorar
+      </a>
+    </div>
+  } @else if (profile()) {
+    <div class="max-w-4xl mx-auto px-4 py-6">
+      <a
+        routerLink="/explore"
+        class="inline-flex items-center gap-2 text-gray-600 hover:text-primary mb-6 transition-colors"
+      >
+        <i class="pi pi-arrow-left"></i>
+        <span class="font-medium">Volver</span>
+      </a>
+
+      <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="relative aspect-[4/3] bg-gray-100 group">
+          @if (hasPhotos()) {
+            @for (photo of photos(); track photo.id; let i = $index) {
+              <img
+                [src]="photo.photo_url"
+                [alt]="profile()!.name + ' foto ' + (i + 1)"
+                class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+                [class.opacity-100]="i === activePhotoIndex()"
+                [class.opacity-0]="i !== activePhotoIndex()"
+                [attr.aria-hidden]="i !== activePhotoIndex()"
+              />
+            }
+
+            @if (hasMultiplePhotos()) {
+              <button
+                type="button"
+                (click)="prevPhoto($event)"
+                aria-label="Foto anterior"
+                class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/85 backdrop-blur-sm text-primary shadow-md opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer z-10"
+              >
+                <i class="pi pi-chevron-left"></i>
+              </button>
+              <button
+                type="button"
+                (click)="nextPhoto($event)"
+                aria-label="Foto siguiente"
+                class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-white/85 backdrop-blur-sm text-primary shadow-md opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer z-10"
+              >
+                <i class="pi pi-chevron-right"></i>
+              </button>
+
+              <div
+                class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-full bg-black/40 backdrop-blur-sm z-10"
+              >
+                @for (photo of photos(); track photo.id; let i = $index) {
+                  <button
+                    type="button"
+                    (click)="goToPhoto(i, $event)"
+                    [attr.aria-label]="'Ir a foto ' + (i + 1)"
+                    class="w-2 h-2 rounded-full transition-all cursor-pointer"
+                    [class.bg-white]="i === activePhotoIndex()"
+                    [class.w-4]="i === activePhotoIndex()"
+                    [class.bg-white/50]="i !== activePhotoIndex()"
+                  ></button>
+                }
+              </div>
+            }
+          } @else {
+            <div class="w-full h-full flex items-center justify-center text-gray-300">
+              <span class="material-symbols-rounded text-8xl">person</span>
+            </div>
+          }
+
+          <span
+            class="absolute top-4 left-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-bold uppercase tracking-wider text-primary shadow-sm"
+          >
+            {{ typeLabel() }}
+          </span>
+        </div>
+
+        <div class="p-6">
+          <div class="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <h1 class="text-2xl font-bold text-primary">
+                {{ profile()!.name }}, {{ profile()!.age }}
+              </h1>
+              <div class="flex items-center gap-2 text-gray-500 mt-1">
+                <i class="pi pi-map-marker text-sm"></i>
+                <span class="font-medium">{{ profile()!.city }}</span>
+              </div>
+            </div>
+            @if (showSendMessageButton()) {
+              <app-button (click)="sendMessage()">
+                <i class="pi pi-send text-sm"></i>
+                Enviar mensaje
+              </app-button>
+            }
+          </div>
+
+          @if (profile()!.max_budget) {
+            <div class="flex items-center gap-2 mb-6">
+              <span class="text-lg font-bold text-primary">{{ profile()!.max_budget }}€</span>
+              <span class="text-gray-400">/mes</span>
+            </div>
+          }
+
+          @if (profile()!.bio) {
+            <div class="mb-6">
+              <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Sobre mí
+              </h2>
+              <p class="text-gray-700 leading-relaxed">{{ profile()!.bio }}</p>
+            </div>
+          }
+
+          @if (isRoommate() && profile()!.room_description) {
+            <div class="mb-6 p-4 bg-gray-50 rounded-2xl">
+              <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Habitación
+              </h2>
+              <p class="text-gray-700 leading-relaxed">{{ profile()!.room_description }}</p>
+            </div>
+          }
+
+          <div class="border-t border-gray-100 pt-6">
+            <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">
+              Preferencias
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-rounded text-gray-400">pets</span>
+                <span class="text-gray-700">
+                  {{ profile()!.has_pets ? 'Acepta mascotas' : 'No acepta mascotas' }}
+                </span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-rounded text-gray-400">smoking_rooms</span>
+                <span class="text-gray-700">
+                  {{ profile()!.is_smoker ? 'Fumador' : 'No fumador' }}
+                </span>
+              </div>
+              @if (scheduleLabel()) {
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-rounded text-gray-400">schedule</span>
+                  <span class="text-gray-700">{{ scheduleLabel() }}</span>
+                </div>
+              }
+              @if (profile()!.gender) {
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-rounded text-gray-400">badge</span>
+                  <span class="text-gray-700">{{ profile()!.gender }}</span>
+                </div>
+              }
+              @if (formattedAvailableFrom()) {
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-rounded text-gray-400">event</span>
+                  <span class="text-gray-700">Disponible desde {{ formattedAvailableFrom() }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

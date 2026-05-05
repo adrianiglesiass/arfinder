@@ -16,6 +16,19 @@ const insForgeClientStub = {
     resendVerificationEmail: async () => ({ error: null }),
     signOut: async () => undefined,
   },
+  realtime: {
+    isConnected: false,
+    connectionState: 'disconnected',
+    on: () => undefined,
+    off: () => undefined,
+    once: () => undefined,
+    connect: async () => undefined,
+    disconnect: () => undefined,
+    subscribe: async (channel: string) => ({ ok: true as const, channel }),
+    unsubscribe: () => undefined,
+    publish: async () => undefined,
+    getSubscribedChannels: () => [],
+  },
   getHttpClient: () => ({ getHeaders: () => ({}) }),
 };
 

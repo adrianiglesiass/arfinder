@@ -41,6 +41,14 @@ export const routes: Routes = [
         path: 'explore',
         loadComponent: () => import('@features/search-profile/search-profile'),
       },
+      {
+        path: 'profile/:id',
+        loadComponent: () => import('@features/profile/profile-detail'),
+      },
+      {
+        path: 'mensajes',
+        loadComponent: () => import('@features/messages/messages'),
+      },
     ],
   },
 

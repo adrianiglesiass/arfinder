@@ -12,11 +12,11 @@
       >
         <div class="h-8 flex items-center justify-center relative">
           <i [class]="item.icon + ' text-xl'"></i>
-          @if (item.label === 'Mensajes') {
+          @if (item.badge?.(); as badge) {
             <span
               class="absolute -top-0.5 -right-1.5 bg-red-500 text-white text-[8px] min-w-3.5 h-3.5 px-0.5 rounded-full flex items-center justify-center font-bold border border-white shadow-sm"
             >
-              9+
+              {{ badge }}
             </span>
           }
         </div>
