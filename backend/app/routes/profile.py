@@ -36,7 +36,12 @@ class _PhotoReorder(BaseModel):
     ordered_ids: List[int] = Field(..., max_length=50)
 
 
-@router.get("", response_model=List[ProfileSummary], responses=BAD_REQUEST)
+@router.get(
+    "",
+    response_model=List[ProfileSummary],
+    responses=BAD_REQUEST,
+    dependencies=[Depends(rate_limiter)],
+)
 def search(
     city: Optional[str] = Query(None),
     budget_max: Optional[int] = Query(None),

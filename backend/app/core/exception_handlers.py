@@ -43,6 +43,10 @@ FIELD_NAMES = {
 }
 
 
+def _sanitize_ctx(ctx: dict) -> dict:
+    return {k: (str(v) if isinstance(v, BaseException) else v) for k, v in ctx.items()}
+
+
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = []
     for error in exc.errors():
@@ -51,9 +55,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
         translated_field = FIELD_NAMES.get(field, field)
 
+        ctx = error.get("ctx") or {}
         msg_template = PYDANTIC_MESSAGES.get(error_type)
         if msg_template:
-            ctx = error.get("ctx", {})
             try:
                 new_msg = f"{translated_field} {msg_template.format(**ctx)}"
             except (KeyError, ValueError):
@@ -62,6 +66,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             new_msg = f"{translated_field}: {error.get('msg')}"
 
         error["msg"] = new_msg
+        if "ctx" in error:
+            error["ctx"] = _sanitize_ctx(ctx)
         errors.append(error)
 
     return JSONResponse(

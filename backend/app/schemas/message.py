@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.schemas.types import UTCDatetime
 
@@ -16,4 +16,12 @@ class MessageResponse(BaseModel):
 
 
 class MessageCreate(BaseModel):
-    content: str = Field(..., max_length=5000)
+    content: str = Field(..., min_length=1, max_length=5000)
+
+    @field_validator("content")
+    @classmethod
+    def _strip_and_require_non_empty(cls, v: str) -> str:
+        stripped = v.strip()
+        if not stripped:
+            raise ValueError("content cannot be empty or whitespace")
+        return stripped

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, Header
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 import secrets
 from sqlalchemy.orm import Session
 
@@ -29,14 +29,18 @@ async def delete_my_account(
 
 @router.post("/sync-cleanup", include_in_schema=False)
 async def sync_cleanup(
-    x_sync_token: str = Header(None),
+    x_sync_token: str | None = Header(default=None),
     db: Session = Depends(get_db),
 ):
+    if settings.ENVIRONMENT == "production":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    if not x_sync_token or not secrets.compare_digest(
-        x_sync_token, settings.DEV_BYPASS_TOKEN
+    expected = settings.DEV_BYPASS_TOKEN
+    if (
+        not expected
+        or not x_sync_token
+        or not secrets.compare_digest(x_sync_token, expected)
     ):
-        return {"error": "Unauthorized"}, 401
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-    result = cleanup_orphaned_users(db)
-    return result
+    return cleanup_orphaned_users(db)

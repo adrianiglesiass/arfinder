@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
 from app.core.openapi import PROTECTED
+from app.core.rate_limit import message_rate_limiter
 from app.db.database import get_db
 from app.models.message import Message
 from app.models.user import User
@@ -141,7 +142,7 @@ async def send_new_message(
     conversation_id: int,
     body: MessageCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(message_rate_limiter),
 ):
     return await message_service.send_message(
         db, conversation_id, current_user.id, body.content
@@ -157,7 +158,7 @@ async def send_message_lazy(
     recipient_user_id: int,
     body: MessageCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(message_rate_limiter),
 ):
     was_new = (
         get_conversation_between_users(db, current_user.id, recipient_user_id) is None
