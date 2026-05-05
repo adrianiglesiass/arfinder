@@ -26,7 +26,8 @@ def get_messages_by_conversation(
     query = db.query(Message).filter(Message.conversation_id == conversation_id)
     if before_id is not None:
         query = query.filter(Message.id < before_id)
-    return query.order_by(Message.sent_at.asc()).limit(limit).all()
+    rows = query.order_by(Message.id.desc()).limit(limit).all()
+    return list(reversed(rows))
 
 
 def mark_conversation_as_read(

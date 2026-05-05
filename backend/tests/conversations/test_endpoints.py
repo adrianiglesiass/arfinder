@@ -140,6 +140,84 @@ def test_list_messages_conversation_not_found(client, auth_headers):
     assert res.status_code == 404
 
 
+def test_list_messages_pagination_default_returns_latest(
+    client, auth_headers, second_user_id
+):
+    for i in range(60):
+        client.post(
+            f"/conversations/with/{second_user_id}/messages",
+            json={"content": f"msg-{i}"},
+            headers=auth_headers,
+        )
+    list_res = client.get("/conversations", headers=auth_headers)
+    conv_id = list_res.json()[0]["id"]
+
+    res = client.get(f"/conversations/{conv_id}/messages", headers=auth_headers)
+    assert res.status_code == 200
+    page = res.json()
+    assert len(page) == 50
+    assert page[0]["content"] == "msg-10"
+    assert page[-1]["content"] == "msg-59"
+    for a, b in zip(page, page[1:]):
+        assert a["id"] < b["id"]
+
+
+def test_list_messages_pagination_before_id_returns_older(
+    client, auth_headers, second_user_id
+):
+    for i in range(60):
+        client.post(
+            f"/conversations/with/{second_user_id}/messages",
+            json={"content": f"msg-{i}"},
+            headers=auth_headers,
+        )
+    list_res = client.get("/conversations", headers=auth_headers)
+    conv_id = list_res.json()[0]["id"]
+
+    first_page = client.get(
+        f"/conversations/{conv_id}/messages", headers=auth_headers
+    ).json()
+    cursor = first_page[0]["id"]
+
+    older = client.get(
+        f"/conversations/{conv_id}/messages",
+        params={"before_id": cursor},
+        headers=auth_headers,
+    ).json()
+    assert len(older) == 10
+    assert older[0]["content"] == "msg-0"
+    assert older[-1]["content"] == "msg-9"
+    assert all(m["id"] < cursor for m in older)
+
+    empty = client.get(
+        f"/conversations/{conv_id}/messages",
+        params={"before_id": older[0]["id"]},
+        headers=auth_headers,
+    ).json()
+    assert empty == []
+
+
+def test_list_messages_pagination_respects_limit(client, auth_headers, second_user_id):
+    for i in range(10):
+        client.post(
+            f"/conversations/with/{second_user_id}/messages",
+            json={"content": f"msg-{i}"},
+            headers=auth_headers,
+        )
+    list_res = client.get("/conversations", headers=auth_headers)
+    conv_id = list_res.json()[0]["id"]
+
+    res = client.get(
+        f"/conversations/{conv_id}/messages",
+        params={"limit": 3},
+        headers=auth_headers,
+    )
+    page = res.json()
+    assert len(page) == 3
+    assert page[0]["content"] == "msg-7"
+    assert page[-1]["content"] == "msg-9"
+
+
 def test_list_messages_access_denied(client, auth_headers, create_test_user):
     third_user = create_test_user(email="third@test.com")
     third_id = third_user.id

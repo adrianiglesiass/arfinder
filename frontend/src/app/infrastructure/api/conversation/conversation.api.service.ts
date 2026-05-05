@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
 import { environment } from '@env/environment';
@@ -30,9 +30,15 @@ export class ConversationApiService {
     return firstValueFrom(this.http.get<ConversationResponse>(`${this.APIURL}/${conversationId}`));
   }
 
-  getMessages(conversationId: number): Promise<MessageResponse[]> {
+  getMessages(
+    conversationId: number,
+    opts?: { beforeId?: number; limit?: number }
+  ): Promise<MessageResponse[]> {
+    let params = new HttpParams();
+    if (opts?.beforeId != null) params = params.set('before_id', String(opts.beforeId));
+    if (opts?.limit != null) params = params.set('limit', String(opts.limit));
     return firstValueFrom(
-      this.http.get<MessageResponse[]>(`${this.APIURL}/${conversationId}/messages`)
+      this.http.get<MessageResponse[]>(`${this.APIURL}/${conversationId}/messages`, { params })
     );
   }
 

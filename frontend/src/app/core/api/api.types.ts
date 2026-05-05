@@ -216,6 +216,23 @@ export interface paths {
     patch: operations['mark_as_read_conversations__conversation_id__read_patch'];
     trace?: never;
   };
+  '/conversations/with/{recipient_user_id}/messages': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Send Message Lazy */
+    post: operations['send_message_lazy_conversations_with__recipient_user_id__messages_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/cities/search': {
     parameters: {
       query?: never;
@@ -1457,6 +1474,62 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  send_message_lazy_conversations_with__recipient_user_id__messages_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        recipient_user_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['MessageCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['MessageResponse'];
+        };
       };
       /** @description Invalid request body or parameters */
       400: {
