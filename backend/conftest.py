@@ -21,7 +21,6 @@ load_dotenv(".env.test", override=False)
 
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only-32chars")
 os.environ.setdefault("ALGORITHM", "HS256")
-os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
 os.environ.setdefault(
     "DATABASE_URL",
     "postgresql+psycopg2://root:root1234@localhost:5433/arfinder_test_db",

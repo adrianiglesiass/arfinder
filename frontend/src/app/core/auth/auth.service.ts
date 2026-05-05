@@ -61,14 +61,17 @@ export class AuthService {
     }
   }
 
+  private static readonly INIT_SYNC_TIMEOUT_MS = 2000;
+
   init(): Promise<void> {
     if (this.sdkReadyPromise) return this.sdkReadyPromise;
 
     this.restoreSdkSessionSync();
 
-    this.sdkReadyPromise = Promise.resolve();
-
-    void this.backgroundSync();
+    this.sdkReadyPromise = Promise.race([
+      this.backgroundSync(),
+      new Promise<void>((resolve) => setTimeout(resolve, AuthService.INIT_SYNC_TIMEOUT_MS)),
+    ]);
 
     return this.sdkReadyPromise;
   }
@@ -90,13 +93,22 @@ export class AuthService {
   }
 
   private async backgroundSync(): Promise<void> {
-    const hadRestoredSession = !!this.loadSdkSessionFromStorage()?.accessToken;
+    const hadLocalToken = !!(
+      this.loadSdkSessionFromStorage()?.accessToken ||
+      (this.insforge as unknown as InsForgeInternal)?.tokenManager?.getAccessToken?.()
+    );
 
     try {
       const { data, error } = await this.insforge.auth.getCurrentUser();
 
       if (error || !data?.user) {
-        if (hadRestoredSession) await this.invalidateSession();
+        const sessionInvalid =
+          error?.statusCode === 401 || error?.statusCode === 403 || (!error && !data?.user);
+        if (sessionInvalid) {
+          if (hadLocalToken) await this.invalidateSession();
+          return;
+        }
+        if (hadLocalToken) await this.syncUser();
         return;
       }
 
@@ -106,7 +118,7 @@ export class AuthService {
         this.navigatePostAuth();
       }
     } catch {
-      /* empty */
+      if (hadLocalToken) await this.syncUser();
     }
   }
 

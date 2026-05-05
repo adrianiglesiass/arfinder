@@ -23,6 +23,7 @@ interface ServerEvent {
 
 const RECONNECT_INITIAL_MS = 1000;
 const RECONNECT_MAX_MS = 30_000;
+const WS_AUTH_SUBPROTOCOL = 'bearer';
 
 @Injectable({
   providedIn: 'root',
@@ -120,8 +121,8 @@ export class RealtimeService {
     const token = await this.authService.getToken();
     if (!token) return;
 
-    const url = this.buildUrl(token);
-    const socket = new WebSocket(url);
+    const url = this.buildUrl();
+    const socket = new WebSocket(url, [WS_AUTH_SUBPROTOCOL, token]);
     this.socket = socket;
 
     await new Promise<void>((resolve) => {
@@ -146,10 +147,10 @@ export class RealtimeService {
     socket.addEventListener('close', () => this.handleClose());
   }
 
-  private buildUrl(token: string): string {
+  private buildUrl(): string {
     const apiUrl = new URL(environment.APIURL);
     const wsProto = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${wsProto}//${apiUrl.host}/ws/realtime?token=${encodeURIComponent(token)}`;
+    return `${wsProto}//${apiUrl.host}/ws/realtime`;
   }
 
   private handleClose(): void {

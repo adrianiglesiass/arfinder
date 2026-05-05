@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 
 from app.core.auth_utils import get_or_create_local_user
@@ -13,6 +13,8 @@ logger = logging.getLogger("app.routes.realtime")
 
 router = APIRouter(tags=["realtime"])
 
+WS_AUTH_SUBPROTOCOL = "bearer"
+
 
 def _is_participant(db: Session, conversation_id: int, user_id: int) -> bool:
     conversation = conversation_repository.get_conversation_by_id(db, conversation_id)
@@ -21,11 +23,17 @@ def _is_participant(db: Session, conversation_id: int, user_id: int) -> bool:
     return user_id in (conversation.user1_id, conversation.user2_id)
 
 
+def _extract_bearer_token(websocket: WebSocket) -> str | None:
+    subprotocols = websocket.scope.get("subprotocols") or []
+    if len(subprotocols) != 2 or subprotocols[0] != WS_AUTH_SUBPROTOCOL:
+        return None
+    token = subprotocols[1]
+    return token if token else None
+
+
 @router.websocket("/ws/realtime")
-async def realtime_endpoint(
-    websocket: WebSocket,
-    token: str | None = Query(default=None),
-):
+async def realtime_endpoint(websocket: WebSocket):
+    token = _extract_bearer_token(websocket)
     if not token:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
@@ -45,7 +53,7 @@ async def realtime_endpoint(
 
     user_id = user.id
 
-    await websocket.accept()
+    await websocket.accept(subprotocol=WS_AUTH_SUBPROTOCOL)
     await manager.register(websocket, user_id)
 
     try:
