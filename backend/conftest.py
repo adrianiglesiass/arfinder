@@ -21,6 +21,8 @@ from app.main import app
 from app.models.user import User
 from app.repositories import user_repository
 
+settings.ENVIRONMENT = "testing"
+
 load_dotenv(".env.test", override=False)
 
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only-32chars")
