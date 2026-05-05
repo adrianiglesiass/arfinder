@@ -13,11 +13,14 @@ from app.schemas.conversation import (
     ParticipantSummary,
 )
 from app.schemas.message import MessageCreate, MessageResponse
+from app.core.realtime import manager as realtime_manager
+from app.repositories.conversation_repository import get_conversation_between_users
 from app.services import message_service
 from app.services.conversation_service import (
     get_conversation_or_raise,
     get_or_create_conversation,
     list_my_conversations,
+    send_message_to_user,
 )
 from app.services.message_service import mark_conversation_messages_as_read
 
@@ -30,7 +33,10 @@ def _get_other_user_summary(
     other_user = conv.user2 if conv.user1_id == current_user_id else conv.user1
     if not other_user or not other_user.profile:
         return None
-    main_photo = next((p for p in other_user.profile.photos if p.is_main), None)
+    photos = sorted(other_user.profile.photos, key=lambda p: (p.order or 0, p.id))
+    main_photo = next((p for p in photos if p.is_main), None) or (
+        photos[0] if photos else None
+    )
     return ParticipantSummary(
         user_id=other_user.id,
         name=other_user.profile.name,
@@ -140,3 +146,29 @@ async def send_new_message(
     return await message_service.send_message(
         db, conversation_id, current_user.id, body.content
     )
+
+
+@router.post(
+    "/with/{recipient_user_id}/messages",
+    response_model=MessageResponse,
+    status_code=201,
+)
+async def send_message_lazy(
+    recipient_user_id: int,
+    body: MessageCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    was_new = (
+        get_conversation_between_users(db, current_user.id, recipient_user_id) is None
+    )
+    message = send_message_to_user(db, current_user.id, recipient_user_id, body.content)
+    if was_new:
+        await realtime_manager.broadcast_to_user(
+            recipient_user_id,
+            {
+                "event": "conversation_created",
+                "conversation_id": message.conversation_id,
+            },
+        )
+    return message

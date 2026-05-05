@@ -218,3 +218,62 @@ def test_get_conversation_access_denied(client, auth_headers, create_test_user):
 def test_get_conversation_unauthorized(client):
     res = client.get("/conversations/1")
     assert res.status_code == 401
+
+
+#  POST /conversations/with/{recipient_user_id}/messages
+
+
+def test_send_message_lazy_creates_conversation_and_message(
+    client, auth_headers, second_user_id
+):
+    res = client.post(
+        f"/conversations/with/{second_user_id}/messages",
+        json={"content": "hi"},
+        headers=auth_headers,
+    )
+    assert res.status_code == 201
+    body = res.json()
+    assert body["content"] == "hi"
+    assert body["sender_id"] != second_user_id
+    assert isinstance(body["conversation_id"], int)
+
+    list_res = client.get("/conversations", headers=auth_headers)
+    assert list_res.status_code == 200
+    convs = list_res.json()
+    assert len(convs) == 1
+    assert convs[0]["id"] == body["conversation_id"]
+
+
+def test_send_message_lazy_reuses_existing_conversation(
+    client, auth_headers, second_user_id
+):
+    first = client.post(
+        f"/conversations/with/{second_user_id}/messages",
+        json={"content": "first"},
+        headers=auth_headers,
+    )
+    second = client.post(
+        f"/conversations/with/{second_user_id}/messages",
+        json={"content": "second"},
+        headers=auth_headers,
+    )
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert first.json()["conversation_id"] == second.json()["conversation_id"]
+
+
+def test_send_message_lazy_to_self_rejected(client, auth_headers, current_user_id):
+    res = client.post(
+        f"/conversations/with/{current_user_id}/messages",
+        json={"content": "hi"},
+        headers=auth_headers,
+    )
+    assert res.status_code == 400
+
+
+def test_send_message_lazy_unauthorized(client, second_user_id):
+    res = client.post(
+        f"/conversations/with/{second_user_id}/messages",
+        json={"content": "hi"},
+    )
+    assert res.status_code == 401

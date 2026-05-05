@@ -11,7 +11,7 @@
   } @else {
     <aside
       class="flex-col bg-white border-r border-gray-100 h-full w-full md:w-72 lg:w-80 md:shrink-0"
-      [ngClass]="selectedConversation() ? 'hidden md:flex' : 'flex'"
+      [ngClass]="chatActive() ? 'hidden md:flex' : 'flex'"
     >
       <div class="px-4 py-3 border-b border-gray-100">
         <h2 class="text-lg font-semibold text-gray-900">Mensajes</h2>
@@ -32,7 +32,7 @@
           @for (conv of conversations(); track conv.id) {
             <button
               type="button"
-              class="w-full p-3 text-left hover:bg-gray-50 transition-colors"
+              class="w-full p-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
               [class.bg-blue-50]="selectedConversation()?.id === conv.id"
               (click)="selectConversation(conv)"
             >
@@ -85,9 +85,9 @@
 
     <main
       class="flex-1 flex-col bg-white h-full min-w-0"
-      [ngClass]="selectedConversation() ? 'flex' : 'hidden md:flex'"
+      [ngClass]="chatActive() ? 'flex' : 'hidden md:flex'"
     >
-      @if (!selectedConversation()) {
+      @if (!chatActive()) {
         <div class="flex-1 flex flex-col items-center justify-center px-6 text-center">
           <span class="material-symbols-rounded text-5xl text-gray-200 mb-2">forum</span>
           <p class="text-gray-400 text-sm">Selecciona una conversación</p>
@@ -105,10 +105,10 @@
           <div
             class="w-9 h-9 rounded-full bg-gray-200 shrink-0 overflow-hidden flex items-center justify-center"
           >
-            @if (selectedConversation()!.other_user?.photo_url) {
+            @if (headerInfo()?.photo_url) {
               <img
-                [src]="selectedConversation()!.other_user!.photo_url"
-                [alt]="selectedConversation()!.other_user!.name"
+                [src]="headerInfo()!.photo_url"
+                [alt]="headerInfo()!.name"
                 class="w-full h-full object-cover"
               />
             } @else {
@@ -116,7 +116,7 @@
             }
           </div>
           <h3 class="font-semibold text-gray-900 text-sm sm:text-base truncate">
-            {{ selectedConversation()!.other_user?.name ?? 'Usuario' }}
+            {{ headerInfo()?.name ?? 'Usuario' }}
           </h3>
         </header>
 
@@ -177,32 +177,26 @@
             />
             <button
               type="submit"
-              [disabled]="!newMessage().trim() || isSending()"
+              [disabled]="!newMessage().trim()"
               class="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3 rounded-full flex items-center justify-center transition-all duration-100 text-white select-none"
               [ngClass]="
-                newMessage().trim() && !isSending()
+                newMessage().trim()
                   ? 'bg-[#007aff] hover:bg-[#0066d6] active:bg-[#0052b3] active:scale-95 cursor-pointer'
                   : 'bg-gray-300 cursor-not-allowed'
               "
             >
-              @if (isSending()) {
-                <div
-                  class="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"
-                ></div>
-              } @else {
-                <svg
-                  viewBox="0 0 16 16"
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="3"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M8 13 V4 M4 8 L8 4 L12 8" />
-                </svg>
-              }
+              <svg
+                viewBox="0 0 16 16"
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M8 13 V4 M4 8 L8 4 L12 8" />
+              </svg>
             </button>
           </form>
         </div>

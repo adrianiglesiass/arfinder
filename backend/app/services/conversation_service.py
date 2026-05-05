@@ -8,12 +8,14 @@ from app.core.exceptions.conversation import (
 
 
 from app.models.conversation import Conversation
+from app.models.message import Message
 from app.repositories.conversation_repository import (
     create_conversation,
     get_conversation_between_users,
     get_conversation_by_id,
     get_conversations_by_user,
 )
+from app.repositories.message_repository import create_message
 
 
 def get_or_create_conversation(
@@ -27,6 +29,13 @@ def get_or_create_conversation(
         return existing
 
     return create_conversation(db, current_user_id, other_user_id)
+
+
+def send_message_to_user(
+    db: Session, current_user_id: int, recipient_user_id: int, content: str
+) -> Message:
+    conversation = get_or_create_conversation(db, current_user_id, recipient_user_id)
+    return create_message(db, conversation.id, current_user_id, content)
 
 
 def list_my_conversations(db: Session, current_user_id: int) -> list[Conversation]:

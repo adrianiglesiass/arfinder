@@ -20,6 +20,17 @@ import { AuthService } from '@core/auth/auth.service';
 import { ConversationStore } from '@core/conversations/conversation.store';
 import { RealtimeService } from '@core/realtime/realtime.service';
 
+interface DraftRecipient {
+  user_id: number;
+  name: string | null;
+  photo_url: string | null;
+}
+
+interface ChatHeader {
+  name: string;
+  photo_url: string | null;
+}
+
 @Component({
   selector: 'app-messages',
   imports: [CommonModule, RouterLink, FormsModule],
@@ -36,14 +47,33 @@ export default class Messages implements OnInit, OnDestroy {
 
   readonly conversations = this.store.conversations;
   selectedConversation = signal<ConversationResponse | null>(null);
+  draftRecipient = signal<DraftRecipient | null>(null);
   messages = signal<MessageResponse[]>([]);
   newMessage = signal('');
   isLoading = signal(true);
-  isSending = signal(false);
 
   readonly myUserId = computed(() => {
     const id = this.authService.currentUser()?.id;
     return typeof id === 'number' ? id : null;
+  });
+
+  readonly chatActive = computed(
+    () => this.selectedConversation() !== null || this.draftRecipient() !== null
+  );
+
+  readonly headerInfo = computed<ChatHeader | null>(() => {
+    const conv = this.selectedConversation();
+    if (conv?.other_user) {
+      return {
+        name: conv.other_user.name ?? 'Usuario',
+        photo_url: conv.other_user.photo_url ?? null,
+      };
+    }
+    const draft = this.draftRecipient();
+    if (draft) {
+      return { name: draft.name ?? 'Usuario', photo_url: draft.photo_url };
+    }
+    return null;
   });
 
   private unsubMessage: (() => void) | null = null;
@@ -65,13 +95,34 @@ export default class Messages implements OnInit, OnDestroy {
       this.onReadForActive(convId, msgId, isRead, readAt)
     );
 
-    const conversationId = this.route.snapshot.queryParamMap.get('conversation');
+    const params = this.route.snapshot.queryParamMap;
+    const conversationId = params.get('conversation');
+    const recipient = params.get('recipient');
+
     if (conversationId) {
       const convId = Number(conversationId);
       if (!Number.isNaN(convId)) {
         const conv = this.conversations().find((c) => c.id === convId);
         if (conv) await this.selectConversation(conv);
       }
+      return;
+    }
+
+    if (recipient) {
+      const recipientId = Number(recipient);
+      if (Number.isNaN(recipientId)) return;
+      const existing = this.conversations().find((c) => c.other_user?.user_id === recipientId);
+      if (existing) {
+        await this.selectConversation(existing);
+        return;
+      }
+      const navState = (history.state ?? {}) as { recipient?: DraftRecipient };
+      this.draftRecipient.set(
+        navState.recipient?.user_id === recipientId
+          ? navState.recipient
+          : { user_id: recipientId, name: null, photo_url: null }
+      );
+      this.messages.set([]);
     }
   }
 
@@ -85,11 +136,13 @@ export default class Messages implements OnInit, OnDestroy {
     this.selectionEpoch++;
     this.store.setActiveConversation(null);
     this.selectedConversation.set(null);
+    this.draftRecipient.set(null);
     this.messages.set([]);
   }
 
   async selectConversation(conv: ConversationResponse): Promise<void> {
     const epoch = ++this.selectionEpoch;
+    this.draftRecipient.set(null);
     this.selectedConversation.set(conv);
     this.messages.set([]);
     this.store.setActiveConversation(conv.id);
@@ -99,9 +152,7 @@ export default class Messages implements OnInit, OnDestroy {
       const msgs = await this.conversationApi.getMessages(conv.id);
       if (epoch !== this.selectionEpoch) return;
       this.messages.set(msgs);
-
       await this.conversationApi.markAsRead(conv.id);
-
       setTimeout(() => this.scrollToBottom(), 50);
     } catch {
       /* empty */
@@ -110,20 +161,44 @@ export default class Messages implements OnInit, OnDestroy {
 
   async sendMessage(): Promise<void> {
     const content = this.newMessage().trim();
-    const conv = this.selectedConversation();
-    if (!content || !conv) return;
+    if (!content) return;
 
-    this.isSending.set(true);
+    const conv = this.selectedConversation();
+    const draft = this.draftRecipient();
+    const meId = this.myUserId();
+    if (!conv && !draft) return;
+    if (meId == null) return;
+
+    const tempId = -(Date.now() + Math.floor(Math.random() * 1000));
+    const optimistic: MessageResponse = {
+      id: tempId,
+      conversation_id: conv?.id ?? -1,
+      sender_id: meId,
+      content,
+      sent_at: new Date().toISOString(),
+      is_read: false,
+      read_at: null,
+    };
+
+    this.messages.update((msgs) => [...msgs, optimistic]);
+    this.newMessage.set('');
+    setTimeout(() => this.scrollToBottom(), 50);
+
     try {
-      const msg = await this.conversationApi.sendMessage(conv.id, content);
-      this.upsertMessage(msg);
-      this.store.upsertConversationPreview(conv.id, msg);
-      this.newMessage.set('');
-      setTimeout(() => this.scrollToBottom(), 50);
+      const real = conv
+        ? await this.conversationApi.sendMessage(conv.id, content)
+        : await this.conversationApi.sendMessageToUser(draft!.user_id, content);
+
+      this.replaceOptimistic(tempId, real);
+
+      if (conv) {
+        this.store.upsertConversationPreview(conv.id, real);
+      } else {
+        await this.adoptNewConversation(real, draft!);
+      }
     } catch {
-      /* empty */
-    } finally {
-      this.isSending.set(false);
+      this.removeOptimistic(tempId);
+      this.newMessage.set(content);
     }
   }
 
@@ -164,6 +239,54 @@ export default class Messages implements OnInit, OnDestroy {
   getLastMessageTime(conv: ConversationResponse): string {
     if (!conv.last_message?.sent_at) return '';
     return this.formatTime(conv.last_message.sent_at);
+  }
+
+  private async adoptNewConversation(real: MessageResponse, draft: DraftRecipient): Promise<void> {
+    await this.store.refresh();
+    const created = this.conversations().find((c) => c.id === real.conversation_id);
+    if (created) {
+      this.draftRecipient.set(null);
+      this.selectedConversation.set(created);
+      this.store.setActiveConversation(created.id);
+      void this.realtimeService.subscribeConversation(created.id);
+      return;
+    }
+    const me = this.myUserId() ?? 0;
+    const fallback: ConversationResponse = {
+      id: real.conversation_id,
+      user1_id: Math.min(me, draft.user_id),
+      user2_id: Math.max(me, draft.user_id),
+      other_user: {
+        user_id: draft.user_id,
+        name: draft.name ?? 'Usuario',
+        photo_url: draft.photo_url,
+      },
+      last_message: {
+        content: real.content,
+        sent_at: real.sent_at,
+        is_read: real.is_read,
+      },
+      unread_count: 0,
+    };
+    this.draftRecipient.set(null);
+    this.selectedConversation.set(fallback);
+    this.store.setActiveConversation(fallback.id);
+    void this.realtimeService.subscribeConversation(fallback.id);
+  }
+
+  private replaceOptimistic(tempId: number, real: MessageResponse): void {
+    this.messages.update((msgs) => {
+      const filtered = msgs.filter((m) => m.id !== tempId);
+      const idx = filtered.findIndex((m) => m.id === real.id);
+      if (idx === -1) return [...filtered, real];
+      const next = filtered.slice();
+      next[idx] = { ...filtered[idx], ...real };
+      return next;
+    });
+  }
+
+  private removeOptimistic(tempId: number): void {
+    this.messages.update((msgs) => msgs.filter((m) => m.id !== tempId));
   }
 
   private onMessageForActive(conversationId: number, message: MessageResponse): void {

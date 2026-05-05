@@ -23,11 +23,15 @@ class ConnectionManager:
     def __init__(self) -> None:
         self._by_conversation: dict[int, set[WebSocket]] = {}
         self._by_socket: dict[WebSocket, set[int]] = {}
+        self._by_user: dict[int, set[WebSocket]] = {}
+        self._socket_user: dict[WebSocket, int] = {}
         self._lock = asyncio.Lock()
 
-    async def register(self, websocket: WebSocket) -> None:
+    async def register(self, websocket: WebSocket, user_id: int) -> None:
         async with self._lock:
             self._by_socket.setdefault(websocket, set())
+            self._by_user.setdefault(user_id, set()).add(websocket)
+            self._socket_user[websocket] = user_id
 
     async def subscribe(self, websocket: WebSocket, conversation_id: int) -> None:
         async with self._lock:
@@ -55,10 +59,27 @@ class ConnectionManager:
                 sockets.discard(websocket)
                 if not sockets:
                     self._by_conversation.pop(cid, None)
+            user_id = self._socket_user.pop(websocket, None)
+            if user_id is not None:
+                user_sockets = self._by_user.get(user_id)
+                if user_sockets:
+                    user_sockets.discard(websocket)
+                    if not user_sockets:
+                        self._by_user.pop(user_id, None)
 
     async def broadcast(self, conversation_id: int, message: dict[str, Any]) -> None:
         async with self._lock:
             targets = list(self._by_conversation.get(conversation_id, set()))
+        await self._send_all(targets, message)
+
+    async def broadcast_to_user(self, user_id: int, message: dict[str, Any]) -> None:
+        async with self._lock:
+            targets = list(self._by_user.get(user_id, set()))
+        await self._send_all(targets, message)
+
+    async def _send_all(
+        self, targets: list[WebSocket], message: dict[str, Any]
+    ) -> None:
         if not targets:
             return
         dead: list[WebSocket] = []

@@ -44,6 +44,14 @@ export class ConversationApiService {
     );
   }
 
+  sendMessageToUser(recipientUserId: number, content: string): Promise<MessageResponse> {
+    return firstValueFrom(
+      this.http.post<MessageResponse>(`${this.APIURL}/with/${recipientUserId}/messages`, {
+        content,
+      })
+    );
+  }
+
   async markAsRead(conversationId: number): Promise<void> {
     await firstValueFrom(
       this.http.patch(`${this.APIURL}/${conversationId}/read`, {} as Record<string, unknown>)

@@ -39,12 +39,14 @@ export class ConversationStore {
     });
 
     this.realtime.addMessageHandler((convId, msg) => this.onIncomingMessage(convId, msg));
+    this.realtime.addConversationCreatedHandler(() => void this.refresh());
   }
 
   async refresh(): Promise<void> {
     if (this.initializing) return this.initializing;
     this.initializing = (async () => {
       try {
+        await this.realtime.connect();
         const list = await this.api.list();
         this.conversations.set(list);
         const ids = list.map((c) => c.id);

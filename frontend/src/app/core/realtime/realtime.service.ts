@@ -12,6 +12,7 @@ type ReadHandler = (
   isRead: boolean,
   readAt: string | null
 ) => void;
+type ConversationCreatedHandler = (conversationId: number) => void;
 
 interface ServerEvent {
   event?: string;
@@ -35,6 +36,7 @@ export class RealtimeService {
   private readonly pendingSubscriptions = new Set<number>();
   private readonly messageHandlers = new Set<MessageHandler>();
   private readonly readHandlers = new Set<ReadHandler>();
+  private readonly conversationCreatedHandlers = new Set<ConversationCreatedHandler>();
   private reconnectDelay = RECONNECT_INITIAL_MS;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private manuallyClosed = false;
@@ -49,6 +51,15 @@ export class RealtimeService {
   addReadHandler(handler: ReadHandler): () => void {
     this.readHandlers.add(handler);
     return () => this.readHandlers.delete(handler);
+  }
+
+  addConversationCreatedHandler(handler: ConversationCreatedHandler): () => void {
+    this.conversationCreatedHandlers.add(handler);
+    return () => this.conversationCreatedHandlers.delete(handler);
+  }
+
+  async connect(): Promise<void> {
+    await this.ensureSocket();
   }
 
   async subscribeConversations(conversationIds: number[]): Promise<void> {
@@ -175,8 +186,15 @@ export class RealtimeService {
     if (event === 'unsubscribed' || event === 'error') return;
 
     const conversationId = data.conversation_id;
+    if (typeof conversationId !== 'number') return;
+
+    if (event === 'conversation_created') {
+      for (const handler of this.conversationCreatedHandlers) handler(conversationId);
+      return;
+    }
+
     const payload = data.payload ?? null;
-    if (typeof conversationId !== 'number' || !payload) return;
+    if (!payload) return;
 
     if (event === 'new_message') {
       const message = this.normalizeMessage(payload, conversationId);

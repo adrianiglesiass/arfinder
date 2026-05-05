@@ -46,7 +46,7 @@ async def realtime_endpoint(
     user_id = user.id
 
     await websocket.accept()
-    await manager.register(websocket)
+    await manager.register(websocket, user_id)
 
     try:
         while True:
