@@ -43,82 +43,131 @@ def profile_barcelona(db, create_test_user):
     )
 
 
-def test_search_no_filters_returns_all(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles")
+def test_search_no_filters_returns_all(
+    client, auth_headers, profile_madrid, profile_barcelona
+):
+    res = client.get("/profiles", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()) == 2
 
 
-def test_search_by_city(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?city=Madrid")
+def test_search_by_city(client, auth_headers, profile_madrid, profile_barcelona):
+    res = client.get("/profiles?city=Madrid", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()) == 1
     assert res.json()[0]["city"] == "Madrid"
 
 
-def test_search_by_city_partial(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?city=mad")
+def test_search_by_city_partial(
+    client, auth_headers, profile_madrid, profile_barcelona
+):
+    res = client.get("/profiles?city=mad", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()) == 1
 
 
-def test_search_by_budget_max(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?budget_max=700")
+def test_search_by_budget_max(client, auth_headers, profile_madrid, profile_barcelona):
+    res = client.get("/profiles?budget_max=700", headers=auth_headers)
     assert res.status_code == 200
     assert all(p["max_budget"] <= 700 for p in res.json())
 
 
-def test_search_by_has_pets(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?has_pets=false")
+def test_search_by_has_pets(client, auth_headers, profile_madrid, profile_barcelona):
+    res = client.get("/profiles?has_pets=false", headers=auth_headers)
     assert res.status_code == 200
     assert all(not p["has_pets"] for p in res.json())
 
 
-def test_search_by_is_smoker(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?is_smoker=false")
+def test_search_by_is_smoker(client, auth_headers, profile_madrid, profile_barcelona):
+    res = client.get("/profiles?is_smoker=false", headers=auth_headers)
     assert res.status_code == 200
     assert all(not p["is_smoker"] for p in res.json())
 
 
-def test_search_by_schedule(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?schedule=morning")
+def test_search_by_schedule(client, auth_headers, profile_madrid, profile_barcelona):
+    res = client.get("/profiles?schedule=morning", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()) == 1
     assert res.json()[0]["schedule"] == "morning"
 
 
-def test_search_by_profile_type(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?profile_type=looking_for_flat")
+def test_search_by_profile_type(
+    client, auth_headers, profile_madrid, profile_barcelona
+):
+    res = client.get("/profiles?profile_type=looking_for_flat", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()) == 1
     assert res.json()[0]["type"] == "looking_for_flat"
 
 
-def test_search_by_age_range(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?age_min=30&age_max=40")
+def test_search_by_age_range(client, auth_headers, profile_madrid, profile_barcelona):
+    res = client.get("/profiles?age_min=30&age_max=40", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()) == 1
     assert res.json()[0]["age"] == 35
 
 
-def test_search_by_gender(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?gender=Mujer")
+def test_search_by_gender(client, auth_headers, profile_madrid, profile_barcelona):
+    res = client.get("/profiles?gender=Mujer", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()) == 1
     assert res.json()[0]["gender"] == "Mujer"
 
 
-def test_search_combined_filters(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?city=Madrid&budget_max=700&is_smoker=false")
+def test_search_combined_filters(
+    client, auth_headers, profile_madrid, profile_barcelona
+):
+    res = client.get(
+        "/profiles?city=Madrid&budget_max=700&is_smoker=false", headers=auth_headers
+    )
     assert res.status_code == 200
     assert len(res.json()) == 1
     assert res.json()[0]["city"] == "Madrid"
 
 
-def test_search_no_results(client, profile_madrid, profile_barcelona):
-    res = client.get("/profiles?city=Tokio")
+def test_search_no_results(client, auth_headers, profile_madrid, profile_barcelona):
+    res = client.get("/profiles?city=Tokio", headers=auth_headers)
     assert res.status_code == 200
     assert res.json() == []
+
+
+def test_search_anonymous_returns_all(client, profile_madrid, profile_barcelona):
+    # Endpoint es opcional-auth: sin token devuelve todos los perfiles sin filtrar.
+    res = client.get("/profiles")
+    assert res.status_code == 200
+    assert len(res.json()) == 2
+
+
+def test_search_excludes_own_profile(client, db, profile_barcelona):
+    # The default authenticated user (test@test.com) creates their own profile.
+    from app.repositories import user_repository
+
+    me = user_repository.get_user_by_email(db, "test@test.com")
+    create_profile(
+        db,
+        me.id,
+        ProfileCreate(
+            name="Yo Mismo",
+            age=30,
+            city="Sevilla",
+            max_budget=600,
+            has_pets=False,
+            is_smoker=False,
+            schedule=ScheduleEnum.afternoon,
+            type=TypeEnum.looking_for_flat,
+            gender="Hombre",
+        ),
+    )
+
+    res = client.get(
+        "/profiles", headers={"Authorization": "Bearer token_test@test.com"}
+    )
+    assert res.status_code == 200
+    body = res.json()
+    user_ids = [p["user_id"] for p in body]
+    assert me.id not in user_ids
+    assert profile_barcelona.user_id in user_ids
+    assert len(body) == 1
 
 
 def test_get_public_profile_ok(client, profile_madrid):

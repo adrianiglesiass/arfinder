@@ -10,7 +10,11 @@ from sqlalchemy.orm import sessionmaker
 
 import app.models  # noqa: E402
 from app.core.config import settings
-from app.core.dependencies import bearer_scheme, get_current_user
+from app.core.dependencies import (
+    bearer_scheme,
+    get_current_user,
+    get_current_user_optional,
+)
 from app.core.exceptions.auth import InvalidCredentialsError
 from app.db.database import Base, get_db
 from app.main import app
@@ -100,8 +104,24 @@ def client(db, create_test_user):
 
         return default_user
 
+    async def mock_get_current_user_optional(
+        credentials=Depends(bearer_scheme), db_session=Depends(override_get_db)
+    ):
+        if not credentials:
+            return None
+
+        token = credentials.credentials
+        if token.startswith("token_"):
+            email = token.replace("token_", "")
+            user = user_repository.get_user_by_email(db_session, email)
+            if user:
+                return user
+
+        return default_user
+
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = mock_get_current_user
+    app.dependency_overrides[get_current_user_optional] = mock_get_current_user_optional
 
     with TestClient(app) as c:
         yield c

@@ -79,6 +79,7 @@ def search_profiles(
     age_max: int | None = None,
     skip: int = 0,
     limit: int = 20,
+    exclude_user_id: int | None = None,
 ) -> list[ProfileSummary]:
     profiles = profile_repository.search_profiles(
         db,
@@ -93,6 +94,7 @@ def search_profiles(
         age_max,
         skip,
         limit,
+        exclude_user_id=exclude_user_id,
     )
 
     profile_summaries = []

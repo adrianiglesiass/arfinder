@@ -5,7 +5,7 @@ from app.core.rate_limit import rate_limiter
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, get_current_user_optional
 from app.core.openapi import NOT_FOUND, PROTECTED, UNAUTH, BAD_REQUEST
 from app.db.database import get_db
 from app.core.route_utils import parse_age_param, parse_bool_param
@@ -50,6 +50,7 @@ def search(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     clean_age_min = parse_age_param(age_min, "age_min")
     clean_age_max = parse_age_param(age_max, "age_max")
@@ -69,6 +70,7 @@ def search(
         clean_age_max,
         skip,
         limit,
+        exclude_user_id=current_user.id if current_user else None,
     )
 
 

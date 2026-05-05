@@ -23,3 +23,17 @@ async def get_current_user(
         raise InvalidCredentialsError()
 
     return get_or_create_local_user(db, session.user)
+
+
+async def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> User | None:
+    if credentials is None:
+        return None
+
+    session = await validate_insforge_token(credentials.credentials)
+    if not session or not session.user:
+        return None
+
+    return get_or_create_local_user(db, session.user)
