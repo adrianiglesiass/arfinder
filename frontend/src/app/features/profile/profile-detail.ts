@@ -3,7 +3,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { ConversationApiService } from '@infrastructure/api/conversation/conversation.api.service';
 import { ProfileApiService } from '@infrastructure/api/profile/profile.api.service';
 
 import type { ProfileResponse, ScheduleEnum, TypeEnum } from '@core/api/api.models';
@@ -32,7 +31,6 @@ export default class ProfileDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly profileApi = inject(ProfileApiService);
-  private readonly conversationApi = inject(ConversationApiService);
   private readonly authService = inject(AuthService);
 
   profile = signal<ProfileResponse | null>(null);
@@ -81,15 +79,17 @@ export default class ProfileDetail implements OnInit {
       return;
     }
 
-    try {
-      const conv = await this.conversationApi.create(p.user_id);
-      await this.router.navigate(['/mensajes'], {
-        queryParams: { conversation: conv.id },
-      });
-    } catch (err) {
-      console.error('Error creating conversation:', err);
-      this.error.set('Error al iniciar conversación');
-    }
+    const mainPhoto = p.photos?.find((photo) => photo.is_main) ?? p.photos?.[0] ?? null;
+    await this.router.navigate(['/mensajes'], {
+      queryParams: { recipient: p.user_id },
+      state: {
+        recipient: {
+          user_id: p.user_id,
+          name: p.name,
+          photo_url: mainPhoto?.photo_url ?? null,
+        },
+      },
+    });
   }
 
   readonly isOwnProfile = computed(() => {
