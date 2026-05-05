@@ -1,6 +1,10 @@
+import logging
+
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.repositories import user_repository
+
+logger = logging.getLogger(__name__)
 
 
 def delete_user_completely(db: Session, user: User) -> None:
@@ -17,7 +21,7 @@ def cleanup_orphaned_users(db: Session) -> dict:
         try:
             user_repository.delete_user(db, user)
             deleted_count += 1
-        except Exception as e:
-            print(f"Failed to delete user {user.id}: {str(e)}")
+        except Exception:
+            logger.exception("failed to delete orphaned user_id=%s", user.id)
 
     return {"deleted_count": deleted_count, "total_scanned": len(orphaned_users)}

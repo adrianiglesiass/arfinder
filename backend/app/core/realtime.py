@@ -147,12 +147,13 @@ class PostgresNotifyListener:
                 backoff = INITIAL_BACKOFF
 
                 while self.is_running:
-                    if select.select([self._conn], [], [], 0.5) != ([], [], []):
+                    if select.select([self._conn], [], [], 0.05) != ([], [], []):
                         self._conn.poll()
                         while self._conn.notifies:
                             notify = self._conn.notifies.pop(0)
                             await self._dispatch(notify.payload)
-                    await asyncio.sleep(0.05)
+                    else:
+                        await asyncio.sleep(0)
             except Exception as e:
                 logger.error(f"[realtime] listener error: {e}; retrying in {backoff}s")
                 if self._conn is not None:
