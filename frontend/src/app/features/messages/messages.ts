@@ -100,12 +100,7 @@ export default class Messages implements OnInit, OnDestroy {
       if (epoch !== this.selectionEpoch) return;
       this.messages.set(msgs);
 
-      const me = this.myUserId();
-      const justReadIds = msgs.filter((m) => !m.is_read && m.sender_id !== me).map((m) => m.id);
       await this.conversationApi.markAsRead(conv.id);
-      if (justReadIds.length) {
-        void this.realtimeService.publishRead(conv.id, justReadIds);
-      }
 
       setTimeout(() => this.scrollToBottom(), 50);
     } catch {
@@ -123,7 +118,6 @@ export default class Messages implements OnInit, OnDestroy {
       const msg = await this.conversationApi.sendMessage(conv.id, content);
       this.upsertMessage(msg);
       this.store.upsertConversationPreview(conv.id, msg);
-      void this.realtimeService.publishMessage(conv.id, msg);
       this.newMessage.set('');
       setTimeout(() => this.scrollToBottom(), 50);
     } catch {
@@ -178,10 +172,7 @@ export default class Messages implements OnInit, OnDestroy {
     setTimeout(() => this.scrollToBottom(), 50);
 
     if (!this.isMyMessage(message.sender_id)) {
-      void this.conversationApi
-        .markAsRead(conversationId)
-        .then(() => this.realtimeService.publishRead(conversationId, [message.id]))
-        .catch(() => undefined);
+      void this.conversationApi.markAsRead(conversationId).catch(() => undefined);
     }
   }
 

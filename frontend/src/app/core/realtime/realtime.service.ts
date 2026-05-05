@@ -1,8 +1,9 @@
 import { inject, Injectable, signal } from '@angular/core';
 
-import { InsForgeClient } from '@insforge/sdk';
+import { environment } from '@env/environment';
 
 import type { MessageResponse } from '@core/api/api.models';
+import { AuthService } from '@core/auth/auth.service';
 
 type MessageHandler = (conversationId: number, message: MessageResponse) => void;
 type ReadHandler = (
@@ -12,189 +13,204 @@ type ReadHandler = (
   readAt: string | null
 ) => void;
 
-interface RealtimeMeta {
-  channel?: string;
+interface ServerEvent {
+  event?: string;
+  conversation_id?: number;
+  payload?: Record<string, unknown> | null;
+  error?: string;
 }
 
-interface RealtimePayload {
-  meta?: RealtimeMeta;
-  payload?: Record<string, unknown>;
-  [key: string]: unknown;
-}
+const RECONNECT_INITIAL_MS = 1000;
+const RECONNECT_MAX_MS = 30_000;
 
 @Injectable({
   providedIn: 'root',
 })
 export class RealtimeService {
-  private readonly insforge = inject(InsForgeClient);
+  private readonly authService = inject(AuthService);
 
-  private readonly subscribedChannels = new Set<string>();
-  private readonly subscribePromises = new Map<string, Promise<void>>();
+  private socket: WebSocket | null = null;
+  private connecting: Promise<void> | null = null;
+  private readonly subscribedConversations = new Set<number>();
+  private readonly pendingSubscriptions = new Set<number>();
   private readonly messageHandlers = new Set<MessageHandler>();
   private readonly readHandlers = new Set<ReadHandler>();
-  private listenersBound = false;
+  private reconnectDelay = RECONNECT_INITIAL_MS;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private manuallyClosed = false;
 
   isConnected = signal(false);
 
   addMessageHandler(handler: MessageHandler): () => void {
     this.messageHandlers.add(handler);
-    this.bindListeners();
     return () => this.messageHandlers.delete(handler);
   }
 
   addReadHandler(handler: ReadHandler): () => void {
     this.readHandlers.add(handler);
-    this.bindListeners();
     return () => this.readHandlers.delete(handler);
   }
 
   async subscribeConversations(conversationIds: number[]): Promise<void> {
-    this.bindListeners();
     await this.ensureSocket();
-    await Promise.all(conversationIds.map((id) => this.subscribeOne(id)));
+    for (const id of conversationIds) this.requestSubscribe(id);
   }
 
   async subscribeConversation(conversationId: number): Promise<void> {
-    this.bindListeners();
     await this.ensureSocket();
-    await this.subscribeOne(conversationId);
+    this.requestSubscribe(conversationId);
   }
 
   unsubscribeConversation(conversationId: number): void {
-    const channel = this.channelFor(conversationId);
-    if (!this.subscribedChannels.has(channel)) return;
-    this.insforge.realtime.unsubscribe(channel);
-    this.subscribedChannels.delete(channel);
-    this.subscribePromises.delete(channel);
+    this.subscribedConversations.delete(conversationId);
+    this.pendingSubscriptions.delete(conversationId);
+    this.send({ action: 'unsubscribe', conversation_id: conversationId });
   }
 
   unsubscribeAll(): void {
-    for (const channel of this.subscribedChannels) {
-      this.insforge.realtime.unsubscribe(channel);
+    for (const id of this.subscribedConversations) {
+      this.send({ action: 'unsubscribe', conversation_id: id });
     }
-    this.subscribedChannels.clear();
-    this.subscribePromises.clear();
+    this.subscribedConversations.clear();
+    this.pendingSubscriptions.clear();
   }
 
-  async publishMessage(conversationId: number, message: MessageResponse): Promise<void> {
-    const channel = this.channelFor(conversationId);
-    try {
-      await this.ensureSubscribed(conversationId);
-      if (!this.subscribedChannels.has(channel)) return;
-      await this.insforge.realtime.publish(channel, 'new_message', {
-        id: message.id,
-        conversation_id: message.conversation_id,
-        sender_id: message.sender_id,
-        content: message.content,
-        sent_at: message.sent_at,
-        is_read: message.is_read,
-        read_at: message.read_at,
-      });
-    } catch {
-      /* empty */
+  disconnect(): void {
+    this.manuallyClosed = true;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
     }
-  }
-
-  async publishRead(conversationId: number, messageIds: number[]): Promise<void> {
-    if (!messageIds.length) return;
-    const channel = this.channelFor(conversationId);
-    try {
-      await this.ensureSubscribed(conversationId);
-      if (!this.subscribedChannels.has(channel)) return;
-      const readAt = new Date().toISOString();
-      for (const id of messageIds) {
-        await this.insforge.realtime.publish(channel, 'message_read', { id, read_at: readAt });
+    if (this.socket) {
+      try {
+        this.socket.close();
+      } catch {
+        /* empty */
       }
-    } catch {
-      /* empty */
+      this.socket = null;
     }
+    this.subscribedConversations.clear();
+    this.pendingSubscriptions.clear();
+    this.isConnected.set(false);
   }
 
   private async ensureSocket(): Promise<void> {
-    if (this.insforge.realtime.isConnected) return;
-    await this.insforge.realtime.connect();
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) return;
+    if (this.connecting) return this.connecting;
+
+    this.manuallyClosed = false;
+    this.connecting = this.openSocket().finally(() => {
+      this.connecting = null;
+    });
+    return this.connecting;
   }
 
-  private async ensureSubscribed(conversationId: number): Promise<void> {
-    const channel = this.channelFor(conversationId);
-    const inFlight = this.subscribePromises.get(channel);
-    if (inFlight) {
-      await inFlight;
+  private async openSocket(): Promise<void> {
+    const token = await this.authService.getToken();
+    if (!token) return;
+
+    const url = this.buildUrl(token);
+    const socket = new WebSocket(url);
+    this.socket = socket;
+
+    await new Promise<void>((resolve) => {
+      const onOpen = () => {
+        this.isConnected.set(true);
+        this.reconnectDelay = RECONNECT_INITIAL_MS;
+        this.flushPendingSubscriptions();
+        socket.removeEventListener('open', onOpen);
+        socket.removeEventListener('error', onError);
+        resolve();
+      };
+      const onError = () => {
+        socket.removeEventListener('open', onOpen);
+        socket.removeEventListener('error', onError);
+        resolve();
+      };
+      socket.addEventListener('open', onOpen);
+      socket.addEventListener('error', onError);
+    });
+
+    socket.addEventListener('message', (ev) => this.handleMessage(ev));
+    socket.addEventListener('close', () => this.handleClose());
+  }
+
+  private buildUrl(token: string): string {
+    const apiUrl = new URL(environment.APIURL);
+    const wsProto = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${wsProto}//${apiUrl.host}/ws/realtime?token=${encodeURIComponent(token)}`;
+  }
+
+  private handleClose(): void {
+    this.isConnected.set(false);
+    this.socket = null;
+    if (this.manuallyClosed) return;
+
+    for (const id of this.subscribedConversations) this.pendingSubscriptions.add(id);
+    this.subscribedConversations.clear();
+
+    const delay = this.reconnectDelay;
+    this.reconnectDelay = Math.min(this.reconnectDelay * 2, RECONNECT_MAX_MS);
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      void this.ensureSocket();
+    }, delay);
+  }
+
+  private handleMessage(ev: MessageEvent): void {
+    let data: ServerEvent;
+    try {
+      data = JSON.parse(ev.data as string) as ServerEvent;
+    } catch {
       return;
     }
-    if (!this.subscribedChannels.has(channel)) {
-      await this.subscribeConversation(conversationId);
+    const event = data.event;
+    if (!event) return;
+
+    if (event === 'subscribed' && typeof data.conversation_id === 'number') {
+      this.subscribedConversations.add(data.conversation_id);
+      this.pendingSubscriptions.delete(data.conversation_id);
+      return;
+    }
+    if (event === 'unsubscribed' || event === 'error') return;
+
+    const conversationId = data.conversation_id;
+    const payload = data.payload ?? null;
+    if (typeof conversationId !== 'number' || !payload) return;
+
+    if (event === 'new_message') {
+      const message = this.normalizeMessage(payload, conversationId);
+      for (const handler of this.messageHandlers) handler(conversationId, message);
+      return;
+    }
+
+    if (event === 'message_read') {
+      const id = Number(payload['id']);
+      if (!Number.isFinite(id)) return;
+      const readAt = typeof payload['read_at'] === 'string' ? (payload['read_at'] as string) : null;
+      for (const handler of this.readHandlers) handler(conversationId, id, true, readAt);
     }
   }
 
-  private async subscribeOne(conversationId: number): Promise<void> {
-    const channel = this.channelFor(conversationId);
-    if (this.subscribedChannels.has(channel)) return;
-    const existing = this.subscribePromises.get(channel);
-    if (existing) return existing;
-
-    const promise = (async () => {
-      try {
-        const res = await this.insforge.realtime.subscribe(channel);
-        if (!res?.ok) return;
-        this.subscribedChannels.add(channel);
-        this.isConnected.set(true);
-      } finally {
-        this.subscribePromises.delete(channel);
-      }
-    })();
-
-    this.subscribePromises.set(channel, promise);
-    return promise;
+  private requestSubscribe(conversationId: number): void {
+    if (this.subscribedConversations.has(conversationId)) return;
+    this.pendingSubscriptions.add(conversationId);
+    this.send({ action: 'subscribe', conversation_id: conversationId });
   }
 
-  private bindListeners(): void {
-    if (this.listenersBound) return;
-    this.listenersBound = true;
-
-    this.insforge.realtime.on('connect', () => this.isConnected.set(true));
-    this.insforge.realtime.on('disconnect', () => this.isConnected.set(false));
-
-    this.insforge.realtime.on('new_message', (data: unknown) => {
-      const convId = this.routeConvId(data);
-      if (convId == null) return;
-      const raw = this.extractPayload(data);
-      if (!raw) return;
-      const normalized = this.normalizeMessage(raw, convId);
-      for (const handler of this.messageHandlers) handler(convId, normalized);
-    });
-
-    this.insforge.realtime.on('message_read', (data: unknown) => {
-      const convId = this.routeConvId(data);
-      if (convId == null) return;
-      const raw = this.extractPayload(data);
-      if (!raw) return;
-      const id = Number(raw['id']);
-      if (!Number.isFinite(id)) return;
-      const readAt = typeof raw['read_at'] === 'string' ? (raw['read_at'] as string) : null;
-      for (const handler of this.readHandlers) handler(convId, id, true, readAt);
-    });
+  private flushPendingSubscriptions(): void {
+    for (const id of this.pendingSubscriptions) {
+      this.send({ action: 'subscribe', conversation_id: id });
+    }
   }
 
-  private routeConvId(data: unknown): number | null {
-    const meta = (data as RealtimePayload | null)?.meta;
-    if (!meta?.channel) return null;
-    const channel = meta.channel.replace(/^realtime:/, '');
-    if (!this.subscribedChannels.has(channel)) return null;
-    const parts = channel.split(':');
-    if (parts.length !== 2 || parts[0] !== 'conversation') return null;
-    const id = Number(parts[1]);
-    return Number.isFinite(id) ? id : null;
-  }
-
-  private extractPayload(data: unknown): Record<string, unknown> | null {
-    if (!data || typeof data !== 'object') return null;
-    const obj = data as RealtimePayload;
-    if (obj.payload && typeof obj.payload === 'object') return obj.payload;
-    const { meta: _meta, payload: _payload, ...rest } = obj;
-    void _meta;
-    void _payload;
-    return rest as Record<string, unknown>;
+  private send(message: { action: string; conversation_id: number }): void {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
+    try {
+      this.socket.send(JSON.stringify(message));
+    } catch {
+      /* empty */
+    }
   }
 
   private normalizeMessage(raw: Record<string, unknown>, convId: number): MessageResponse {
@@ -207,9 +223,5 @@ export class RealtimeService {
       is_read: Boolean(raw['is_read'] ?? false),
       read_at: typeof raw['read_at'] === 'string' ? (raw['read_at'] as string) : null,
     };
-  }
-
-  private channelFor(conversationId: number): string {
-    return `conversation:${conversationId}`;
   }
 }
