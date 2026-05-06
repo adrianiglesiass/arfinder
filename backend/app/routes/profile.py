@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
 from app.core.file_validation import validate_image_header
 from app.core.rate_limit import rate_limiter
 from pydantic import BaseModel, ConfigDict, Field
@@ -81,8 +81,11 @@ def search(
 
 @router.get("/me", response_model=ProfileResponse, responses=PROTECTED)
 async def get_my_profile(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    response.headers["Cache-Control"] = "private, max-age=60"
     return profile_service.get_profile(db, current_user.id)
 
 
@@ -180,7 +183,10 @@ async def delete_profile_photo(
 
 
 @router.get("/{profile_id}", response_model=ProfileResponse, responses=NOT_FOUND)
-def get_public_profile(profile_id: int, db: Session = Depends(get_db)):
+def get_public_profile(
+    profile_id: int, response: Response, db: Session = Depends(get_db)
+):
+    response.headers["Cache-Control"] = "public, max-age=60"
     return profile_service.get_public_profile(db, profile_id)
 
 

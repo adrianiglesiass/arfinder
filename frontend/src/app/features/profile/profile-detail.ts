@@ -47,6 +47,9 @@ export default class ProfileDetail implements OnInit {
   activePhotoIndex = signal(0);
   sendingMessage = signal(false);
 
+  private touchStartX: number | null = null;
+  private touchStartY: number | null = null;
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -121,6 +124,26 @@ export default class ProfileDetail implements OnInit {
     if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
     if (event.key === 'ArrowLeft') this.prevPhoto(event);
     else if (event.key === 'ArrowRight') this.nextPhoto(event);
+  }
+
+  onTouchStart(event: TouchEvent): void {
+    const t = event.touches[0];
+    this.touchStartX = t.clientX;
+    this.touchStartY = t.clientY;
+  }
+
+  onTouchEnd(event: TouchEvent): void {
+    if (this.touchStartX === null || this.touchStartY === null) return;
+    const t = event.changedTouches[0];
+    const dx = t.clientX - this.touchStartX;
+    const dy = t.clientY - this.touchStartY;
+    this.touchStartX = null;
+    this.touchStartY = null;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+    if (!this.hasMultiplePhotos()) return;
+    const total = this.photos().length;
+    if (dx > 0) this.activePhotoIndex.update((i) => (i - 1 + total) % total);
+    else this.activePhotoIndex.update((i) => (i + 1) % total);
   }
 
   readonly isOwnProfile = computed(() => {
