@@ -74,15 +74,10 @@ export class AuthService {
   }
 
   async getToken(): Promise<string | null> {
-    // Camino caliente: el SDK guarda el access token en memoria. Esto es lo que
-    // sirve >99% de las requests; no toca red.
     const internal = this.insforge as unknown as InsForgeInternal;
     const cached = internal?.tokenManager?.getAccessToken?.();
     if (cached) return cached;
 
-    // Cache miss: hacemos refreshSession dedupado. Si llegan N requests en
-    // paralelo durante el bootstrap inicial sin token, todas comparten una
-    // sola llamada de red.
     if (this.refreshPromise) return this.refreshPromise;
 
     this.refreshPromise = (async () => {

@@ -18,9 +18,6 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-# Índices para acelerar `profile_repository.search_profiles`.
-# city ya tenía índice desde la migración base; aquí añadimos el resto de
-# columnas filtradas frecuentemente.
 INDEXES = [
     ("ix_profile_age", "age"),
     ("ix_profile_max_budget", "max_budget"),

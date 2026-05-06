@@ -64,7 +64,6 @@ export default class ProfileDetail implements OnInit {
   }
 
   async loadProfile(id: number): Promise<void> {
-    // Render inmediato desde cache si existe (revisita o pre-warm).
     const cached = this.profileService.peekProfileById(id);
     if (cached) {
       this.profile.set(cached);
@@ -75,7 +74,7 @@ export default class ProfileDetail implements OnInit {
       const data = await this.profileService.fetchProfileById(id);
       this.profile.set(data);
     } catch (err) {
-      if (cached) return; // ya tenemos algo pintado; ignorar fallo de revalidación
+      if (cached) return;
       if (err instanceof HttpErrorResponse && err.status === 404) {
         this.error.set('Perfil no encontrado');
       } else {

@@ -47,9 +47,9 @@ def _get_other_user_summary(
 def _build_conversation_response(
     conv, current_user_id: int, db: Session
 ) -> ConversationResponse:
-    # Reutilizamos los helpers batch con una lista de un solo id para mantener
-    # una única ruta de queries y evitar drift con `list_conversations`.
-    last_messages = message_repository.get_last_messages_for_conversations(db, [conv.id])
+    last_messages = message_repository.get_last_messages_for_conversations(
+        db, [conv.id]
+    )
     unread_counts = message_repository.get_unread_counts_for_conversations(
         db, [conv.id], current_user_id
     )
