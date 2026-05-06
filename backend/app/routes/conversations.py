@@ -5,7 +5,6 @@ from app.core.dependencies import get_current_user
 from app.core.openapi import PROTECTED
 from app.core.rate_limit import message_rate_limiter
 from app.db.database import get_db
-from app.models.message import Message
 from app.models.user import User
 from app.repositories import message_repository
 from app.schemas.conversation import (
@@ -48,28 +47,19 @@ def _get_other_user_summary(
 def _build_conversation_response(
     conv, current_user_id: int, db: Session
 ) -> ConversationResponse:
-    last_msg = (
-        db.query(Message)
-        .filter(Message.conversation_id == conv.id)
-        .order_by(Message.sent_at.desc())
-        .first()
-    )
-    unread_count = (
-        db.query(Message)
-        .filter(
-            Message.conversation_id == conv.id,
-            Message.sender_id != current_user_id,
-            Message.is_read.is_(False),
-        )
-        .count()
+    # Reutilizamos los helpers batch con una lista de un solo id para mantener
+    # una única ruta de queries y evitar drift con `list_conversations`.
+    last_messages = message_repository.get_last_messages_for_conversations(db, [conv.id])
+    unread_counts = message_repository.get_unread_counts_for_conversations(
+        db, [conv.id], current_user_id
     )
     return ConversationResponse(
         id=conv.id,
         user1_id=conv.user1_id,
         user2_id=conv.user2_id,
         other_user=_get_other_user_summary(conv, current_user_id, db),
-        last_message=last_msg,
-        unread_count=unread_count,
+        last_message=last_messages.get(conv.id),
+        unread_count=unread_counts.get(conv.id, 0),
     )
 
 
