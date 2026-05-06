@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { ProfileApiService } from '@infrastructure/api/profile/profile.api.service';
@@ -37,6 +37,7 @@ export default class ProfileDetail implements OnInit {
   isLoading = signal(true);
   error = signal<string | null>(null);
   activePhotoIndex = signal(0);
+  sendingMessage = signal(false);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -70,6 +71,7 @@ export default class ProfileDetail implements OnInit {
   }
 
   async sendMessage(): Promise<void> {
+    if (this.sendingMessage()) return;
     const p = this.profile();
     const currentUser = this.authService.currentUser();
     if (!p || !currentUser) return;
@@ -79,17 +81,31 @@ export default class ProfileDetail implements OnInit {
       return;
     }
 
+    this.sendingMessage.set(true);
     const mainPhoto = p.photos?.find((photo) => photo.is_main) ?? p.photos?.[0] ?? null;
-    await this.router.navigate(['/mensajes'], {
-      queryParams: { recipient: p.user_id },
-      state: {
-        recipient: {
-          user_id: p.user_id,
-          name: p.name,
-          photo_url: mainPhoto?.photo_url ?? null,
+    try {
+      await this.router.navigate(['/mensajes'], {
+        queryParams: { recipient: p.user_id },
+        state: {
+          recipient: {
+            user_id: p.user_id,
+            name: p.name,
+            photo_url: mainPhoto?.photo_url ?? null,
+          },
         },
-      },
-    });
+      });
+    } finally {
+      this.sendingMessage.set(false);
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent): void {
+    if (!this.hasMultiplePhotos()) return;
+    const target = event.target as HTMLElement | null;
+    if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    if (event.key === 'ArrowLeft') this.prevPhoto(event);
+    else if (event.key === 'ArrowRight') this.nextPhoto(event);
   }
 
   readonly isOwnProfile = computed(() => {
