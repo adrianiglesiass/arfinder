@@ -40,8 +40,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
     provideAppInitializer(() => {
-      const authService = inject(AuthService);
-      return authService.init();
+      void inject(AuthService).init();
     }),
 
     provideHttpClient(withInterceptors([jwtInterceptor, authErrorInterceptor])),

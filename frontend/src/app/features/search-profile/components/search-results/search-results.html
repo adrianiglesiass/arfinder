@@ -60,10 +60,8 @@
   <div #sentinel class="h-px w-full" aria-hidden="true"></div>
 
   @if (isLoadingMore()) {
-    <div class="flex items-center justify-center py-8" aria-live="polite">
-      <div
-        class="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin"
-      ></div>
+    <div class="flex items-center justify-center py-8">
+      <app-spinner />
       <span class="sr-only">Cargando más perfiles...</span>
     </div>
   } @else if (!hasMore() && profiles().length > 8) {
