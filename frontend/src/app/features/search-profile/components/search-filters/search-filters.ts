@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -63,8 +63,21 @@ export class SearchFilters {
   readonly ageMin = computed(() => this.toNumber(this.filters().age_min));
   readonly ageMax = computed(() => this.toNumber(this.filters().age_max));
   readonly budgetMax = computed(() => this.filters().budget_max ?? null);
-  readonly budgetSliderValue = computed(() => this.filters().budget_max ?? BUDGET_MAX);
+  readonly budgetSliderValue = signal<number>(this.filters().budget_max ?? BUDGET_MAX);
+  readonly budgetDisplay = computed(() => {
+    const v = this.budgetSliderValue();
+    return v >= BUDGET_MAX ? null : v;
+  });
   readonly city = computed(() => this.filters().city ?? '');
+
+  constructor() {
+    effect(() => {
+      const next = this.filters().budget_max ?? BUDGET_MAX;
+      if (next !== untracked(() => this.budgetSliderValue())) {
+        this.budgetSliderValue.set(next);
+      }
+    });
+  }
 
   readonly activeCount = computed(
     () =>
@@ -99,8 +112,14 @@ export class SearchFilters {
     this.searchService.updateFilter('age_max', value);
   }
 
-  setBudgetMax(value: number | null) {
-    const normalized = value === null || value >= BUDGET_MAX ? null : value;
+  onBudgetSlide(value: number | null) {
+    if (value === null) return;
+    this.budgetSliderValue.set(value);
+  }
+
+  commitBudget() {
+    const value = this.budgetSliderValue();
+    const normalized = value >= BUDGET_MAX ? null : value;
     this.searchService.updateFilter('budget_max', normalized);
   }
 

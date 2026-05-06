@@ -1,15 +1,22 @@
 import { Location } from '@angular/common';
-import { effect, inject, Injectable, signal } from '@angular/core';
-import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 
 import { ProfileSearchApiService } from '@infrastructure/api/profileSearch/profile-search.api.service';
-import { filter, from } from 'rxjs';
+import { filter } from 'rxjs';
 
-import type { ProfileSearchFilters, ScheduleEnum, TypeEnum } from '@core/api/api.models';
+import type {
+  ProfileSearchFilters,
+  ProfileSummary,
+  ScheduleEnum,
+  TypeEnum,
+} from '@core/api/api.models';
 
 const SCHEDULE_VALUES: ReadonlySet<string> = new Set(['morning', 'afternoon', 'night', 'flexible']);
 const TYPE_VALUES: ReadonlySet<string> = new Set(['looking_for_flat', 'looking_for_roommate']);
+
+const PAGE_SIZE = 24;
 
 @Injectable({ providedIn: 'root' })
 export class ProfileSearchService {
@@ -19,10 +26,18 @@ export class ProfileSearchService {
 
   readonly filters = signal<ProfileSearchFilters>(this.readFromUrl());
 
-  readonly resource = rxResource({
-    params: () => this.filters(),
-    stream: ({ params }) => from(this.api.search(params)),
-  });
+  readonly hasActiveFilters = computed(() =>
+    Object.values(this.filters()).some((v) => v !== null && v !== undefined && v !== '')
+  );
+
+  readonly profiles = signal<ProfileSummary[]>([]);
+  readonly isLoading = signal(true);
+  readonly isLoadingMore = signal(false);
+  readonly hasMore = signal(true);
+  readonly error = signal<unknown | null>(null);
+
+  private currentPage = 0;
+  private requestId = 0;
 
   constructor() {
     this.router.events
@@ -37,7 +52,11 @@ export class ProfileSearchService {
         }
       });
 
-    effect(() => this.writeToUrl(this.filters()));
+    effect(() => {
+      this.filters();
+      this.writeToUrl(this.filters());
+      void this.resetAndLoad();
+    });
   }
 
   updateFilter<K extends keyof ProfileSearchFilters>(
@@ -57,6 +76,52 @@ export class ProfileSearchService {
 
   reset(): void {
     this.filters.set({});
+  }
+
+  retry(): void {
+    void this.resetAndLoad();
+  }
+
+  async loadMore(): Promise<void> {
+    if (!this.hasMore() || this.isLoading() || this.isLoadingMore()) return;
+    this.currentPage += 1;
+    await this.loadPage(this.currentPage);
+  }
+
+  private async resetAndLoad(): Promise<void> {
+    this.currentPage = 0;
+    this.profiles.set([]);
+    this.hasMore.set(true);
+    this.error.set(null);
+    await this.loadPage(0);
+  }
+
+  private async loadPage(page: number): Promise<void> {
+    const isFirst = page === 0;
+    const reqId = ++this.requestId;
+
+    if (isFirst) this.isLoading.set(true);
+    else this.isLoadingMore.set(true);
+
+    try {
+      const data = await this.api.search({
+        ...this.filters(),
+        skip: page * PAGE_SIZE,
+        limit: PAGE_SIZE,
+      });
+      if (reqId !== this.requestId) return;
+      this.profiles.update((prev) => (isFirst ? data : [...prev, ...data]));
+      this.hasMore.set(data.length === PAGE_SIZE);
+    } catch (e) {
+      if (reqId !== this.requestId) return;
+      this.error.set(e);
+      this.hasMore.set(false);
+    } finally {
+      if (reqId === this.requestId) {
+        if (isFirst) this.isLoading.set(false);
+        else this.isLoadingMore.set(false);
+      }
+    }
   }
 
   private readFromUrl(): ProfileSearchFilters {

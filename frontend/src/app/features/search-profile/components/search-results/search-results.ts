@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, viewChild } from '@angular/core';
 
 import { ProfileSearchService } from '@core/profileSearch/profile-search.service';
 
@@ -10,12 +10,44 @@ import { ProfileCard } from '@shared/components/profile-card/profile-card';
   imports: [ProfileCard, Button],
   templateUrl: './search-results.html',
 })
-export class SearchResults {
+export class SearchResults implements AfterViewInit, OnDestroy {
   private readonly searchService = inject(ProfileSearchService);
 
-  readonly resource = this.searchService.resource;
+  readonly profiles = this.searchService.profiles;
+  readonly isLoading = this.searchService.isLoading;
+  readonly isLoadingMore = this.searchService.isLoadingMore;
+  readonly hasMore = this.searchService.hasMore;
+  readonly error = this.searchService.error;
+  readonly hasActiveFilters = this.searchService.hasActiveFilters;
+
+  protected readonly sentinel = viewChild<ElementRef<HTMLElement>>('sentinel');
+
+  private observer: IntersectionObserver | null = null;
+
+  ngAfterViewInit(): void {
+    if (typeof IntersectionObserver === 'undefined') return;
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          void this.searchService.loadMore();
+        }
+      },
+      { rootMargin: '600px 0px' }
+    );
+    const el = this.sentinel()?.nativeElement;
+    if (el) this.observer.observe(el);
+  }
+
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
+    this.observer = null;
+  }
 
   retry() {
-    this.resource.reload();
+    this.searchService.retry();
+  }
+
+  resetFilters() {
+    this.searchService.reset();
   }
 }

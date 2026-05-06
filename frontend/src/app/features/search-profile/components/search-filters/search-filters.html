@@ -48,8 +48,8 @@
         Presupuesto máximo
       </span>
       <span class="text-xs font-bold text-primary tabular-nums">
-        @if (budgetMax()) {
-          {{ budgetMax() }} €
+        @if (budgetDisplay()) {
+          {{ budgetDisplay() }} €
         } @else {
           Sin límite
         }
@@ -59,7 +59,8 @@
       <p-slider
         inputId="budgetSlider"
         [ngModel]="budgetSliderValue()"
-        (ngModelChange)="setBudgetMax($event)"
+        (ngModelChange)="onBudgetSlide($event)"
+        (onSlideEnd)="commitBudget()"
         [min]="budgetMin"
         [max]="budgetMaxLimit"
         [step]="budgetStep"

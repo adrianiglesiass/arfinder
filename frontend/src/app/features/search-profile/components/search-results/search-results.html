@@ -1,21 +1,25 @@
-@if (resource.isLoading()) {
-  <!--
+@if (isLoading()) {
   <div
-    class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 auto-rows-fr animate-fade-in"
+    class="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-5 auto-rows-fr animate-fade-in"
+    aria-busy="true"
+    aria-live="polite"
   >
-  -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 auto-rows-fr animate-fade-in">
-    @for (i of [0, 1, 2, 3, 4, 5]; track i) {
+    @for (i of [0, 1, 2, 3, 4, 5, 6, 7]; track i) {
       <div class="bg-white border border-gray-border rounded-2xl overflow-hidden">
         <div class="aspect-4/5 bg-gray-100 animate-pulse"></div>
         <div class="p-4 space-y-2.5">
           <div class="h-4 w-2/3 bg-gray-100 rounded-full animate-pulse"></div>
           <div class="h-3 w-1/2 bg-gray-100 rounded-full animate-pulse"></div>
+          <div class="flex gap-1.5 pt-1">
+            <div class="h-7 w-16 bg-gray-100 rounded-full animate-pulse"></div>
+            <div class="h-7 w-20 bg-gray-100 rounded-full animate-pulse"></div>
+          </div>
         </div>
       </div>
     }
   </div>
-} @else if (resource.error()) {
+  <span class="sr-only">Cargando perfiles...</span>
+} @else if (error() && profiles().length === 0) {
   <div
     class="flex flex-col items-center justify-center text-center py-20 px-6 bg-white border border-gray-border rounded-3xl animate-fade-in"
   >
@@ -26,21 +30,52 @@
     </p>
     <app-button class="mt-6" (click)="retry()">Reintentar</app-button>
   </div>
-} @else if (!resource.value()?.length) {
+} @else if (!profiles().length) {
   <div
     class="flex flex-col items-center justify-center text-center py-20 px-6 bg-white border border-gray-border rounded-3xl animate-fade-in"
   >
     <span class="material-symbols-rounded text-5xl text-gray-300 mb-4">search_off</span>
     <h3 class="text-lg font-bold text-primary">Sin resultados</h3>
     <p class="text-sm text-gray-400 font-medium mt-2 max-w-sm">
-      No encontramos perfiles con estos filtros. Prueba a relajar alguno de ellos.
+      @if (hasActiveFilters()) {
+        No encontramos perfiles con estos filtros. Prueba a relajar alguno de ellos.
+      } @else {
+        Aún no hay perfiles disponibles. Vuelve más tarde.
+      }
     </p>
+    @if (hasActiveFilters()) {
+      <app-button class="mt-6" (click)="resetFilters()">
+        <i class="pi pi-refresh text-xs"></i>
+        Limpiar filtros
+      </app-button>
+    }
   </div>
 } @else {
-  <!-- <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-fade-in"> -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 animate-fade-in">
-    @for (profile of resource.value(); track profile.id) {
+  <div class="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-5 animate-fade-in">
+    @for (profile of profiles(); track profile.id) {
       <app-profile-card [profile]="profile" />
     }
   </div>
+
+  <div #sentinel class="h-px w-full" aria-hidden="true"></div>
+
+  @if (isLoadingMore()) {
+    <div class="flex items-center justify-center py-8" aria-live="polite">
+      <div
+        class="w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full animate-spin"
+      ></div>
+      <span class="sr-only">Cargando más perfiles...</span>
+    </div>
+  } @else if (!hasMore() && profiles().length > 8) {
+    <p class="text-center text-xs font-medium text-gray-400 py-8">
+      Has visto todos los perfiles disponibles
+    </p>
+  }
+
+  @if (error() && profiles().length > 0) {
+    <div class="flex flex-col items-center gap-3 py-8">
+      <p class="text-sm text-gray-500 font-medium">Error cargando más perfiles</p>
+      <app-button size="sm" variant="secondary" (click)="retry()">Reintentar</app-button>
+    </div>
+  }
 }
