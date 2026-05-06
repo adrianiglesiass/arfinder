@@ -30,6 +30,7 @@ export class AuthService {
   currentUser = signal<UserResponse | null>(null);
   private sdkReadyPromise: Promise<void> | null = null;
   private invalidatePromise: Promise<void> | null = null;
+  private refreshPromise: Promise<string | null> | null = null;
   private readonly PUBLIC_PATHS = ['/login', '/register', '/verify-email', '/auth/callback'];
 
   init(): Promise<void> {
@@ -77,12 +78,20 @@ export class AuthService {
     const cached = internal?.tokenManager?.getAccessToken?.();
     if (cached) return cached;
 
-    try {
-      const { data } = await this.insforge.auth.refreshSession();
-      return data?.accessToken ?? null;
-    } catch {
-      return null;
-    }
+    if (this.refreshPromise) return this.refreshPromise;
+
+    this.refreshPromise = (async () => {
+      try {
+        const { data } = await this.insforge.auth.refreshSession();
+        return data?.accessToken ?? null;
+      } catch {
+        return null;
+      } finally {
+        this.refreshPromise = null;
+      }
+    })();
+
+    return this.refreshPromise;
   }
 
   async loginWithGoogle(): Promise<void> {

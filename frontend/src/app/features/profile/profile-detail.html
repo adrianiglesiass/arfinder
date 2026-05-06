@@ -69,6 +69,9 @@
                 [class.opacity-100]="i === activePhotoIndex()"
                 [class.opacity-0]="i !== activePhotoIndex()"
                 [attr.aria-hidden]="i !== activePhotoIndex()"
+                [attr.fetchpriority]="i === 0 ? 'high' : 'low'"
+                [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+                [attr.decoding]="i === 0 ? 'sync' : 'async'"
               />
             }
 

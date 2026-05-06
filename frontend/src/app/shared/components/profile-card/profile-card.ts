@@ -1,8 +1,9 @@
 import { NgClass } from '@angular/common';
-import { Component, computed, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import type { ProfileSummary, ScheduleEnum, TypeEnum } from '@core/api/api.models';
+import { ProfileService } from '@core/profile/profile.service';
 
 import { ProfileBadge } from '@shared/components/profile-badge/profile-badge';
 
@@ -22,9 +23,12 @@ const SCHEDULE_LABELS: Record<ScheduleEnum, string> = {
   selector: 'app-profile-card',
   imports: [NgClass, ProfileBadge, RouterLink],
   templateUrl: './profile-card.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileCard {
   profile = input.required<ProfileSummary>();
+
+  private readonly profileService = inject(ProfileService);
 
   protected readonly activeIndex = signal(0);
 
@@ -59,5 +63,9 @@ export class ProfileCard {
     event.stopPropagation();
     event.preventDefault();
     this.activeIndex.set(index);
+  }
+
+  protected onPrefetchHint(): void {
+    this.profileService.prefetchProfileById(this.profile().id);
   }
 }
