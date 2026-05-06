@@ -38,3 +38,18 @@ export function isFastApiError(error: unknown): error is { detail: FastApiValida
 export function isErrorResponse(error: unknown): error is ErrorResponse {
   return typeof error === 'object' && error !== null && 'detail' in error;
 }
+
+export interface InsForgeErrorLike {
+  statusCode: number;
+  message?: string;
+  error?: string;
+}
+
+export function isInsForgeError(error: unknown): error is InsForgeErrorLike {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'statusCode' in error &&
+    typeof (error as { statusCode: unknown }).statusCode === 'number'
+  );
+}

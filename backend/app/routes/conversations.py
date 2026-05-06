@@ -96,8 +96,20 @@ async def list_conversations(
     current_user: User = Depends(get_current_user),
 ):
     conversations = list_my_conversations(db, current_user.id)
+    conv_ids = [c.id for c in conversations]
+    last_messages = message_repository.get_last_messages_for_conversations(db, conv_ids)
+    unread_counts = message_repository.get_unread_counts_for_conversations(
+        db, conv_ids, current_user.id
+    )
     return [
-        _build_conversation_response(conv, current_user.id, db)
+        ConversationResponse(
+            id=conv.id,
+            user1_id=conv.user1_id,
+            user2_id=conv.user2_id,
+            other_user=_get_other_user_summary(conv, current_user.id, db),
+            last_message=last_messages.get(conv.id),
+            unread_count=unread_counts.get(conv.id, 0),
+        )
         for conv in conversations
     ]
 
