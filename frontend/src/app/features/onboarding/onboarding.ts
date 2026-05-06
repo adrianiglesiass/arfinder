@@ -62,6 +62,9 @@ export default class Onboarding implements OnInit {
     schedule: 'morning' as ScheduleEnum,
     has_pets: false,
     is_smoker: false,
+    gender: undefined,
+    available_from: undefined,
+    room_description: undefined,
   });
 
   constructor() {
@@ -107,6 +110,9 @@ export default class Onboarding implements OnInit {
     has_pets: this.form().has_pets ?? false,
     is_smoker: this.form().is_smoker ?? false,
     age: this.form().age,
+    gender: this.form().gender ?? '',
+    available_from: this.form().available_from ?? '',
+    room_description: this.form().room_description ?? '',
   }));
 
   stepTitle = computed(() => {
@@ -130,7 +136,17 @@ export default class Onboarding implements OnInit {
   submitLabel = computed(() => (this.isLastStep() ? 'Ir a explorar' : 'Continuar'));
 
   updateForm(newData: Partial<ProfileCreate>) {
-    this.form.update((prev) => ({ ...prev, ...newData }));
+    const cleaned: Partial<ProfileCreate> = { ...newData };
+
+    if (cleaned.available_from === '') cleaned.available_from = undefined;
+    if (cleaned.gender === '') cleaned.gender = undefined;
+    if (cleaned.room_description === '') cleaned.room_description = undefined;
+
+    if (cleaned.type === 'looking_for_flat') {
+      cleaned.room_description = undefined;
+    }
+
+    this.form.update((prev) => ({ ...prev, ...cleaned }));
   }
 
   async nextStep() {

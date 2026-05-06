@@ -54,6 +54,7 @@
             inputId="hasPetsToggle"
             [ngModel]="hasPets()"
             (ngModelChange)="updateToggle('has_pets', $event)"
+            styleClass="onboarding-toggle"
           />
         </div>
 
@@ -78,6 +79,7 @@
             inputId="isSmokerToggle"
             [ngModel]="isSmoker()"
             (ngModelChange)="updateToggle('is_smoker', $event)"
+            styleClass="onboarding-toggle"
           />
         </div>
       </div>
