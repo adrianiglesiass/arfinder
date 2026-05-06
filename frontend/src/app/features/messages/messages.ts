@@ -21,6 +21,8 @@ import { AuthService } from '@core/auth/auth.service';
 import { ConversationStore } from '@core/conversations/conversation.store';
 import { RealtimeService } from '@core/realtime/realtime.service';
 
+import { Spinner } from '@shared/components/spinner/spinner';
+
 interface DraftRecipient {
   user_id: number;
   name: string | null;
@@ -36,7 +38,7 @@ const PAGE_SIZE = 50;
 
 @Component({
   selector: 'app-messages',
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, Spinner],
   templateUrl: './messages.html',
 })
 export default class Messages implements OnInit, OnDestroy {

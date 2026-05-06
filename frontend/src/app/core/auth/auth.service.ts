@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { environment } from '@env/environment';
 import { AuthApiService } from '@infrastructure/api/auth/auth.api.service';
 import { ProfileApiService } from '@infrastructure/api/profile/profile.api.service';
-import { type AuthSession, InsForgeClient } from '@insforge/sdk';
+import { InsForgeClient } from '@insforge/sdk';
 import { CreateUserResponse, VerifyEmailResponse } from '@insforge/shared-schemas';
 
 import type { UserResponse } from '@core/api/api.models';
@@ -13,13 +13,7 @@ import { OnboardingPersistenceService } from '@core/profile/onboarding-persisten
 
 interface InsForgeInternal {
   tokenManager: {
-    saveSession: (session: AuthSession) => void;
-    clearSession: () => void;
     getAccessToken: () => string | null;
-  };
-  http?: {
-    setAuthToken: (token: string | null) => void;
-    setRefreshToken: (token: string | null) => void;
   };
 }
 
@@ -36,89 +30,26 @@ export class AuthService {
   currentUser = signal<UserResponse | null>(null);
   private sdkReadyPromise: Promise<void> | null = null;
   private invalidatePromise: Promise<void> | null = null;
-  private readonly SDK_SESSION_KEY = 'insforge_saved_session';
   private readonly PUBLIC_PATHS = ['/login', '/register', '/verify-email', '/auth/callback'];
-
-  private saveSdkSessionToStorage(session: { accessToken?: string; user?: unknown } | null) {
-    try {
-      if (!session) {
-        sessionStorage.removeItem(this.SDK_SESSION_KEY);
-        return;
-      }
-      sessionStorage.setItem(this.SDK_SESSION_KEY, JSON.stringify(session));
-    } catch {
-      /* empty */
-    }
-  }
-
-  private loadSdkSessionFromStorage(): { accessToken?: string; user?: unknown } | null {
-    try {
-      const raw = sessionStorage.getItem(this.SDK_SESSION_KEY);
-      if (!raw) return null;
-      return JSON.parse(raw) as { accessToken?: string; user?: unknown };
-    } catch {
-      return null;
-    }
-  }
-
-  private static readonly INIT_SYNC_TIMEOUT_MS = 2000;
 
   init(): Promise<void> {
     if (this.sdkReadyPromise) return this.sdkReadyPromise;
-
-    this.restoreSdkSessionSync();
-
-    this.sdkReadyPromise = Promise.race([
-      this.backgroundSync(),
-      new Promise<void>((resolve) => setTimeout(resolve, AuthService.INIT_SYNC_TIMEOUT_MS)),
-    ]);
-
+    this.sdkReadyPromise = this.bootstrapSession();
     return this.sdkReadyPromise;
   }
 
-  private restoreSdkSessionSync(): void {
-    try {
-      const saved = this.loadSdkSessionFromStorage();
-      if (!saved?.accessToken) return;
-      const internal = this.insforge as unknown as InsForgeInternal;
-      internal?.tokenManager?.saveSession?.({
-        accessToken: saved.accessToken,
-        user: saved.user as AuthSession['user'],
-      });
-
-      internal?.http?.setAuthToken?.(saved.accessToken);
-    } catch {
-      /* empty */
-    }
-  }
-
-  private async backgroundSync(): Promise<void> {
-    const hadLocalToken = !!(
-      this.loadSdkSessionFromStorage()?.accessToken ||
-      (this.insforge as unknown as InsForgeInternal)?.tokenManager?.getAccessToken?.()
-    );
-
+  private async bootstrapSession(): Promise<void> {
     try {
       const { data, error } = await this.insforge.auth.getCurrentUser();
 
       if (error || !data?.user) {
-        const sessionInvalid =
-          error?.statusCode === 401 || error?.statusCode === 403 || (!error && !data?.user);
-        if (sessionInvalid) {
-          if (hadLocalToken) await this.invalidateSession();
-          return;
-        }
-        if (hadLocalToken) await this.syncUser();
+        this.currentUser.set(null);
         return;
       }
 
       await this.syncUser();
-
-      if (this.PUBLIC_PATHS.some((p) => window.location.pathname.includes(p))) {
-        this.navigatePostAuth();
-      }
     } catch {
-      if (hadLocalToken) await this.syncUser();
+      this.currentUser.set(null);
     }
   }
 
@@ -142,15 +73,9 @@ export class AuthService {
   }
 
   async getToken(): Promise<string | null> {
-    if (!this.sdkReadyPromise) this.restoreSdkSessionSync();
-
-    try {
-      const internal = this.insforge as unknown as InsForgeInternal;
-      const userToken = internal?.tokenManager?.getAccessToken?.();
-      if (userToken) return userToken;
-    } catch {
-      /* empty */
-    }
+    const internal = this.insforge as unknown as InsForgeInternal;
+    const cached = internal?.tokenManager?.getAccessToken?.();
+    if (cached) return cached;
 
     try {
       const { data } = await this.insforge.auth.refreshSession();
@@ -173,7 +98,6 @@ export class AuthService {
     if (error) throw error;
 
     if (data?.accessToken) {
-      this.saveSdkSessionToStorage({ accessToken: data.accessToken, user: data.user });
       await this.syncUser();
     }
   }
@@ -185,11 +109,8 @@ export class AuthService {
     const { data, error } = await this.insforge.auth.signUp(credentials);
     if (error) throw error;
 
-    if (data) {
-      if (!data.requireEmailVerification && data.accessToken) {
-        this.saveSdkSessionToStorage({ accessToken: data.accessToken, user: data.user });
-        await this.syncUser();
-      }
+    if (data && !data.requireEmailVerification && data.accessToken) {
+      await this.syncUser();
     }
     return data;
   }
@@ -199,7 +120,6 @@ export class AuthService {
     if (error) throw error;
 
     if (data?.accessToken) {
-      this.saveSdkSessionToStorage({ accessToken: data.accessToken, user: data.user });
       await this.syncUser();
     }
     return data;
@@ -254,25 +174,11 @@ export class AuthService {
     }
     this.currentUser.set(null);
     this.onboardingPersistence.clearAll();
-    this.saveSdkSessionToStorage(null);
   }
 
   async isAuthenticated(): Promise<boolean> {
     await this.init();
-
-    try {
-      const internal = this.insforge as unknown as InsForgeInternal;
-      if (internal?.tokenManager?.getAccessToken?.()) return true;
-    } catch {
-      /* empty */
-    }
-
-    try {
-      const { data } = await this.insforge.auth.getCurrentUser();
-      return !!data?.user;
-    } catch {
-      return false;
-    }
+    return this.currentUser() !== null;
   }
 
   private async syncUser(): Promise<void> {
@@ -280,17 +186,6 @@ export class AuthService {
       const user = await this.authApi.getMe();
       this.currentUser.set(user);
       this.onboardingPersistence.ensureUser(user.id);
-
-      const token = await this.getToken();
-      if (token) {
-        const internal = this.insforge as unknown as InsForgeInternal;
-        internal.tokenManager.saveSession({
-          accessToken: token,
-          user: user as unknown as AuthSession['user'],
-        });
-
-        this.saveSdkSessionToStorage({ accessToken: token, user });
-      }
     } catch {
       this.currentUser.set(null);
       this.onboardingPersistence.clearAll();

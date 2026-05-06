@@ -1,1 +1,6 @@
+@if (navigating()) {
+  <div class="app-loading-overlay app-loading-overlay--translucent">
+    <app-spinner size="lg" />
+  </div>
+}
 <router-outlet />

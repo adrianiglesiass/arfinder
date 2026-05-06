@@ -1,10 +1,13 @@
 import { Component, computed, input } from '@angular/core';
 
+import { Spinner } from '@shared/components/spinner/spinner';
+
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 export type ButtonSize = 'sm' | 'md';
 
 @Component({
   selector: 'app-button',
+  imports: [Spinner],
   templateUrl: './button.html',
   host: {
     class: 'inline-block',

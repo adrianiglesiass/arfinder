@@ -184,3 +184,67 @@
 .cdk-drop-list-dragging {
   overflow: hidden !important;
 }
+
+.app-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.app-loading-overlay--translucent {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.app-spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border-style: solid;
+  border-color: currentColor;
+  border-top-color: transparent;
+  animation: app-spinner-rotate 0.8s linear infinite;
+}
+
+.app-spinner--xs {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+.app-spinner--sm {
+  width: 24px;
+  height: 24px;
+  border-width: 2px;
+}
+.app-spinner--md {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+.app-spinner--lg {
+  width: 40px;
+  height: 40px;
+  border-width: 3px;
+}
+.app-spinner--xl {
+  width: 48px;
+  height: 48px;
+  border-width: 3px;
+}
+
+.app-spinner--primary {
+  color: var(--color-primary, #18181b);
+}
+.app-spinner--muted {
+  color: #d4d4d8;
+}
+/* .app-spinner--current → inherits parent color (e.g. button text color) */
+
+@keyframes app-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

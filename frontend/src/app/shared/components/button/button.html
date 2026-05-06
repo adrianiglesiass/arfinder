@@ -1,9 +1,6 @@
 <button [type]="type()" [disabled]="disabled() || loading()" [class]="buttonClasses()">
   @if (loading()) {
-    <span
-      class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"
-      aria-hidden="true"
-    ></span>
+    <app-spinner size="xs" color="current" />
   }
   <ng-content />
 </button>

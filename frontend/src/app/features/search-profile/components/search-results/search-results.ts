@@ -4,10 +4,11 @@ import { ProfileSearchService } from '@core/profileSearch/profile-search.service
 
 import { Button } from '@shared/components/button/button';
 import { ProfileCard } from '@shared/components/profile-card/profile-card';
+import { Spinner } from '@shared/components/spinner/spinner';
 
 @Component({
   selector: 'app-search-results',
-  imports: [ProfileCard, Button],
+  imports: [ProfileCard, Button, Spinner],
   templateUrl: './search-results.html',
 })
 export class SearchResults implements AfterViewInit, OnDestroy {

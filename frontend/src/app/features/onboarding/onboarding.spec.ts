@@ -20,14 +20,13 @@ describe('Onboarding', () => {
 
   beforeEach(async () => {
     const mockInsForgeClient = {
-      tokenManager: {
-        saveSession: vi.fn(),
-        clearSession: vi.fn(),
-        getAccessToken: vi.fn().mockReturnValue(null),
+      auth: {
+        getCurrentUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+        refreshSession: vi.fn().mockResolvedValue({ data: { accessToken: null }, error: null }),
+        signOut: vi.fn().mockResolvedValue({ error: null }),
       },
-      http: {
-        setAuthToken: vi.fn(),
-        setRefreshToken: vi.fn(),
+      tokenManager: {
+        getAccessToken: vi.fn().mockReturnValue(null),
       },
     };
 
