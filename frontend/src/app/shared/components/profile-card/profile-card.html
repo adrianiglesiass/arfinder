@@ -1,22 +1,29 @@
 <a
-  [routerLink]="['/profile', profile().id]"
+  [routerLink]="['/perfil', profile().id]"
   (mouseenter)="onPrefetchHint()"
   (mousedown)="onPrefetchHint()"
   (touchstart)="onPrefetchHint()"
   (focus)="onPrefetchHint()"
+  (click)="onCardClick($event)"
   class="group flex flex-col h-full bg-white border border-gray-border rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-premium) cursor-pointer block text-decoration-none"
 >
-  <div class="relative aspect-4/5 bg-gray-50 overflow-hidden">
+  <div
+    class="relative aspect-4/5 bg-gray-50 overflow-hidden touch-pan-y select-none"
+    (touchstart)="onTouchStart($event)"
+    (touchend)="onTouchEnd($event)"
+    (touchcancel)="onTouchCancel()"
+  >
     @if (hasPhotos()) {
       @for (photo of photos(); track photo; let i = $index) {
         <img
           [src]="photo"
           [alt]="profile().name + ' foto ' + (i + 1)"
-          class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+          class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 pointer-events-none"
           [class.opacity-100]="i === activeIndex()"
           [class.opacity-0]="i !== activeIndex()"
           [attr.aria-hidden]="i !== activeIndex()"
           [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+          draggable="false"
         />
       }
     } @else {
@@ -36,7 +43,7 @@
         type="button"
         (click)="prev($event)"
         aria-label="Foto anterior"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-white/85 backdrop-blur-sm text-primary shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer z-10"
+        class="hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full bg-white/85 backdrop-blur-sm text-primary shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer z-10"
       >
         <i class="pi pi-chevron-left text-[12px]"></i>
       </button>
@@ -44,7 +51,7 @@
         type="button"
         (click)="next($event)"
         aria-label="Foto siguiente"
-        class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-white/85 backdrop-blur-sm text-primary shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer z-10"
+        class="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full bg-white/85 backdrop-blur-sm text-primary shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer z-10"
       >
         <i class="pi pi-chevron-right text-[12px]"></i>
       </button>

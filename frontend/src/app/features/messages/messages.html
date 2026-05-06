@@ -22,7 +22,7 @@
               >chat_bubble_outline</span
             >
             <p class="text-sm text-gray-400">Sin conversaciones</p>
-            <a routerLink="/explore" class="text-sm text-primary font-medium mt-2 hover:underline">
+            <a routerLink="/explorar" class="text-sm text-primary font-medium mt-2 hover:underline">
               Explorar
             </a>
           </div>
@@ -100,22 +100,54 @@
           >
             <span class="material-symbols-rounded">arrow_back</span>
           </button>
-          <div
-            class="w-9 h-9 rounded-full bg-gray-200 shrink-0 overflow-hidden flex items-center justify-center"
-          >
-            @if (headerInfo()?.photo_url) {
-              <img
-                [src]="headerInfo()!.photo_url"
-                [alt]="headerInfo()!.name"
-                class="w-full h-full object-cover"
-              />
-            } @else {
-              <span class="material-symbols-rounded text-gray-400">person</span>
-            }
-          </div>
-          <h3 class="font-semibold text-gray-900 text-sm sm:text-base truncate">
-            {{ headerInfo()?.name ?? 'Usuario' }}
-          </h3>
+          @if (headerInfo()?.profile_id; as pid) {
+            <a
+              [routerLink]="['/perfil', pid]"
+              class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 -my-1 py-1 px-1.5 -ml-1.5 rounded-full hover:bg-gray-50 active:bg-gray-100 transition-colors no-underline group cursor-pointer"
+              [attr.aria-label]="'Ver perfil de ' + (headerInfo()?.name ?? 'usuario')"
+            >
+              <div
+                class="w-9 h-9 rounded-full bg-gray-200 shrink-0 overflow-hidden flex items-center justify-center"
+              >
+                @if (headerInfo()?.photo_url) {
+                  <img
+                    [src]="headerInfo()!.photo_url"
+                    [alt]="headerInfo()!.name"
+                    class="w-full h-full object-cover"
+                  />
+                } @else {
+                  <span class="material-symbols-rounded text-gray-400">person</span>
+                }
+              </div>
+              <h3
+                class="font-semibold text-gray-900 text-sm sm:text-base truncate group-hover:text-primary transition-colors"
+              >
+                {{ headerInfo()?.name ?? 'Usuario' }}
+              </h3>
+              <i
+                class="pi pi-arrow-up-right text-[10px] text-gray-400 shrink-0 hidden sm:inline"
+              ></i>
+            </a>
+          } @else {
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <div
+                class="w-9 h-9 rounded-full bg-gray-200 shrink-0 overflow-hidden flex items-center justify-center"
+              >
+                @if (headerInfo()?.photo_url) {
+                  <img
+                    [src]="headerInfo()!.photo_url"
+                    [alt]="headerInfo()!.name"
+                    class="w-full h-full object-cover"
+                  />
+                } @else {
+                  <span class="material-symbols-rounded text-gray-400">person</span>
+                }
+              </div>
+              <h3 class="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                {{ headerInfo()?.name ?? 'Usuario' }}
+              </h3>
+            </div>
+          }
         </header>
 
         <div class="flex-1 overflow-y-auto px-3 sm:px-4 py-3 space-y-1.5" #messagesContainer>
@@ -127,41 +159,98 @@
               <app-spinner size="xs" color="muted" />
             </div>
           }
-          @for (msg of messages(); track msg.id) {
+          @for (msg of messages(); track msg.id; let i = $index) {
             <div class="flex" [class.justify-end]="isMyMessage(msg.sender_id)">
               <div
-                class="max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[60%] px-3.5 py-1.5 rounded-[22px] text-[15px]"
+                class="relative max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[60%] px-3 py-1.5 rounded-xl text-[15px]"
                 [ngClass]="
                   isMyMessage(msg.sender_id)
-                    ? 'bg-[#007aff] text-white rounded-br-md'
-                    : 'bg-[#e5e5ea] text-gray-900 rounded-bl-md'
+                    ? 'bg-[#007aff] text-white ' +
+                      (hasTail(i) ? 'rounded-br-none' : 'rounded-br-sm')
+                    : 'bg-[#e5e5ea] text-gray-900 ' +
+                      (hasTail(i) ? 'rounded-bl-none' : 'rounded-bl-sm')
                 "
               >
-                <p class="wrap-break-word leading-relaxed whitespace-pre-wrap">{{ msg.content }}</p>
-                <div class="flex items-center justify-end gap-1 mt-0.5 -mb-0.5">
-                  <span
-                    class="text-[10px] leading-none"
-                    [ngClass]="isMyMessage(msg.sender_id) ? 'text-white/70' : 'text-gray-500'"
-                  >
-                    {{ formatTime(msg.sent_at) }}
-                  </span>
+                @if (hasTail(i)) {
                   @if (isMyMessage(msg.sender_id)) {
                     <svg
-                      viewBox="0 0 18 14"
-                      class="w-4.5 h-3.5 shrink-0"
-                      [ngClass]="msg.is_read ? 'text-[#5ac8fa]' : 'text-white/70'"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      class="absolute bottom-0 -right-2.25 w-2.75 h-4 text-[#007aff]"
+                      viewBox="0 0 11 16"
+                      fill="currentColor"
                       aria-hidden="true"
                     >
-                      <path d="M1.5 8 L4.5 11 L10.5 3" />
-                      <path d="M7.5 8 L10.5 11 L16.5 3" />
+                      <path d="M0 0 C0 10 3 14 11 16 L0 16 Z" />
+                    </svg>
+                  } @else {
+                    <svg
+                      class="absolute bottom-0 -left-2.25 w-2.75 h-4 text-[#e5e5ea]"
+                      viewBox="0 0 11 16"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M11 0 C11 10 8 14 0 16 L11 16 Z" />
                     </svg>
                   }
-                </div>
+                }
+                @if (isShortMessage(msg.content)) {
+                  <div class="flex items-end gap-2">
+                    <span class="leading-relaxed whitespace-pre-wrap wrap-break-word">{{
+                      msg.content
+                    }}</span>
+                    <span
+                      class="flex items-center gap-1 shrink-0 pb-0.5"
+                      [ngClass]="isMyMessage(msg.sender_id) ? 'text-white/70' : 'text-gray-500'"
+                    >
+                      <span class="text-[10px] leading-none whitespace-nowrap">
+                        {{ formatTime(msg.sent_at) }}
+                      </span>
+                      @if (isMyMessage(msg.sender_id)) {
+                        <svg
+                          viewBox="0 0 18 14"
+                          class="w-4 h-3 shrink-0"
+                          [class.text-[#5ac8fa]]="msg.is_read"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M1.5 8 L4.5 11 L10.5 3" />
+                          <path d="M7.5 8 L10.5 11 L16.5 3" />
+                        </svg>
+                      }
+                    </span>
+                  </div>
+                } @else {
+                  <p class="leading-relaxed whitespace-pre-wrap wrap-break-word">
+                    {{ msg.content }}
+                  </p>
+                  <div
+                    class="flex items-center justify-end gap-1 mt-1 -mb-0.5"
+                    [ngClass]="isMyMessage(msg.sender_id) ? 'text-white/70' : 'text-gray-500'"
+                  >
+                    <span class="text-[10px] leading-none">
+                      {{ formatTime(msg.sent_at) }}
+                    </span>
+                    @if (isMyMessage(msg.sender_id)) {
+                      <svg
+                        viewBox="0 0 18 14"
+                        class="w-4 h-3 shrink-0"
+                        [class.text-[#5ac8fa]]="msg.is_read"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M1.5 8 L4.5 11 L10.5 3" />
+                        <path d="M7.5 8 L10.5 11 L16.5 3" />
+                      </svg>
+                    }
+                  </div>
+                }
               </div>
             </div>
           }

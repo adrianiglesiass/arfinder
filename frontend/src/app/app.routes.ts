@@ -13,20 +13,18 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () => import('@features/auth/login/login'),
   },
-
   {
-    path: 'register',
+    path: 'registro',
     canActivate: [guestGuard],
     loadComponent: () => import('@features/auth/register/register'),
   },
   {
-    path: 'verify-email',
+    path: 'verificar-email',
     canActivate: [verifyEmailGuard],
     loadComponent: () => import('@features/auth/verify-email/verify-email'),
   },
-
   {
-    path: 'onboarding',
+    path: 'bienvenida',
     loadComponent: () => import('@features/onboarding/onboarding'),
     canActivate: [authGuard, onboardingGuard],
   },
@@ -36,13 +34,17 @@ export const routes: Routes = [
     component: Layout,
     canActivate: [authGuard, profileGuard],
     children: [
-      { path: '', redirectTo: 'explore', pathMatch: 'full' },
+      { path: '', redirectTo: 'explorar', pathMatch: 'full' },
       {
-        path: 'explore',
+        path: 'explorar',
         loadComponent: () => import('@features/search-profile/search-profile'),
       },
       {
-        path: 'profile/:id',
+        path: 'perfil',
+        loadComponent: () => import('@features/profile/edit/profile-edit'),
+      },
+      {
+        path: 'perfil/:id',
         loadComponent: () => import('@features/profile/profile-detail'),
       },
       {

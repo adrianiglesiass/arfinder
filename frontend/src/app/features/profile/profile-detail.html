@@ -10,7 +10,7 @@
         class="grid grid-cols-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start"
       >
         <div
-          class="w-full bg-gray-200 animate-pulse aspect-[4/5] sm:aspect-[3/4] md:aspect-auto md:h-[calc(100svh-7rem)]"
+          class="w-full bg-gray-200 animate-pulse aspect-4/5 sm:aspect-3/4 md:aspect-auto md:h-[calc(100svh-7rem)]"
         ></div>
         <div class="bg-white border border-gray-border rounded-2xl p-5 md:p-6">
           <div class="h-8 w-2/3 bg-gray-200 rounded-md animate-pulse"></div>
@@ -37,7 +37,7 @@
       <span class="material-symbols-rounded text-6xl text-gray-300">person_off</span>
       <p class="text-gray-500 font-medium">{{ error() }}</p>
       <a
-        routerLink="/explore"
+        routerLink="/explorar"
         class="inline-flex items-center gap-2 text-primary font-semibold hover:underline"
       >
         <i class="pi pi-arrow-left text-sm"></i>
@@ -47,7 +47,7 @@
   } @else if (profile()) {
     <div class="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5 pb-32 md:pb-8">
       <a
-        routerLink="/explore"
+        routerLink="/explorar"
         class="inline-flex items-center gap-2 px-3 py-1.5 -ml-3 rounded-full text-gray-600 hover:text-primary hover:bg-white active:bg-gray-100 active:text-primary active:scale-[0.97] mb-4 transition-all"
       >
         <i class="pi pi-arrow-left text-sm"></i>
@@ -58,7 +58,7 @@
         class="grid grid-cols-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start"
       >
         <div
-          class="relative w-full bg-gray-100 overflow-hidden group aspect-[4/5] sm:aspect-[3/4] md:aspect-auto md:h-[calc(100svh-7rem)] md:sticky md:top-4"
+          class="relative w-full bg-gray-100 overflow-hidden group aspect-4/5 sm:aspect-3/4 md:aspect-auto md:h-[calc(100svh-7rem)] md:sticky md:top-4"
           (touchstart)="onTouchStart($event)"
           (touchend)="onTouchEnd($event)"
         >

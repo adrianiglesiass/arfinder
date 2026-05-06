@@ -19,6 +19,7 @@ class LastMessageSummary(BaseModel):
 
 class ParticipantSummary(BaseModel):
     user_id: int
+    profile_id: int | None = None
     name: str
     photo_url: str | None = None
 
