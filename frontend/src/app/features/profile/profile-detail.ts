@@ -1,12 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  HostListener,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-
-import { ProfileApiService } from '@infrastructure/api/profile/profile.api.service';
 
 import type { ProfileResponse, ScheduleEnum, TypeEnum } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { ProfileService } from '@core/profile/profile.service';
 
 import { Button } from '@shared/components/button/button';
 
@@ -26,11 +33,12 @@ const SCHEDULE_LABELS: Record<ScheduleEnum, string> = {
   selector: 'app-profile-detail',
   imports: [CommonModule, RouterLink, Button],
   templateUrl: './profile-detail.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class ProfileDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly profileApi = inject(ProfileApiService);
+  private readonly profileService = inject(ProfileService);
   private readonly authService = inject(AuthService);
 
   profile = signal<ProfileResponse | null>(null);
@@ -56,10 +64,18 @@ export default class ProfileDetail implements OnInit {
   }
 
   async loadProfile(id: number): Promise<void> {
+    // Render inmediato desde cache si existe (revisita o pre-warm).
+    const cached = this.profileService.peekProfileById(id);
+    if (cached) {
+      this.profile.set(cached);
+      this.isLoading.set(false);
+    }
+
     try {
-      const data = await this.profileApi.getById(id);
+      const data = await this.profileService.fetchProfileById(id);
       this.profile.set(data);
     } catch (err) {
+      if (cached) return; // ya tenemos algo pintado; ignorar fallo de revalidación
       if (err instanceof HttpErrorResponse && err.status === 404) {
         this.error.set('Perfil no encontrado');
       } else {
