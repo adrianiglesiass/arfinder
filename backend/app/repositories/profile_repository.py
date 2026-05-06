@@ -29,7 +29,12 @@ def delete_profile(db: Session, profile: Profile):
 
 
 def get_profile_by_id(db: Session, profile_id: int):
-    return db.query(Profile).filter(Profile.id == profile_id).first()
+    return (
+        db.query(Profile)
+        .options(joinedload(Profile.photos))
+        .filter(Profile.id == profile_id)
+        .first()
+    )
 
 
 def search_profiles(
