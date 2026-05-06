@@ -19,6 +19,8 @@ export class StepProfile {
   age = input.required<number>();
   city = input<string>('');
   bio = input<string>('');
+  gender = input<string>('');
+  availableFrom = input<string>('');
   showErrors = input<boolean>(false);
 
   changed = output<Partial<ProfileCreate>>();

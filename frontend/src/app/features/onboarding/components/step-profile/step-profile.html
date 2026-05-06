@@ -88,5 +88,44 @@
       >
       </textarea>
     </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div class="flex flex-col gap-3">
+        <label
+          for="gender"
+          class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+        >
+          Género
+        </label>
+        <select
+          id="gender"
+          [ngModel]="gender()"
+          (ngModelChange)="onModelChange('gender', $event)"
+          class="w-full rounded-2xl py-3 px-4 border border-gray-border transition-colors duration-200 shadow-none bg-white font-medium"
+        >
+          <option value="">Selecciona una opción</option>
+          <option value="Mujer">Mujer</option>
+          <option value="Hombre">Hombre</option>
+          <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <label
+          for="availableFrom"
+          class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+        >
+          Disponible desde
+        </label>
+        <input
+          pInputText
+          id="availableFrom"
+          type="date"
+          [ngModel]="availableFrom()"
+          (ngModelChange)="onModelChange('available_from', $event)"
+          class="w-full rounded-2xl py-3 px-4 border border-gray-border transition-colors duration-200 shadow-none bg-white font-medium"
+        />
+      </div>
+    </div>
   </div>
 </div>

@@ -2,17 +2,19 @@ import { Component, computed, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { SliderModule } from 'primeng/slider';
+import { TextareaModule } from 'primeng/textarea';
 
 import { ProfileCreate, TypeEnum } from '@core/api/api.models';
 
 @Component({
   selector: 'app-step-objective',
-  imports: [FormsModule, SliderModule],
+  imports: [FormsModule, SliderModule, TextareaModule],
   templateUrl: './step-objective.html',
 })
 export class StepObjective {
   type = input.required<TypeEnum>();
   budget = input<number>(700);
+  roomDescription = input<string>('');
 
   dataChange = output<Partial<ProfileCreate>>();
 
@@ -33,6 +35,8 @@ export class StepObjective {
 
   flatCardClass = computed(() => this.cardClasses(this.isLookingForFlat()));
   roommateCardClass = computed(() => this.cardClasses(this.isLookingForRoommate()));
+
+  showRoomDescription = computed(() => this.isLookingForRoommate());
 
   setType(val: TypeEnum) {
     this.dataChange.emit({ type: val });

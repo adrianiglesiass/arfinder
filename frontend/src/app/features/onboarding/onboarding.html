@@ -40,6 +40,8 @@
                   [age]="safeForm().age ?? 0"
                   [city]="safeForm().city"
                   [bio]="safeForm().bio"
+                  [gender]="safeForm().gender"
+                  [availableFrom]="safeForm().available_from"
                   [showErrors]="showErrors()"
                   (changed)="updateForm($event)"
                 />
@@ -59,6 +61,7 @@
                 <app-step-objective
                   [type]="form().type!"
                   [budget]="safeForm().max_budget"
+                  [roomDescription]="safeForm().room_description"
                   (dataChange)="updateForm($event)"
                 />
               </div>
