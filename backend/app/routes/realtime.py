@@ -45,53 +45,56 @@ async def realtime_endpoint(websocket: WebSocket):
 
     db: Session = SessionLocal()
     try:
-        user = get_or_create_local_user(db, session.user)
-    except Exception:
-        db.close()
-        await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
-        return
+        try:
+            user = get_or_create_local_user(db, session.user)
+        except Exception:
+            await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
+            return
 
-    user_id = user.id
+        user_id = user.id
 
-    await websocket.accept(subprotocol=WS_AUTH_SUBPROTOCOL)
-    await manager.register(websocket, user_id)
+        await websocket.accept(subprotocol=WS_AUTH_SUBPROTOCOL)
+        await manager.register(websocket, user_id)
 
-    try:
-        while True:
-            data = await websocket.receive_json()
-            action = data.get("action")
-            conversation_id = data.get("conversation_id")
-            if not isinstance(conversation_id, int):
-                await websocket.send_json(
-                    {"event": "error", "error": "invalid_conversation_id"}
-                )
-                continue
-
-            if action == "subscribe":
-                if not _is_participant(db, conversation_id, user_id):
+        try:
+            while True:
+                data = await websocket.receive_json()
+                action = data.get("action")
+                conversation_id = data.get("conversation_id")
+                if not isinstance(conversation_id, int):
                     await websocket.send_json(
-                        {
-                            "event": "error",
-                            "error": "forbidden",
-                            "conversation_id": conversation_id,
-                        }
+                        {"event": "error", "error": "invalid_conversation_id"}
                     )
                     continue
-                await manager.subscribe(websocket, conversation_id)
-                await websocket.send_json(
-                    {"event": "subscribed", "conversation_id": conversation_id}
-                )
-            elif action == "unsubscribe":
-                await manager.unsubscribe(websocket, conversation_id)
-                await websocket.send_json(
-                    {"event": "unsubscribed", "conversation_id": conversation_id}
-                )
-            else:
-                await websocket.send_json({"event": "error", "error": "unknown_action"})
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        logger.warning(f"[realtime] ws closed with error: {e}")
+
+                if action == "subscribe":
+                    if not _is_participant(db, conversation_id, user_id):
+                        await websocket.send_json(
+                            {
+                                "event": "error",
+                                "error": "forbidden",
+                                "conversation_id": conversation_id,
+                            }
+                        )
+                        continue
+                    await manager.subscribe(websocket, conversation_id)
+                    await websocket.send_json(
+                        {"event": "subscribed", "conversation_id": conversation_id}
+                    )
+                elif action == "unsubscribe":
+                    await manager.unsubscribe(websocket, conversation_id)
+                    await websocket.send_json(
+                        {"event": "unsubscribed", "conversation_id": conversation_id}
+                    )
+                else:
+                    await websocket.send_json(
+                        {"event": "error", "error": "unknown_action"}
+                    )
+        except WebSocketDisconnect:
+            pass
+        except Exception as e:
+            logger.warning(f"[realtime] ws closed with error: {e}")
+        finally:
+            await manager.disconnect(websocket)
     finally:
-        await manager.disconnect(websocket)
         db.close()

@@ -11,6 +11,8 @@ def mark_message_as_read(db: Session, message_id: int, user_id: int):
     if not message:
         raise MessageNotFoundError(message_id=message_id)
 
+    get_conversation_or_raise(db, message.conversation_id, user_id)
+
     if message.sender_id == user_id:
         raise MessageAccessDeniedError(message_id=message_id)
 

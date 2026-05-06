@@ -3,7 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
-import { ErrorService } from '@core/errors';
+import { ErrorService, isInsForgeError } from '@core/errors';
 
 import { AuthForm } from '@features/auth/components/auth-form/auth-form';
 import type { AuthFormFieldErrors } from '@features/auth/components/auth-form/auth-form';
@@ -52,6 +52,8 @@ export default class Register {
         const { general, fieldErrors } = this.errorService.processError(error);
         this.errorMessage.set(general);
         this.fieldErrors.set(fieldErrors);
+      } else if (isInsForgeError(error) && error.statusCode >= 400 && error.statusCode < 500) {
+        this.errorMessage.set(error.message ?? 'Ocurrió un error inesperado al registrarse.');
       } else {
         this.errorMessage.set('Ocurrió un error inesperado al registrarse.');
       }

@@ -3,7 +3,8 @@ import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
-import { ErrorService } from '@core/errors';
+import { ErrorService, isInsForgeError } from '@core/errors';
+import { getErrorMessage } from '@core/errors/error-messages';
 
 import { AuthForm } from '@features/auth/components/auth-form/auth-form';
 
@@ -36,6 +37,8 @@ export default class Login {
       if (error instanceof HttpErrorResponse) {
         const { general } = this.errorService.processError(error);
         this.errorMessage.set(general);
+      } else if (isInsForgeError(error) && (error.statusCode === 400 || error.statusCode === 401)) {
+        this.errorMessage.set(getErrorMessage('INVALID_CREDENTIALS'));
       } else {
         this.errorMessage.set('Ocurrió un error inesperado al iniciar sesión.');
       }
