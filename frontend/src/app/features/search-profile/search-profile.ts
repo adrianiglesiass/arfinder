@@ -1,10 +1,13 @@
+import { DOCUMENT } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   computed,
   effect,
   inject,
   OnDestroy,
+  Renderer2,
   signal,
   TemplateRef,
   viewChild,
@@ -20,6 +23,7 @@ import { SearchFilters } from '@features/search-profile/components/search-filter
 import { SearchResults } from '@features/search-profile/components/search-results/search-results';
 
 const DISMISS_THRESHOLD_PX = 120;
+const BODY_LOCK_CLASS = 'overflow-hidden';
 
 const TYPE_LABELS: Record<TypeEnum, string> = {
   looking_for_flat: 'Busca piso',
@@ -57,10 +61,13 @@ const toAgeNumber = (v: number | string | null | undefined): number | null => {
   selector: 'app-search-profile',
   imports: [SearchFilters, SearchResults, Button],
   templateUrl: './search-profile.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class SearchProfile implements AfterViewInit, OnDestroy {
   private readonly rightPanel = inject(RightPanelService);
   private readonly searchService = inject(ProfileSearchService);
+  private readonly renderer = inject(Renderer2);
+  private readonly document = inject(DOCUMENT);
 
   protected readonly filtersOpen = signal(false);
   protected readonly filtersTpl = viewChild.required<TemplateRef<unknown>>('filtersTpl');
@@ -103,7 +110,12 @@ export default class SearchProfile implements AfterViewInit, OnDestroy {
 
   constructor() {
     effect(() => {
-      document.body.style.overflow = this.filtersOpen() ? 'hidden' : '';
+      const open = this.filtersOpen();
+      if (open) {
+        this.renderer.addClass(this.document.body, BODY_LOCK_CLASS);
+      } else {
+        this.renderer.removeClass(this.document.body, BODY_LOCK_CLASS);
+      }
     });
   }
 
@@ -113,7 +125,7 @@ export default class SearchProfile implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.rightPanel.clear();
-    document.body.style.overflow = '';
+    this.renderer.removeClass(this.document.body, BODY_LOCK_CLASS);
   }
 
   toggleFilters() {

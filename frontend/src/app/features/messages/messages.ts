@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import {
   afterNextRender,
+  ChangeDetectionStrategy,
   Component,
   computed,
   effect,
@@ -40,6 +41,7 @@ const PAGE_SIZE = 50;
   selector: 'app-messages',
   imports: [CommonModule, RouterLink, FormsModule, Spinner],
   templateUrl: './messages.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Messages implements OnInit, OnDestroy {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;

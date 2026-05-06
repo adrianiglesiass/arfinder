@@ -1,4 +1,12 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, viewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  viewChild,
+} from '@angular/core';
 
 import { ProfileSearchService } from '@core/profileSearch/profile-search.service';
 
@@ -10,6 +18,7 @@ import { Spinner } from '@shared/components/spinner/spinner';
   selector: 'app-search-results',
   imports: [ProfileCard, Button, Spinner],
   templateUrl: './search-results.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchResults implements AfterViewInit, OnDestroy {
   private readonly searchService = inject(ProfileSearchService);
