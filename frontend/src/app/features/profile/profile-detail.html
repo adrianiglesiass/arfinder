@@ -7,12 +7,12 @@
     >
       <div class="h-8 w-40 bg-gray-200 rounded-full animate-pulse mb-4"></div>
       <div
-        class="grid grid-cols-1 md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start"
+        class="grid grid-cols-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start"
       >
         <div
-          class="w-full bg-gray-200 animate-pulse aspect-[4/5] sm:aspect-[3/4] md:aspect-[4/5] lg:aspect-square xl:aspect-[5/6] md:max-h-[calc(100vh-2.5rem)]"
+          class="w-full bg-gray-200 animate-pulse aspect-[4/5] sm:aspect-[3/4] md:aspect-auto md:h-[calc(100svh-7rem)]"
         ></div>
-        <div class="bg-white border border-gray-border rounded-2xl p-6 md:p-8">
+        <div class="bg-white border border-gray-border rounded-2xl p-5 md:p-6">
           <div class="h-8 w-2/3 bg-gray-200 rounded-md animate-pulse"></div>
           <div class="h-4 w-1/3 bg-gray-200 rounded-md animate-pulse mt-3"></div>
           <div class="h-10 w-40 bg-gray-200 rounded-full animate-pulse mt-5"></div>
@@ -55,10 +55,12 @@
       </a>
 
       <div
-        class="grid grid-cols-1 md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start"
+        class="grid grid-cols-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start"
       >
         <div
-          class="relative w-full bg-gray-100 overflow-hidden group aspect-[4/5] sm:aspect-[3/4] md:aspect-[4/5] lg:aspect-square xl:aspect-[5/6] md:max-h-[calc(100vh-2.5rem)] md:sticky md:top-4"
+          class="relative w-full bg-gray-100 overflow-hidden group aspect-[4/5] sm:aspect-[3/4] md:aspect-auto md:h-[calc(100svh-7rem)] md:sticky md:top-4"
+          (touchstart)="onTouchStart($event)"
+          (touchend)="onTouchEnd($event)"
         >
           @if (hasPhotos()) {
             @for (photo of photos(); track photo.id; let i = $index) {
@@ -122,9 +124,9 @@
           </span>
         </div>
 
-        <aside class="bg-white border border-gray-border rounded-2xl p-6 md:p-8">
+        <aside class="bg-white border border-gray-border rounded-2xl p-5 md:p-6">
           <div class="min-w-0">
-            <h1 class="text-2xl md:text-3xl font-bold text-primary leading-tight">
+            <h1 class="text-xl md:text-2xl font-bold text-primary leading-tight">
               {{ profile()!.name
               }}<span class="font-medium text-gray-400">, {{ profile()!.age }} años</span>
             </h1>
@@ -135,7 +137,7 @@
           </div>
 
           @if (showSendMessageButton()) {
-            <div class="hidden md:block mt-5">
+            <div class="hidden md:block mt-4">
               <app-button
                 size="sm"
                 (click)="sendMessage()"
@@ -148,7 +150,7 @@
             </div>
           }
 
-          <div class="mt-7 flex items-center justify-between gap-3 px-5 py-4 bg-gray-50 rounded-xl">
+          <div class="mt-5 flex items-center justify-between gap-3 px-4 py-3 bg-gray-50 rounded-xl">
             <span class="text-xs font-bold uppercase tracking-wider text-gray-400">
               Presupuesto máximo
             </span>
@@ -169,22 +171,30 @@
             }
           </div>
 
-          <div class="mt-7 flex flex-wrap gap-2">
+          <div class="mt-5 flex flex-wrap gap-2">
             <span
-              class="inline-flex items-center gap-1.5 h-8 px-3 bg-gray-50 rounded-full text-[12px] font-bold text-primary"
+              class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[12px] font-bold"
+              [class.bg-emerald-50]="profile()!.has_pets"
+              [class.text-emerald-700]="profile()!.has_pets"
+              [class.bg-gray-50]="!profile()!.has_pets"
+              [class.text-gray-500]="!profile()!.has_pets"
             >
               <span class="material-symbols-rounded text-[16px]!">pets</span>
               {{ profile()!.has_pets ? 'Mascotas' : 'Sin mascotas' }}
             </span>
             <span
-              class="inline-flex items-center gap-1.5 h-8 px-3 bg-gray-50 rounded-full text-[12px] font-bold text-primary"
+              class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[12px] font-bold"
+              [class.bg-amber-50]="profile()!.is_smoker"
+              [class.text-amber-700]="profile()!.is_smoker"
+              [class.bg-gray-50]="!profile()!.is_smoker"
+              [class.text-gray-500]="!profile()!.is_smoker"
             >
               <span class="material-symbols-rounded text-[16px]!">smoking_rooms</span>
               {{ profile()!.is_smoker ? 'Fumador/a' : 'No fumador/a' }}
             </span>
             @if (scheduleLabel()) {
               <span
-                class="inline-flex items-center gap-1.5 h-8 px-3 bg-gray-50 rounded-full text-[12px] font-bold text-primary"
+                class="inline-flex items-center gap-1.5 h-8 px-3 bg-indigo-50 text-indigo-700 rounded-full text-[12px] font-bold"
               >
                 <span class="material-symbols-rounded text-[16px]!">schedule</span>
                 {{ scheduleLabel() }}
@@ -192,7 +202,7 @@
             }
             @if (profile()!.gender) {
               <span
-                class="inline-flex items-center gap-1.5 h-8 px-3 bg-gray-50 rounded-full text-[12px] font-bold text-primary"
+                class="inline-flex items-center gap-1.5 h-8 px-3 bg-gray-50 text-primary rounded-full text-[12px] font-bold"
               >
                 <span class="material-symbols-rounded text-[16px]!">person</span>
                 {{ profile()!.gender }}
@@ -201,7 +211,7 @@
           </div>
 
           @if (formattedAvailableFrom()) {
-            <div class="mt-6 flex items-center gap-2 text-sm text-gray-500">
+            <div class="mt-4 flex items-center gap-2 text-sm text-gray-500">
               <span class="material-symbols-rounded text-[18px]! text-gray-400">event</span>
               <span
                 >Disponible desde
@@ -210,19 +220,21 @@
             </div>
           }
 
-          @if (profile()!.bio) {
-            <div class="mt-8 pt-8 border-t border-gray-100">
-              <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-                Sobre mí
-              </h2>
+          <div class="mt-6 pt-6 border-t border-gray-100">
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Sobre mí</h2>
+            @if (profile()!.bio) {
               <p class="text-gray-700 leading-relaxed whitespace-pre-line">
                 {{ profile()!.bio }}
               </p>
-            </div>
-          }
+            } @else {
+              <p class="text-gray-400 italic text-sm">
+                {{ profile()!.name }} aún no ha escrito una descripción.
+              </p>
+            }
+          </div>
 
           @if (isRoommate() && profile()!.room_description) {
-            <div class="mt-8 pt-8 border-t border-gray-100">
+            <div class="mt-6 pt-6 border-t border-gray-100">
               <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
                 La habitación
               </h2>

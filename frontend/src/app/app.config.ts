@@ -9,6 +9,7 @@ import {
   PreloadAllModules,
   provideRouter,
   withComponentInputBinding,
+  withInMemoryScrolling,
   withPreloading,
 } from '@angular/router';
 
@@ -43,7 +44,15 @@ const ArfinderPreset = definePreset(Aura, {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes, withComponentInputBinding(), withPreloading(PreloadAllModules)),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withPreloading(PreloadAllModules),
+      withInMemoryScrolling({
+        scrollPositionRestoration: 'enabled',
+        anchorScrolling: 'enabled',
+      })
+    ),
     provideAppInitializer(() => {
       void inject(AuthService).init();
     }),

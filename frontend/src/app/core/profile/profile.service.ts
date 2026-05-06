@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ProfileApiService } from '@infrastructure/api/profile/profile.api.service';
@@ -11,12 +11,46 @@ import type {
   ProfileUpdate,
 } from '@core/api/api.models';
 
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const STORAGE_KEY_BY_ID = 'arfinder.profiles.byId.v1';
+const STORAGE_KEY_ME = 'arfinder.profiles.me.v1';
+
+interface CacheEntry<T> {
+  data: T;
+  ts: number;
+}
+
+function readSession<T>(key: string): T | null {
+  if (typeof sessionStorage === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CacheEntry<T>;
+    if (Date.now() - parsed.ts > CACHE_TTL_MS) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+    return parsed.data;
+  } catch {
+    return null;
+  }
+}
+
+function writeSession<T>(key: string, data: T): void {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
+  } catch {
+    // ignore quota errors
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
   private readonly authApi = inject(ProfileApiService);
   private readonly router = inject(Router);
 
-  currentProfile = signal<ProfileResponse | null>(null);
+  currentProfile = signal<ProfileResponse | null>(readSession<ProfileResponse>(STORAGE_KEY_ME));
   profilePhotoUrl = computed(() => {
     const profile = this.currentProfile();
     if (profile?.photos && profile.photos.length > 0) {
@@ -25,7 +59,30 @@ export class ProfileService {
     return null;
   });
 
-  private readonly profilesById = signal<Map<number, ProfileResponse>>(new Map());
+  private readonly profilesById = signal<Map<number, ProfileResponse>>(
+    new Map(readSession<[number, ProfileResponse][]>(STORAGE_KEY_BY_ID) ?? [])
+  );
+
+  constructor() {
+    effect(() => {
+      const me = this.currentProfile();
+      if (me) writeSession(STORAGE_KEY_ME, me);
+      else if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(STORAGE_KEY_ME);
+    });
+    effect(() => {
+      const map = this.profilesById();
+      writeSession(STORAGE_KEY_BY_ID, Array.from(map.entries()));
+    });
+  }
+
+  clearCache(): void {
+    this.currentProfile.set(null);
+    this.profilesById.set(new Map());
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(STORAGE_KEY_ME);
+      sessionStorage.removeItem(STORAGE_KEY_BY_ID);
+    }
+  }
 
   private ensurePromise: Promise<ProfileResponse> | null = null;
 
@@ -36,7 +93,27 @@ export class ProfileService {
 
   ensureProfile(): Promise<ProfileResponse | null> {
     const cached = this.currentProfile();
-    if (cached) return Promise.resolve(cached);
+    if (cached) {
+      if (!this.ensurePromise) {
+        this.ensurePromise = this.authApi
+          .getMyProfile()
+          .then((profile) => {
+            this.currentProfile.set(profile);
+            return profile;
+          })
+          .catch((error) => {
+            if (error instanceof HttpErrorResponse && error.status === 404) {
+              this.currentProfile.set(null);
+              this.router.navigate(['/onboarding']);
+            }
+            return cached;
+          })
+          .finally(() => {
+            this.ensurePromise = null;
+          }) as Promise<ProfileResponse>;
+      }
+      return Promise.resolve(cached);
+    }
     if (this.ensurePromise) return this.ensurePromise.catch(() => null);
 
     this.ensurePromise = (async () => {

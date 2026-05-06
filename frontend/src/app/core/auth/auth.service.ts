@@ -183,6 +183,10 @@ export class AuthService {
     }
     this.currentUser.set(null);
     this.onboardingPersistence.clearAll();
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('arfinder.profiles.byId.v1');
+      sessionStorage.removeItem('arfinder.profiles.me.v1');
+    }
   }
 
   async isAuthenticated(): Promise<boolean> {
