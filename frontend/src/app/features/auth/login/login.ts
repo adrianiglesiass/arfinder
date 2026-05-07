@@ -1,6 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
 import { ErrorService, isInsForgeError } from '@core/errors';
@@ -20,7 +19,6 @@ interface AuthCredentials {
 })
 export default class Login {
   private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
   private readonly errorService = inject(ErrorService);
 
   isLoading = signal(false);
@@ -55,6 +53,18 @@ export default class Login {
       await this.authService.loginWithGoogle();
     } catch {
       this.errorMessage.set('Error al conectar con Google.');
+      this.isLoading.set(false);
+    }
+  }
+
+  async onSocialAuthApple() {
+    this.errorMessage.set(null);
+    this.isLoading.set(true);
+
+    try {
+      await this.authService.loginWithApple();
+    } catch {
+      this.errorMessage.set('Error al conectar con Apple.');
       this.isLoading.set(false);
     }
   }

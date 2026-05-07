@@ -43,6 +43,7 @@ export class ConversationStore {
   }
 
   async refresh(): Promise<void> {
+    if (!this.auth.currentUser()) return;
     if (this.initializing) return this.initializing;
     this.initializing = (async () => {
       try {

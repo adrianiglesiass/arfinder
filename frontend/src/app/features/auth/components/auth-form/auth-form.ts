@@ -50,6 +50,7 @@ export class AuthForm {
   readonly fieldErrors = input<AuthFormFieldErrors>([]);
   readonly submitted = output<AuthFormPayload>();
   readonly socialAuth = output<void>();
+  readonly socialAuthApple = output<void>();
   isRegisterMode = computed(() => this.mode() === 'register');
   submitLabel = computed(() => (this.mode() === 'login' ? 'Iniciar sesión' : 'Registrarse'));
 
@@ -82,6 +83,10 @@ export class AuthForm {
 
   onSocialAuth() {
     this.socialAuth.emit();
+  }
+
+  onSocialAuthApple() {
+    this.socialAuthApple.emit();
   }
 
   private applyFieldErrors() {

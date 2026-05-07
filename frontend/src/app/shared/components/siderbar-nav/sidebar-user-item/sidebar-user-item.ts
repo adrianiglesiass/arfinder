@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, computed, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
@@ -9,7 +9,7 @@ import { ProfileService } from '@core/profile/profile.service';
 
 @Component({
   selector: 'app-sidebar-user-item',
-  imports: [MenuModule],
+  imports: [MenuModule, RouterLink, RouterLinkActive],
   templateUrl: './sidebar-user-item.html',
 })
 export class SidebarUserItem {
@@ -18,6 +18,8 @@ export class SidebarUserItem {
   private readonly router = inject(Router);
 
   readonly avatarUrl = this.profileService.profilePhotoUrl;
+
+  readonly isLoggedIn = computed(() => !!this.authService.currentUser());
 
   readonly items: MenuItem[] = [
     {

@@ -102,6 +102,14 @@ export class AuthService {
     if (error) throw error;
   }
 
+  async loginWithApple(): Promise<void> {
+    const { error } = await this.insforge.auth.signInWithOAuth({
+      provider: 'apple',
+      redirectTo: environment.insforge.redirectUri,
+    });
+    if (error) throw error;
+  }
+
   async login(credentials: { email: string; password: string }): Promise<void> {
     const { data, error } = await this.insforge.auth.signInWithPassword(credentials);
     if (error) throw error;

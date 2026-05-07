@@ -263,13 +263,15 @@
             (submit)="$event.preventDefault(); sendMessage()"
             class="relative flex items-center w-full"
           >
-            <input
-              type="text"
+            <textarea
               [(ngModel)]="newMessage"
               name="message"
-              class="w-full min-w-0 pl-4 pr-14 py-1.5 bg-gray-100 rounded-full text-[15px] focus:outline-none focus:ring-1 focus:ring-primary/30"
-              (keydown.enter)="onEnterKey($event)"
-            />
+              rows="1"
+              class="w-full min-w-0 pl-4 pr-14 py-1.5 bg-gray-100 rounded-3xl text-[15px] focus:outline-none focus:ring-1 focus:ring-primary/30 resize-none overflow-hidden"
+              (keydown)="onInputKeydown($event)"
+              (input)="autoResize($event)"
+              placeholder="Mensaje"
+            ></textarea>
             <button
               type="submit"
               [disabled]="!newMessage().trim()"

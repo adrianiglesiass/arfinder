@@ -24,6 +24,10 @@ export const routes: Routes = [
     loadComponent: () => import('@features/auth/verify-email/verify-email'),
   },
   {
+    path: 'auth/callback',
+    loadComponent: () => import('@features/auth/callback/callback'),
+  },
+  {
     path: 'bienvenida',
     loadComponent: () => import('@features/onboarding/onboarding'),
     canActivate: [authGuard, onboardingGuard],
@@ -32,7 +36,7 @@ export const routes: Routes = [
   {
     path: '',
     component: Layout,
-    canActivate: [authGuard, profileGuard],
+    canActivate: [profileGuard],
     children: [
       { path: '', redirectTo: 'explorar', pathMatch: 'full' },
       {
@@ -42,6 +46,7 @@ export const routes: Routes = [
       {
         path: 'perfil',
         loadComponent: () => import('@features/profile/edit/profile-edit'),
+        canActivate: [authGuard],
       },
       {
         path: 'perfil/:id',
@@ -50,12 +55,13 @@ export const routes: Routes = [
       {
         path: 'mensajes',
         loadComponent: () => import('@features/messages/messages'),
+        canActivate: [authGuard],
       },
     ],
   },
 
   {
     path: '**',
-    redirectTo: 'login',
+    redirectTo: 'explorar',
   },
 ];
