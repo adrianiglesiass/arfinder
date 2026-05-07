@@ -33,6 +33,7 @@ export class AuthService {
   private refreshPromise: Promise<string | null> | null = null;
   private readonly PUBLIC_PATHS = ['/login', '/registro', '/verificar-email', '/auth/callback'];
   private readonly REFRESH_TOKEN_KEY = 'arfinder.auth.refresh.v1';
+  private readonly ACCESS_TOKEN_KEY = 'arfinder.auth.access.v1';
 
   init(): Promise<void> {
     if (this.sdkReadyPromise) return this.sdkReadyPromise;
@@ -42,21 +43,13 @@ export class AuthService {
 
   private async bootstrapSession(): Promise<void> {
     try {
-      const persisted = this.getPersistedRefreshToken();
-      if (persisted) {
-        const { data, error } = await this.insforge.auth.refreshSession({
-          refreshToken: persisted,
-        });
-        if (error) {
-          this.clearPersistedRefreshToken();
-        } else if (data?.refreshToken) {
-          this.persistRefreshToken(data.refreshToken);
-        }
+      if (!this.getPersistedRefreshToken()) {
+        this.currentUser.set(null);
+        return;
       }
 
-      const { data, error } = await this.insforge.auth.getCurrentUser();
-
-      if (error || !data?.user) {
+      const accessToken = await this.forceRefreshToken();
+      if (!accessToken) {
         this.currentUser.set(null);
         return;
       }
@@ -70,6 +63,9 @@ export class AuthService {
   async handleOAuthCallback(code: string): Promise<void> {
     const { data, error } = await this.insforge.auth.exchangeOAuthCode(code);
     if (error) throw error;
+    if (data?.accessToken) {
+      this.persistAccessToken(data.accessToken);
+    }
     if (data?.refreshToken) {
       this.persistRefreshToken(data.refreshToken);
     }
@@ -94,6 +90,31 @@ export class AuthService {
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
 
+  private persistAccessToken(token: string): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
+  }
+
+  private getPersistedAccessToken(): string | null {
+    if (typeof localStorage === 'undefined') return null;
+    return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+  }
+
+  private clearPersistedAccessToken(): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+  }
+
+  private isAccessTokenFresh(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Math.floor(Date.now() / 1000);
+      return typeof payload.exp === 'number' && payload.exp - now > 30;
+    } catch {
+      return false;
+    }
+  }
+
   invalidateSession(): Promise<void> {
     if (this.invalidatePromise) return this.invalidatePromise;
 
@@ -115,8 +136,14 @@ export class AuthService {
 
   async getToken(): Promise<string | null> {
     const internal = this.insforge as unknown as InsForgeInternal;
-    const cached = internal?.tokenManager?.getAccessToken?.();
-    if (cached) return cached;
+    const sdkCached = internal?.tokenManager?.getAccessToken?.();
+    if (sdkCached && this.isAccessTokenFresh(sdkCached)) return sdkCached;
+
+    const persistedAccess = this.getPersistedAccessToken();
+    if (persistedAccess && this.isAccessTokenFresh(persistedAccess)) {
+      return persistedAccess;
+    }
+
     return this.forceRefreshToken();
   }
 
@@ -132,7 +159,11 @@ export class AuthService {
         });
         if (error) {
           this.clearPersistedRefreshToken();
+          this.clearPersistedAccessToken();
           return null;
+        }
+        if (data?.accessToken) {
+          this.persistAccessToken(data.accessToken);
         }
         if (data?.refreshToken) {
           this.persistRefreshToken(data.refreshToken);
@@ -169,6 +200,7 @@ export class AuthService {
     if (error) throw error;
 
     if (data?.accessToken) {
+      this.persistAccessToken(data.accessToken);
       if (data.refreshToken) this.persistRefreshToken(data.refreshToken);
       await this.syncUser();
     }
@@ -182,6 +214,7 @@ export class AuthService {
     if (error) throw error;
 
     if (data && !data.requireEmailVerification && data.accessToken) {
+      this.persistAccessToken(data.accessToken);
       if (data.refreshToken) this.persistRefreshToken(data.refreshToken);
       await this.syncUser();
     }
@@ -193,6 +226,7 @@ export class AuthService {
     if (error) throw error;
 
     if (data?.accessToken) {
+      this.persistAccessToken(data.accessToken);
       if (data.refreshToken) this.persistRefreshToken(data.refreshToken);
       await this.syncUser();
     }
@@ -247,6 +281,7 @@ export class AuthService {
       /* empty */
     }
     this.clearPersistedRefreshToken();
+    this.clearPersistedAccessToken();
     this.currentUser.set(null);
     this.onboardingPersistence.clearAll();
     if (typeof sessionStorage !== 'undefined') {
