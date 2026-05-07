@@ -1,0 +1,209 @@
+<div class="min-h-screen bg-gray-50/40 pb-32 md:pb-10">
+  <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-gray-100">
+    <div
+      class="w-full max-w-5xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-3"
+    >
+      <div class="flex items-center gap-3 min-w-0">
+        <button
+          type="button"
+          (click)="goBack()"
+          aria-label="Volver"
+          class="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:text-primary hover:bg-gray-50 active:scale-95 transition-all cursor-pointer"
+        >
+          <i class="pi pi-arrow-left text-sm"></i>
+        </button>
+        <div class="min-w-0">
+          <span
+            class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] leading-none"
+          >
+            Mi cuenta
+          </span>
+          <h1 class="text-base md:text-lg font-bold text-primary leading-tight mt-1 truncate">
+            Editar perfil
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        @if (isDirty() && !isSaving()) {
+          <app-button variant="ghost" size="sm" (click)="discard()" [disabled]="isSaving()">
+            Descartar
+          </app-button>
+        }
+        <app-button size="sm" (click)="save()" [disabled]="!canSave()" [loading]="isSaving()">
+          <i class="pi pi-check text-xs"></i>
+          Guardar
+        </app-button>
+      </div>
+    </div>
+  </header>
+
+  @if (isLoading() || !form()) {
+    <div class="w-full max-w-5xl mx-auto px-4 md:px-6 py-8" aria-busy="true" aria-live="polite">
+      <div class="grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-6">
+        <div class="hidden md:flex flex-col gap-2">
+          <div class="h-10 w-full bg-gray-200 rounded-full animate-pulse"></div>
+          <div class="h-10 w-full bg-gray-200 rounded-full animate-pulse"></div>
+          <div class="h-10 w-full bg-gray-200 rounded-full animate-pulse"></div>
+          <div class="h-10 w-full bg-gray-200 rounded-full animate-pulse"></div>
+        </div>
+        <div class="space-y-6">
+          <div class="h-72 w-full bg-gray-200 rounded-2xl animate-pulse"></div>
+          <div class="h-96 w-full bg-gray-200 rounded-2xl animate-pulse"></div>
+        </div>
+      </div>
+      <span class="sr-only">Cargando perfil...</span>
+    </div>
+  } @else if (profile(); as p) {
+    <div class="w-full max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-8">
+      <div class="grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-6 lg:gap-10">
+        <nav
+          aria-label="Secciones del perfil"
+          class="md:sticky md:top-24 md:self-start md:max-h-[calc(100vh-7rem)] md:overflow-y-auto md:pr-2"
+        >
+          <ul
+            class="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible -mx-1 px-1 md:mx-0 md:px-0 snap-x md:snap-none"
+          >
+            @for (s of sections; track s.id) {
+              <li class="snap-start">
+                <button
+                  type="button"
+                  (click)="scrollTo(s.id)"
+                  [class]="
+                    activeSection() === s.id
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-500 hover:text-primary hover:bg-gray-50'
+                  "
+                  class="w-full inline-flex items-center gap-2.5 md:gap-3 px-4 py-2.5 md:py-3 rounded-full md:rounded-2xl text-[12px] md:text-[13px] font-bold whitespace-nowrap transition-all cursor-pointer"
+                >
+                  <i [class]="s.icon + ' text-xs md:text-sm'"></i>
+                  {{ s.label }}
+                </button>
+              </li>
+            }
+          </ul>
+        </nav>
+
+        <div class="space-y-6 md:space-y-8 min-w-0">
+          <section
+            id="section-photos"
+            aria-labelledby="photos-title"
+            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-gray-border rounded-3xl p-5 md:p-7"
+          >
+            <header class="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <h2
+                  id="photos-title"
+                  class="text-lg md:text-xl font-bold text-primary leading-tight"
+                >
+                  Tus fotos
+                </h2>
+                <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">
+                  Las fotos se guardan al instante. Arrastra para reordenarlas.
+                </p>
+              </div>
+              <span
+                class="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400"
+              >
+                {{ p.photos.length }} / 6
+              </span>
+            </header>
+            <app-photos-editor [photos]="p.photos" />
+          </section>
+
+          <section
+            id="section-profile"
+            aria-labelledby="profile-title"
+            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-gray-border rounded-3xl p-5 md:p-7"
+          >
+            <header class="mb-6">
+              <h2
+                id="profile-title"
+                class="text-lg md:text-xl font-bold text-primary leading-tight"
+              >
+                Información personal
+              </h2>
+              <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">
+                Estos datos aparecen en tu perfil público.
+              </p>
+            </header>
+            <app-step-profile
+              [name]="safeForm().name"
+              [age]="safeForm().age"
+              [city]="safeForm().city"
+              [bio]="safeForm().bio"
+              [gender]="safeForm().gender"
+              [availableFrom]="safeForm().available_from"
+              [showErrors]="showErrors()"
+              (changed)="updateForm($event)"
+            />
+          </section>
+
+          <section
+            id="section-objective"
+            aria-labelledby="objective-title"
+            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-gray-border rounded-3xl p-5 md:p-7"
+          >
+            <header class="mb-6">
+              <h2
+                id="objective-title"
+                class="text-lg md:text-xl font-bold text-primary leading-tight"
+              >
+                Objetivo y presupuesto
+              </h2>
+              <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">
+                Cuéntanos qué buscas para ajustar las recomendaciones.
+              </p>
+            </header>
+            <app-step-objective
+              [type]="safeForm().type"
+              [budget]="safeForm().max_budget"
+              [roomDescription]="safeForm().room_description"
+              (dataChange)="updateForm($event)"
+            />
+          </section>
+
+          <section
+            id="section-lifestyle"
+            aria-labelledby="lifestyle-title"
+            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-gray-border rounded-3xl p-5 md:p-7"
+          >
+            <header class="mb-6">
+              <h2
+                id="lifestyle-title"
+                class="text-lg md:text-xl font-bold text-primary leading-tight"
+              >
+                Estilo de convivencia
+              </h2>
+              <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">
+                Cómo es tu día a día en casa.
+              </p>
+            </header>
+            <app-step-lifestyle
+              [schedule]="safeForm().schedule"
+              [hasPets]="safeForm().has_pets"
+              [isSmoker]="safeForm().is_smoker"
+              (dataChange)="updateForm($event)"
+            />
+          </section>
+        </div>
+      </div>
+    </div>
+
+    @if (isDirty()) {
+      <div class="md:hidden fixed bottom-24 left-4 right-4 z-40">
+        <div
+          class="bg-white border border-gray-border rounded-full shadow-lg p-1.5 pl-4 flex items-center justify-between gap-3"
+        >
+          <span class="text-[12px] font-bold text-primary truncate"> Editando perfil </span>
+          <app-button size="sm" (click)="save()" [disabled]="!canSave()" [loading]="isSaving()">
+            <i class="pi pi-check text-xs"></i>
+            Guardar
+          </app-button>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<p-toast position="top-right" />

@@ -1,0 +1,88 @@
+<div>
+  <div class="mb-10 text-center md:text-left">
+    <h2 class="text-3xl font-bold text-primary mb-3">Estilo de convivencia</h2>
+    <p class="text-gray-400 font-medium">Ayúdanos a entender tu ritmo de vida diario.</p>
+  </div>
+
+  <div class="space-y-10">
+    <div role="group" aria-labelledby="schedule-label">
+      <span
+        id="schedule-label"
+        class="block text-[11px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-6 ml-1"
+      >
+        Horario Habitual
+      </span>
+
+      <div class="flex flex-wrap gap-4">
+        @for (s of schedules; track s.value) {
+          <div class="relative shrink-0">
+            <button
+              type="button"
+              (click)="setSchedule(s.value)"
+              [class]="
+                schedule() === s.value
+                  ? 'bg-primary text-white border-primary shadow-sm'
+                  : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
+              "
+              class="px-8 py-3.5 rounded-2xl border text-[13px] font-bold transition-all duration-200 cursor-pointer"
+            >
+              {{ s.label }}
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="mt-16">
+      <div class="border border-gray-border rounded-4xl bg-white divide-y divide-gray-border px-8">
+        <div class="flex items-center justify-between py-6 group">
+          <label for="hasPetsToggle" class="flex items-center gap-4 cursor-pointer">
+            <div
+              class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-lg transition-all duration-200"
+              [class]="hasPets() ? 'text-primary' : 'text-gray-300'"
+            >
+              <span class="material-symbols-rounded">pets</span>
+            </div>
+            <div>
+              <div class="font-bold text-primary text-sm tracking-tight">Mascotas</div>
+              <div class="text-[12px] text-gray-400 font-medium whitespace-nowrap overflow-hidden">
+                ¿Tienes o aceptas animales?
+              </div>
+            </div>
+          </label>
+          <p-toggleswitch
+            inputId="hasPetsToggle"
+            [ngModel]="hasPets()"
+            (ngModelChange)="updateToggle('has_pets', $event)"
+            styleClass="onboarding-toggle"
+          />
+        </div>
+
+        <div class="flex items-center justify-between py-6 group">
+          <label for="isSmokerToggle" class="flex items-center gap-4 cursor-pointer">
+            <div
+              class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-lg transition-all duration-200"
+              [class]="isSmoker() ? 'text-primary' : 'text-gray-300'"
+            >
+              <span class="material-symbols-rounded">smoking_rooms</span>
+            </div>
+            <div>
+              <div class="font-bold text-primary text-sm tracking-tight">Fumador</div>
+              <div
+                class="text-[12px] text-gray-400 font-medium tracking-tight whitespace-nowrap overflow-hidden"
+              >
+                ¿Eres fumador habitual?
+              </div>
+            </div>
+          </label>
+          <p-toggleswitch
+            inputId="isSmokerToggle"
+            [ngModel]="isSmoker()"
+            (ngModelChange)="updateToggle('is_smoker', $event)"
+            styleClass="onboarding-toggle"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

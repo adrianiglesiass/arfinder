@@ -1,0 +1,139 @@
+<div>
+  <div class="mb-10 text-center md:text-left">
+    <h2 class="text-3xl font-bold text-primary mb-3">¿Cuál es tu objetivo?</h2>
+    <p class="text-gray-400 font-medium">Selecciona qué estás buscando en Arfinder.</p>
+  </div>
+  <div class="space-y-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div
+        role="button"
+        tabindex="0"
+        (click)="setType('looking_for_flat')"
+        [class]="
+          isLookingForFlat()
+            ? 'bg-primary text-white border-primary shadow-sm'
+            : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
+        "
+        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 outline-none group"
+        aria-label="Seleccionar opción: Busco piso"
+        [aria-pressed]="isLookingForFlat()"
+        (keydown.enter)="setType('looking_for_flat')"
+        (keydown.space)="setType('looking_for_flat')"
+      >
+        <div
+          class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-6 transition-all duration-200"
+          [class]="
+            isLookingForFlat()
+              ? 'bg-white/10 text-white'
+              : 'bg-gray-50 text-gray-400 group-hover:text-primary'
+          "
+        >
+          <i class="pi pi-search" aria-hidden="true"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2" [class.text-white]="isLookingForFlat()">Busco piso</h3>
+        <p
+          class="text-[13px] leading-relaxed font-medium"
+          [class]="isLookingForFlat() ? 'text-white/70' : 'text-gray-400'"
+        >
+          Quiero unirme a un piso y conocer gente nueva.
+        </p>
+      </div>
+
+      <div
+        role="button"
+        tabindex="0"
+        (click)="setType('looking_for_roommate')"
+        [class]="
+          isLookingForRoommate()
+            ? 'bg-primary text-white border-primary shadow-sm'
+            : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
+        "
+        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 outline-none group"
+        aria-label="Seleccionar opción: Tengo piso"
+        [aria-pressed]="isLookingForRoommate()"
+        (keydown.enter)="setType('looking_for_roommate')"
+        (keydown.space)="setType('looking_for_roommate')"
+      >
+        <div
+          class="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-6 transition-all duration-200"
+          [class]="
+            isLookingForRoommate()
+              ? 'bg-white/10 text-white'
+              : 'bg-gray-50 text-gray-400 group-hover:text-primary'
+          "
+        >
+          <i class="pi pi-home" aria-hidden="true"></i>
+        </div>
+        <h3 class="text-lg font-bold mb-2" [class.text-white]="isLookingForRoommate()">
+          Tengo piso
+        </h3>
+        <p
+          class="text-[13px] leading-relaxed font-medium"
+          [class]="isLookingForRoommate() ? 'text-white/70' : 'text-gray-400'"
+        >
+          Tengo una habitación disponible y busco al compañero ideal.
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-16">
+      <div class="space-y-8">
+        <div class="flex justify-between items-end pb-3 border-b border-gray-border">
+          <label
+            for="budgetSlider"
+            class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]"
+          >
+            {{ budgetLabel() }}
+          </label>
+          <div class="flex items-baseline gap-1">
+            <span class="text-4xl font-bold text-primary" aria-live="polite">{{ budget() }}</span>
+            <span class="text-xs font-bold text-gray-400 tracking-tighter">€/MES</span>
+          </div>
+        </div>
+
+        <div class="px-1">
+          <p-slider
+            inputId="budgetSlider"
+            [ngModel]="budget()"
+            (ngModelChange)="onBudgetChange($event)"
+            [min]="200"
+            [max]="1500"
+            [step]="50"
+            class="w-full"
+            styleClass="onboarding-slider"
+          />
+        </div>
+
+        <div
+          class="flex justify-between text-[11px] font-bold text-gray-500 uppercase tracking-[0.2em] px-0.5"
+        >
+          <span>Mínimo 200€</span>
+          <span>Máximo 1500€</span>
+        </div>
+      </div>
+    </div>
+
+    @if (showRoomDescription()) {
+      <div class="mt-16">
+        <div class="flex flex-col gap-3">
+          <label
+            for="roomDescription"
+            class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+          >
+            Descripción de la habitación
+          </label>
+          <textarea
+            pTextarea
+            id="roomDescription"
+            [ngModel]="roomDescription()"
+            (ngModelChange)="dataChange.emit({ room_description: $event })"
+            class="w-full rounded-2xl min-h-40 py-3 px-4 border border-gray-border shadow-none bg-white font-medium"
+            placeholder="Cuenta detalles de la habitación: tamaño, luz, amueblado, servicios incluidos..."
+            style="resize: none"
+          >
+          </textarea>
+        </div>
+      </div>
+    }
+  </div>
+</div>

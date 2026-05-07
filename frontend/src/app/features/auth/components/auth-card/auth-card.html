@@ -1,0 +1,48 @@
+<div
+  class="min-h-screen bg-white flex flex-col items-center justify-center p-6 relative overflow-hidden"
+>
+  <div
+    class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-orange-100 blur-[100px] pointer-events-none"
+  ></div>
+  <div
+    class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-rose-100 blur-[100px] pointer-events-none"
+  ></div>
+
+  <div class="w-full max-w-100 relative z-10">
+    <div class="flex justify-center mb-4">
+      <app-arfinder-logo size="lg" />
+    </div>
+
+    <div
+      class="bg-white/80 backdrop-blur-xl p-8 rounded-4xl shadow-glass border border-gray-100 animate-card-enter"
+    >
+      @if (showTabs()) {
+        <div
+          class="flex p-1 bg-gray-100/50 rounded-2xl mb-8 transition-colors duration-200 ease-in-out"
+        >
+          <a
+            routerLink="/login"
+            class="flex-1 py-2 text-sm font-medium rounded-xl transition-colors duration-200 ease-in-out text-center"
+            [class]="loginTabClass()"
+          >
+            Entrar
+          </a>
+          <a
+            routerLink="/registro"
+            class="flex-1 py-2 text-sm font-medium rounded-xl transition-colors duration-200 ease-in-out text-center"
+            [class]="registerTabClass()"
+          >
+            Registro
+          </a>
+        </div>
+      } @else {
+        <div class="text-center mb-8">
+          <h2 class="text-2xl font-bold text-gray-900">Verificar Email</h2>
+          <p class="text-gray-500 mt-2">Hemos enviado un código a tu correo electrónico.</p>
+        </div>
+      }
+
+      <ng-content />
+    </div>
+  </div>
+</div>

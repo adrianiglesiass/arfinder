@@ -1,0 +1,78 @@
+name: Backend CI
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+
+defaults:
+  run:
+    working-directory: backend
+
+env:
+  DATABASE_URL: postgresql+psycopg2://root:root1234@localhost:5432/arfinder_test
+  SECRET_KEY: test-secret-key-for-ci
+  ALGORITHM: HS256
+  ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+  CLOUDINARY_CLOUD_NAME: test
+  CLOUDINARY_API_KEY: test
+  CLOUDINARY_API_SECRET: test
+  INSFORGE_URL: https://placeholder.insforge.app
+  INSFORGE_API_KEY: placeholder_key
+  OSS_HOST: https://placeholder.insforge.app
+  NOMINATIM_USER_AGENT: 'Arfinder/1.0 (ci@arfinder.com)'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root1234
+          POSTGRES_DB: arfinder_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Format check
+        run: ruff format --check .
+
+      - name: Migrate
+        run: |
+          export PYTHONPATH=$(pwd)
+          alembic upgrade head
+
+      - name: Test
+        run: pytest --tb=short

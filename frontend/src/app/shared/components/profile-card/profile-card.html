@@ -1,0 +1,109 @@
+<a
+  [routerLink]="['/perfil', profile().id]"
+  (mouseenter)="onPrefetchHint()"
+  (mousedown)="onPrefetchHint()"
+  (touchstart)="onPrefetchHint()"
+  (focus)="onPrefetchHint()"
+  (click)="onCardClick($event)"
+  class="group flex flex-col h-full bg-white border border-gray-border rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-premium) cursor-pointer block text-decoration-none"
+>
+  <div
+    class="relative aspect-4/5 bg-gray-50 overflow-hidden touch-pan-y select-none"
+    (touchstart)="onTouchStart($event)"
+    (touchend)="onTouchEnd($event)"
+    (touchcancel)="onTouchCancel()"
+  >
+    @if (hasPhotos()) {
+      @for (photo of photos(); track photo; let i = $index) {
+        <img
+          [src]="photo"
+          [alt]="profile().name + ' foto ' + (i + 1)"
+          class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 pointer-events-none"
+          [class.opacity-100]="i === activeIndex()"
+          [class.opacity-0]="i !== activeIndex()"
+          [attr.aria-hidden]="i !== activeIndex()"
+          [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+          draggable="false"
+        />
+      }
+    } @else {
+      <div class="w-full h-full flex items-center justify-center text-gray-300">
+        <span class="material-symbols-rounded text-6xl">person</span>
+      </div>
+    }
+
+    <span
+      class="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm z-10"
+    >
+      {{ typeLabel() }}
+    </span>
+
+    @if (hasMultiple()) {
+      <button
+        type="button"
+        (click)="prev($event)"
+        aria-label="Foto anterior"
+        class="hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full bg-white/85 backdrop-blur-sm text-primary shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer z-10"
+      >
+        <i class="pi pi-chevron-left text-[12px]"></i>
+      </button>
+      <button
+        type="button"
+        (click)="next($event)"
+        aria-label="Foto siguiente"
+        class="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full bg-white/85 backdrop-blur-sm text-primary shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer z-10"
+      >
+        <i class="pi pi-chevron-right text-[12px]"></i>
+      </button>
+
+      <div
+        class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/30 backdrop-blur-sm z-10"
+      >
+        @for (photo of photos(); track photo; let i = $index) {
+          <button
+            type="button"
+            (click)="goTo(i, $event)"
+            [attr.aria-label]="'Ir a foto ' + (i + 1)"
+            class="h-1.5 rounded-full bg-white transition-all cursor-pointer"
+            [ngClass]="i === activeIndex() ? 'w-4' : 'w-1.5 opacity-60'"
+          ></button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="flex flex-col gap-2 p-4">
+    <div class="flex items-baseline justify-between gap-2">
+      <h3 class="text-base font-bold text-primary truncate">
+        {{ profile().name }}<span class="text-gray-400">, {{ profile().age }}</span>
+      </h3>
+    </div>
+
+    <div class="flex items-center gap-1.5 text-[12px] text-gray-500 font-medium">
+      <i class="pi pi-map-marker text-[11px]"></i>
+      <span class="truncate">{{ profile().city }}</span>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+      @if (profile().max_budget) {
+        <app-profile-badge>{{ profile().max_budget }} €</app-profile-badge>
+      }
+      @if (scheduleLabel()) {
+        <app-profile-badge>
+          <i class="pi pi-clock text-[12px]"></i>
+          {{ scheduleLabel() }}
+        </app-profile-badge>
+      }
+      @if (profile().has_pets) {
+        <app-profile-badge tooltip="Acepta mascotas" [iconOnly]="true">
+          <span class="material-symbols-rounded text-[16px]!">pets</span>
+        </app-profile-badge>
+      }
+      @if (profile().is_smoker) {
+        <app-profile-badge tooltip="Fumador" [iconOnly]="true">
+          <span class="material-symbols-rounded text-[16px]!">smoking_rooms</span>
+        </app-profile-badge>
+      }
+    </div>
+  </div>
+</a>

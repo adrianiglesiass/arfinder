@@ -1,0 +1,9 @@
+<app-auth-form
+  mode="register"
+  [isLoading]="isLoading()"
+  [errorMessage]="errorMessage()"
+  [fieldErrors]="fieldErrors()"
+  (submitted)="onFormSubmit($event)"
+  (socialAuth)="onSocialAuth()"
+  (socialAuthApple)="onSocialAuthApple()"
+></app-auth-form>
