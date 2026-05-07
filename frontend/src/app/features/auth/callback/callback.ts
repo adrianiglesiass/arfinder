@@ -17,7 +17,19 @@ export default class AuthCallback implements OnInit {
   private readonly authService = inject(AuthService);
 
   async ngOnInit() {
-    await this.authService.init();
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('insforge_code');
+
+    if (code) {
+      window.history.replaceState({}, '', '/auth/callback');
+      try {
+        await this.authService.handleOAuthCallback(code);
+      } catch {
+        await this.authService.init();
+      }
+    } else {
+      await this.authService.init();
+    }
 
     if (window.location.pathname.includes('/auth/callback')) {
       await this.authService.navigatePostAuth();

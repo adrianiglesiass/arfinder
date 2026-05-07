@@ -32,6 +32,7 @@ export class AuthService {
   private invalidatePromise: Promise<void> | null = null;
   private refreshPromise: Promise<string | null> | null = null;
   private readonly PUBLIC_PATHS = ['/login', '/registro', '/verificar-email', '/auth/callback'];
+  private readonly REFRESH_TOKEN_KEY = 'arfinder.auth.refresh.v1';
 
   init(): Promise<void> {
     if (this.sdkReadyPromise) return this.sdkReadyPromise;
@@ -41,6 +42,18 @@ export class AuthService {
 
   private async bootstrapSession(): Promise<void> {
     try {
+      const persisted = this.getPersistedRefreshToken();
+      if (persisted) {
+        const { data, error } = await this.insforge.auth.refreshSession({
+          refreshToken: persisted,
+        });
+        if (error) {
+          this.clearPersistedRefreshToken();
+        } else if (data?.refreshToken) {
+          this.persistRefreshToken(data.refreshToken);
+        }
+      }
+
       const { data, error } = await this.insforge.auth.getCurrentUser();
 
       if (error || !data?.user) {
@@ -52,6 +65,33 @@ export class AuthService {
     } catch {
       this.currentUser.set(null);
     }
+  }
+
+  async handleOAuthCallback(code: string): Promise<void> {
+    const { data, error } = await this.insforge.auth.exchangeOAuthCode(code);
+    if (error) throw error;
+    if (data?.refreshToken) {
+      this.persistRefreshToken(data.refreshToken);
+    }
+    if (data?.accessToken) {
+      await this.syncUser();
+    }
+    this.sdkReadyPromise = Promise.resolve();
+  }
+
+  private persistRefreshToken(token: string): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
+  }
+
+  private getPersistedRefreshToken(): string | null {
+    if (typeof localStorage === 'undefined') return null;
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+
+  private clearPersistedRefreshToken(): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
 
   invalidateSession(): Promise<void> {
@@ -82,7 +122,18 @@ export class AuthService {
 
     this.refreshPromise = (async () => {
       try {
-        const { data } = await this.insforge.auth.refreshSession();
+        const persisted = this.getPersistedRefreshToken();
+        if (!persisted) return null;
+        const { data, error } = await this.insforge.auth.refreshSession({
+          refreshToken: persisted,
+        });
+        if (error) {
+          this.clearPersistedRefreshToken();
+          return null;
+        }
+        if (data?.refreshToken) {
+          this.persistRefreshToken(data.refreshToken);
+        }
         return data?.accessToken ?? null;
       } catch {
         return null;
@@ -115,6 +166,7 @@ export class AuthService {
     if (error) throw error;
 
     if (data?.accessToken) {
+      if (data.refreshToken) this.persistRefreshToken(data.refreshToken);
       await this.syncUser();
     }
   }
@@ -127,6 +179,7 @@ export class AuthService {
     if (error) throw error;
 
     if (data && !data.requireEmailVerification && data.accessToken) {
+      if (data.refreshToken) this.persistRefreshToken(data.refreshToken);
       await this.syncUser();
     }
     return data;
@@ -137,6 +190,7 @@ export class AuthService {
     if (error) throw error;
 
     if (data?.accessToken) {
+      if (data.refreshToken) this.persistRefreshToken(data.refreshToken);
       await this.syncUser();
     }
     return data;
@@ -189,6 +243,7 @@ export class AuthService {
     } catch {
       /* empty */
     }
+    this.clearPersistedRefreshToken();
     this.currentUser.set(null);
     this.onboardingPersistence.clearAll();
     if (typeof sessionStorage !== 'undefined') {

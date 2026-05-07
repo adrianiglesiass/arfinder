@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, computed, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
@@ -10,7 +10,7 @@ import { ProfileService } from '@core/profile/profile.service';
 @Component({
   selector: 'app-navbar-user-menu',
   templateUrl: './navbar-user-menu.html',
-  imports: [MenuModule],
+  imports: [MenuModule, RouterLink],
 })
 export class NavbarUserMenu {
   private readonly authService = inject(AuthService);
@@ -18,6 +18,7 @@ export class NavbarUserMenu {
   private readonly router = inject(Router);
 
   readonly avatarUrl = this.profileService.profilePhotoUrl;
+  readonly isLoggedIn = computed(() => this.authService.currentUser() !== null);
 
   items: MenuItem[] = [
     {
