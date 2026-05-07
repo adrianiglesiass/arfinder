@@ -25,6 +25,8 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - name: Generate environment.ts placeholder
+        run: node scripts/set-env.js
       - name: Build (staging)
         run: npx ng build --configuration staging
       - name: Authenticate with InsForge
