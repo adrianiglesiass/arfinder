@@ -75,12 +75,15 @@ def clear_main_profile_photo(db: Session, profile_id: int):
 def reorder_photos(
     db: Session, profile_id: int, ordered_ids: list[int]
 ) -> list[ProfilePhoto]:
+    photos = db.query(ProfilePhoto).filter(ProfilePhoto.profile_id == profile_id).all()
+    offset = len(photos) + 1000
+    for p in photos:
+        p.order = p.order + offset
+    db.flush()
+
+    photo_by_id = {p.id: p for p in photos}
     for new_order, photo_id in enumerate(ordered_ids):
-        photo = (
-            db.query(ProfilePhoto)
-            .filter(ProfilePhoto.id == photo_id, ProfilePhoto.profile_id == profile_id)
-            .first()
-        )
+        photo = photo_by_id.get(photo_id)
         if photo:
             photo.order = new_order
     db.commit()

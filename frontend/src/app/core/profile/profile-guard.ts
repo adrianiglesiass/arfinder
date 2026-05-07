@@ -6,7 +6,8 @@ import { ProfileService } from '@core/profile/profile.service';
 
 export const profileGuard: CanActivateFn = async () => {
   const auth = inject(AuthService);
+  const profile = inject(ProfileService);
   if (!(await auth.isAuthenticated())) return true;
-  void inject(ProfileService).ensureProfile();
+  void profile.ensureProfile();
   return true;
 };
