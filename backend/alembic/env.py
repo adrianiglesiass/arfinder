@@ -1,16 +1,18 @@
-from app.db.database import Base  # target metadata
-from app.core.config import settings
-from app.models import user, profile, profile_photo, conversation, message  # noqa: F401
 import os
 import sys
+
+# add project path before importing app modules so this works regardless of CWD
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app.db.database import Base  # noqa: E402  target metadata
+from app.core.config import settings  # noqa: E402
+from app.models import user, profile, profile_photo, conversation, message  # noqa: E402, F401
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-
-# add project path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 # this is the Alembic Config object, which provides
