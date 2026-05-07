@@ -28,16 +28,15 @@ jobs:
       - run: npm ci
       - name: Build (production)
         run: npx ng build --configuration production
-      - name: Install InsForge CLI
-        run: npm install -g @insforge/cli
-      - name: Authenticate
-        run: insforge login --user-api-key "$INSFORGE_USER_API_KEY"
+      - name: Authenticate with InsForge
+        run: npx @insforge/cli login --email --json
         env:
-          INSFORGE_USER_API_KEY: ${{ secrets.INSFORGE_USER_API_KEY }}
+          INSFORGE_EMAIL: ${{ secrets.INSFORGE_EMAIL }}
+          INSFORGE_PASSWORD: ${{ secrets.INSFORGE_PASSWORD }}
       - name: Link production project
-        run: insforge link --project-id "$PROJECT_ID" --org-id "$ORG_ID"
+        run: npx @insforge/cli link --project-id "$PROJECT_ID" --org-id "$ORG_ID" -y
         env:
           PROJECT_ID: ${{ secrets.INSFORGE_PROD_PROJECT_ID }}
           ORG_ID: ${{ secrets.INSFORGE_ORG_ID }}
       - name: Deploy
-        run: insforge deployments deploy dist/arfinder-frontend/browser -y
+        run: npx @insforge/cli deployments deploy dist/arfinder-frontend/browser -y
