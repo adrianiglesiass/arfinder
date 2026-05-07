@@ -73,4 +73,16 @@ export default class Register {
       this.isLoading.set(false);
     }
   }
+
+  async onSocialAuthApple() {
+    this.errorMessage.set(null);
+    this.isLoading.set(true);
+
+    try {
+      await this.authService.loginWithApple();
+    } catch {
+      this.errorMessage.set('Error al conectar con Apple.');
+      this.isLoading.set(false);
+    }
+  }
 }

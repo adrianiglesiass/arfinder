@@ -92,7 +92,13 @@ export default class ProfileDetail implements OnInit {
     if (this.sendingMessage()) return;
     const p = this.profile();
     const currentUser = this.authService.currentUser();
-    if (!p || !currentUser) return;
+
+    if (!currentUser) {
+      this.router.navigate(['/login'], { queryParams: { redirect: '/perfil/' + p?.id } });
+      return;
+    }
+
+    if (!p) return;
 
     if (p.user_id === currentUser.id) {
       this.error.set('No puedes enviarte mensajes a ti mismo');

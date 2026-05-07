@@ -319,12 +319,20 @@ export default class Messages implements OnInit, OnDestroy {
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   }
 
-  onEnterKey(event: Event): void {
+  onInputKeydown(event: Event): void {
     const keyEvent = event as KeyboardEvent;
-    if (!keyEvent.shiftKey) {
+    const target = event.target as HTMLTextAreaElement;
+    if (keyEvent.key === 'Enter' && !keyEvent.shiftKey) {
       event.preventDefault();
       this.sendMessage();
+      target.style.height = 'auto';
     }
+  }
+
+  autoResize(event: Event): void {
+    const target = event.target as HTMLTextAreaElement;
+    target.style.height = 'auto';
+    target.style.height = Math.min(target.scrollHeight, 120) + 'px';
   }
 
   getLastMessagePreview(conv: ConversationResponse): string {

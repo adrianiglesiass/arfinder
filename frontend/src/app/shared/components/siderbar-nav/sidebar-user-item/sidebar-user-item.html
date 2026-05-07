@@ -1,19 +1,48 @@
-<p-menu #userMenu [model]="items" [popup]="true" appendTo="body" styleClass="w-48" />
+@if (isLoggedIn()) {
+  <p-menu #userMenu [model]="items" [popup]="true" appendTo="body" styleClass="w-48" />
 
-<button
-  type="button"
-  (click)="userMenu.toggle($event)"
-  class="w-full flex items-center gap-4 px-3 py-3 rounded-full transition-colors hover:bg-gray-50 justify-center xl:justify-start cursor-pointer"
-  aria-label="Abrir menú de usuario"
->
-  <div class="w-12 h-12 rounded-full overflow-hidden border border-gray-200 shrink-0">
-    @if (avatarUrl()) {
-      <img [src]="avatarUrl()" alt="Avatar" class="w-full h-full object-cover" />
-    } @else {
-      <div class="w-full h-full flex items-center justify-center bg-zinc-100 text-zinc-400">
-        <i class="pi pi-user text-xs"></i>
+  <button
+    type="button"
+    (click)="userMenu.toggle($event)"
+    class="w-full flex items-center gap-4 px-3 py-3 rounded-full transition-colors hover:bg-gray-50 justify-center xl:justify-start cursor-pointer"
+    aria-label="Abrir menú de usuario"
+  >
+    <div class="w-12 h-12 rounded-full overflow-hidden border border-gray-200 shrink-0">
+      @if (avatarUrl()) {
+        <img [src]="avatarUrl()" alt="Avatar" class="w-full h-full object-cover" />
+      } @else {
+        <div class="w-full h-full flex items-center justify-center bg-zinc-100 text-zinc-400">
+          <i class="pi pi-user text-xs"></i>
+        </div>
+      }
+    </div>
+    <span class="hidden xl:inline text-[15px] text-zinc-600 font-medium">Perfil</span>
+  </button>
+} @else {
+  <div class="flex flex-col gap-3">
+    <a
+      routerLink="/registro"
+      #registroLink="routerLinkActive"
+      routerLinkActive="!bg-primary/90 !shadow-md bg-primary-dark"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="no-underline w-full flex items-center gap-4 px-3 py-3 rounded-full transition-all text-white hover:bg-primary/90 hover:shadow-md active:scale-[0.98] active:bg-primary/80 justify-center xl:justify-start font-semibold bg-primary"
+      [class.bg-primary/90]="registroLink.isActive"
+      [class.shadow-md]="registroLink.isActive"
+    >
+      <div class="flex items-center justify-center w-6 h-6 shrink-0">
+        <i class="pi pi-user-plus text-xl leading-none"></i>
       </div>
-    }
+      <span class="hidden xl:inline text-[15px] leading-none">Registrarse</span>
+    </a>
+    <a
+      routerLink="/login"
+      #loginLink="routerLinkActive"
+      routerLinkActive="text-primary font-medium"
+      class="no-underline w-full text-center text-[13px] text-zinc-500 hover:text-primary py-1"
+      [class.text-primary]="loginLink.isActive"
+      [class.font-medium]="loginLink.isActive"
+    >
+      ¿Ya tienes cuenta? Iniciar sesión
+    </a>
   </div>
-  <span class="hidden xl:inline text-[15px] text-zinc-600 font-medium">Perfil</span>
-</button>
+}
