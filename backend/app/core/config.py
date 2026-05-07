@@ -43,6 +43,13 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: list[str] = DEFAULT_DEV_CORS_ORIGINS
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def _normalize_database_url(cls, v):
+        if isinstance(v, str) and v.startswith("postgres://"):
+            return "postgresql+psycopg2://" + v[len("postgres://") :]
+        return v
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def _split_cors_origins(cls, v):
