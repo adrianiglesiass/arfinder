@@ -64,6 +64,7 @@ export const appConfig: ApplicationConfig = {
         new InsForgeClient({
           baseUrl: environment.insforge.url,
           anonKey: environment.insforge.apiKey,
+          isServerMode: true,
         }),
     },
     providePrimeNG({
