@@ -117,7 +117,10 @@ export class AuthService {
     const internal = this.insforge as unknown as InsForgeInternal;
     const cached = internal?.tokenManager?.getAccessToken?.();
     if (cached) return cached;
+    return this.forceRefreshToken();
+  }
 
+  async forceRefreshToken(): Promise<string | null> {
     if (this.refreshPromise) return this.refreshPromise;
 
     this.refreshPromise = (async () => {
