@@ -1,7 +1,8 @@
 import os
+from typing import Annotated
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -41,7 +42,14 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     DEV_BYPASS_TOKEN: str | None = None
 
-    CORS_ORIGINS: list[str] = DEFAULT_DEV_CORS_ORIGINS
+    CORS_ORIGINS: Annotated[list[str], NoDecode] = DEFAULT_DEV_CORS_ORIGINS
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def _normalize_database_url(cls, v):
+        if isinstance(v, str) and v.startswith("postgres://"):
+            return "postgresql+psycopg2://" + v[len("postgres://") :]
+        return v
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

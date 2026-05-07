@@ -1,0 +1,41 @@
+name: Frontend Deploy (staging)
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-deploy-staging.yml'
+
+concurrency:
+  group: deploy-frontend-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Build (staging)
+        run: npx ng build --configuration staging
+      - name: Authenticate with InsForge
+        run: npx @insforge/cli login --email --json
+        env:
+          INSFORGE_EMAIL: ${{ secrets.INSFORGE_EMAIL }}
+          INSFORGE_PASSWORD: ${{ secrets.INSFORGE_PASSWORD }}
+      - name: Link staging project
+        run: npx @insforge/cli link --project-id "$PROJECT_ID" --org-id "$ORG_ID" -y
+        env:
+          PROJECT_ID: ${{ secrets.INSFORGE_STAGING_PROJECT_ID }}
+          ORG_ID: ${{ secrets.INSFORGE_ORG_ID }}
+      - name: Deploy
+        run: npx @insforge/cli deployments deploy dist/arfinder-frontend/browser -y

@@ -15,7 +15,6 @@ if (fs.existsSync(envPath)) {
 }
 
 const targetPath = path.resolve(__dirname, '../src/environments/environment.ts');
-const targetProdPath = path.resolve(__dirname, '../src/environments/environment.prod.ts');
 
 const envConfigFile = `export const environment = {
   production: false,
@@ -28,21 +27,8 @@ const envConfigFile = `export const environment = {
 };
 `;
 
-const envConfigProdFile = `export const environment = {
-  production: true,
-  APIURL: '${envVars.NG_APP_API_URL || 'https://api.dominio.com'}',
-  insforge: {
-    url: '${envVars.NG_APP_INSFORGE_URL || ''}',
-    apiKey: '${envVars.NG_APP_INSFORGE_API_KEY || ''}',
-    redirectUri: 'http://localhost:4200/auth/callback',
-  },
-};
-`;
-
-console.log('Generating environment files...');
+console.log('Generating environment.ts (dev) from frontend/.env');
 
 fs.writeFileSync(targetPath, envConfigFile);
-fs.writeFileSync(targetProdPath, envConfigProdFile);
 
 console.log(`Output generated at ${targetPath}`);
-console.log(`Output generated at ${targetProdPath}`);
