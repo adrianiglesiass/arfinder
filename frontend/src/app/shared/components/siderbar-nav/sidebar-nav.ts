@@ -29,7 +29,7 @@ export class SidebarNav {
   });
 
   readonly items: NavItem[] = [
-    { label: 'Explorar', icon: 'pi pi-search', link: '/explore' },
+    { label: 'Explorar', icon: 'pi pi-search', link: '/explorar' },
     {
       label: 'Mensajes',
       icon: 'pi pi-envelope',

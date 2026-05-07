@@ -19,6 +19,8 @@ const SCHEDULE_LABELS: Record<ScheduleEnum, string> = {
   flexible: 'Flexible',
 };
 
+const SWIPE_DISTANCE_THRESHOLD = 40;
+
 @Component({
   selector: 'app-profile-card',
   imports: [NgClass, ProfileBadge, RouterLink],
@@ -42,6 +44,51 @@ export class ProfileCard {
     const schedule = this.profile().schedule;
     return schedule ? SCHEDULE_LABELS[schedule] : null;
   });
+
+  private touchStartX: number | null = null;
+  private touchStartY: number | null = null;
+  private suppressNextClick = false;
+
+  protected onTouchStart(event: TouchEvent): void {
+    if (event.touches.length !== 1) {
+      this.touchStartX = null;
+      return;
+    }
+    const t = event.touches[0];
+    this.touchStartX = t.clientX;
+    this.touchStartY = t.clientY;
+  }
+
+  protected onTouchEnd(event: TouchEvent): void {
+    if (this.touchStartX === null || this.touchStartY === null) return;
+    const t = event.changedTouches[0];
+    const dx = t.clientX - this.touchStartX;
+    const dy = t.clientY - this.touchStartY;
+    this.touchStartX = null;
+    this.touchStartY = null;
+
+    if (Math.abs(dx) < SWIPE_DISTANCE_THRESHOLD || Math.abs(dx) < Math.abs(dy)) return;
+    if (!this.hasMultiple()) return;
+
+    if (event.cancelable) event.preventDefault();
+    this.suppressNextClick = true;
+    const total = this.photos().length;
+    if (dx > 0) this.activeIndex.update((i) => (i - 1 + total) % total);
+    else this.activeIndex.update((i) => (i + 1) % total);
+  }
+
+  protected onTouchCancel(): void {
+    this.touchStartX = null;
+    this.touchStartY = null;
+  }
+
+  protected onCardClick(event: MouseEvent): void {
+    if (this.suppressNextClick) {
+      this.suppressNextClick = false;
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
 
   protected prev(event: Event): void {
     event.stopPropagation();

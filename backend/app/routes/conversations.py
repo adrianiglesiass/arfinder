@@ -39,6 +39,7 @@ def _get_other_user_summary(
     )
     return ParticipantSummary(
         user_id=other_user.id,
+        profile_id=other_user.profile.id,
         name=other_user.profile.name,
         photo_url=main_photo.photo_url if main_photo else None,
     )

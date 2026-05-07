@@ -31,7 +31,7 @@ export class AuthService {
   private sdkReadyPromise: Promise<void> | null = null;
   private invalidatePromise: Promise<void> | null = null;
   private refreshPromise: Promise<string | null> | null = null;
-  private readonly PUBLIC_PATHS = ['/login', '/register', '/verify-email', '/auth/callback'];
+  private readonly PUBLIC_PATHS = ['/login', '/registro', '/verificar-email', '/auth/callback'];
 
   init(): Promise<void> {
     if (this.sdkReadyPromise) return this.sdkReadyPromise;
@@ -136,7 +136,7 @@ export class AuthService {
 
   async navigatePostAuth(): Promise<void> {
     const hasProfile = await this.hasProfile();
-    await this.router.navigate([hasProfile ? '' : '/onboarding']);
+    await this.router.navigate([hasProfile ? '' : '/bienvenida']);
   }
 
   async resendVerificationEmail(email: string): Promise<void> {

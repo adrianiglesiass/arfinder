@@ -1,7 +1,7 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   inject,
   OnDestroy,
@@ -20,7 +20,7 @@ import { Spinner } from '@shared/components/spinner/spinner';
   templateUrl: './search-results.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SearchResults implements AfterViewInit, OnDestroy {
+export class SearchResults implements OnDestroy {
   private readonly searchService = inject(ProfileSearchService);
 
   readonly profiles = this.searchService.profiles;
@@ -33,24 +33,39 @@ export class SearchResults implements AfterViewInit, OnDestroy {
   protected readonly sentinel = viewChild<ElementRef<HTMLElement>>('sentinel');
 
   private observer: IntersectionObserver | null = null;
+  private observedEl: HTMLElement | null = null;
 
-  ngAfterViewInit(): void {
-    if (typeof IntersectionObserver === 'undefined') return;
-    this.observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          void this.searchService.loadMore();
-        }
-      },
-      { rootMargin: '600px 0px' }
-    );
-    const el = this.sentinel()?.nativeElement;
-    if (el) this.observer.observe(el);
+  constructor() {
+    effect(() => {
+      const el = this.sentinel()?.nativeElement ?? null;
+      if (el === this.observedEl) return;
+
+      if (this.observedEl && this.observer) {
+        this.observer.unobserve(this.observedEl);
+      }
+      this.observedEl = el;
+
+      if (!el) return;
+      if (typeof IntersectionObserver === 'undefined') return;
+
+      if (!this.observer) {
+        this.observer = new IntersectionObserver(
+          (entries) => {
+            if (entries.some((e) => e.isIntersecting)) {
+              void this.searchService.loadMore();
+            }
+          },
+          { rootMargin: '600px 0px' }
+        );
+      }
+      this.observer.observe(el);
+    });
   }
 
   ngOnDestroy(): void {
     this.observer?.disconnect();
     this.observer = null;
+    this.observedEl = null;
   }
 
   retry() {

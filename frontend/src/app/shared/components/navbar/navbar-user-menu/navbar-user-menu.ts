@@ -21,10 +21,10 @@ export class NavbarUserMenu {
 
   items: MenuItem[] = [
     {
-      label: 'Perfil',
-      icon: 'pi pi-user',
+      label: 'Editar perfil',
+      icon: 'pi pi-user-edit',
       command: async () => {
-        await this.router.navigate(['/profile']);
+        await this.router.navigate(['/perfil']);
       },
     },
     {

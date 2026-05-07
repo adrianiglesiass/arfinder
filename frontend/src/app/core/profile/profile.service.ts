@@ -104,7 +104,7 @@ export class ProfileService {
           .catch((error) => {
             if (error instanceof HttpErrorResponse && error.status === 404) {
               this.currentProfile.set(null);
-              this.router.navigate(['/onboarding']);
+              this.router.navigate(['/bienvenida']);
             }
             return cached;
           })
@@ -123,7 +123,7 @@ export class ProfileService {
         return profile;
       } catch (error) {
         if (error instanceof HttpErrorResponse && error.status === 404) {
-          await this.router.navigate(['/onboarding']);
+          await this.router.navigate(['/bienvenida']);
         }
         throw error;
       } finally {
@@ -210,5 +210,37 @@ export class ProfileService {
 
   async addPhoto(file: File): Promise<ProfilePhotoResponse> {
     return await this.authApi.uploadPhoto(file);
+  }
+
+  async updateProfile(data: ProfileUpdate): Promise<ProfileResponse> {
+    const response = await this.authApi.updateProfile(data);
+    this.currentProfile.set(response);
+    this.profilesById.update((map) => {
+      const next = new Map(map);
+      next.set(response.id, response);
+      return next;
+    });
+    return response;
+  }
+
+  async deletePhoto(photoId: number): Promise<void> {
+    await this.authApi.deletePhoto(photoId);
+    const me = this.currentProfile();
+    if (me) {
+      this.currentProfile.set({
+        ...me,
+        photos: me.photos.filter((p) => p.id !== photoId),
+      });
+    }
+  }
+
+  async reorderPhotos(photoIds: number[]): Promise<ProfilePhotoResponse[]> {
+    const updated = await this.authApi.reorderPhotos(photoIds);
+    const sorted = [...updated].sort((a, b) => a.order - b.order);
+    const me = this.currentProfile();
+    if (me) {
+      this.currentProfile.set({ ...me, photos: sorted });
+    }
+    return sorted;
   }
 }

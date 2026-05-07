@@ -42,7 +42,7 @@ export default class Register {
       const response = await this.authService.register(credentials);
       if (response?.requireEmailVerification) {
         sessionStorage.setItem('arfinder_pending_email', credentials.email);
-        await this.router.navigate(['/verify-email']);
+        await this.router.navigate(['/verificar-email']);
         return;
       }
       await this.authService.login(credentials);

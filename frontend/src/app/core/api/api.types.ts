@@ -354,6 +354,8 @@ export interface components {
     ParticipantSummary: {
       /** User Id */
       user_id: number;
+      /** Profile Id */
+      profile_id?: number | null;
       /** Name */
       name: string;
       /** Photo Url */

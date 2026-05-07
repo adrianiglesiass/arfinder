@@ -53,13 +53,13 @@ export default class ProfileDetail implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.router.navigate(['/explore']);
+      this.router.navigate(['/explorar']);
       return;
     }
 
     const profileId = Number(id);
     if (isNaN(profileId)) {
-      this.router.navigate(['/explore']);
+      this.router.navigate(['/explorar']);
       return;
     }
 
@@ -107,6 +107,7 @@ export default class ProfileDetail implements OnInit {
         state: {
           recipient: {
             user_id: p.user_id,
+            profile_id: p.id,
             name: p.name,
             photo_url: mainPhoto?.photo_url ?? null,
           },

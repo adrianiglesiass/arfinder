@@ -26,6 +26,7 @@ import { Spinner } from '@shared/components/spinner/spinner';
 
 interface DraftRecipient {
   user_id: number;
+  profile_id: number | null;
   name: string | null;
   photo_url: string | null;
 }
@@ -33,6 +34,7 @@ interface DraftRecipient {
 interface ChatHeader {
   name: string;
   photo_url: string | null;
+  profile_id: number | null;
 }
 
 const PAGE_SIZE = 50;
@@ -78,11 +80,16 @@ export default class Messages implements OnInit, OnDestroy {
       return {
         name: conv.other_user.name ?? 'Usuario',
         photo_url: conv.other_user.photo_url ?? null,
+        profile_id: conv.other_user.profile_id ?? null,
       };
     }
     const draft = this.draftRecipient();
     if (draft) {
-      return { name: draft.name ?? 'Usuario', photo_url: draft.photo_url };
+      return {
+        name: draft.name ?? 'Usuario',
+        photo_url: draft.photo_url,
+        profile_id: draft.profile_id,
+      };
     }
     return null;
   });
@@ -139,7 +146,7 @@ export default class Messages implements OnInit, OnDestroy {
       this.draftRecipient.set(
         navState.recipient?.user_id === recipientId
           ? navState.recipient
-          : { user_id: recipientId, name: null, photo_url: null }
+          : { user_id: recipientId, profile_id: null, name: null, photo_url: null }
       );
       this.messages.set([]);
     }
@@ -285,6 +292,20 @@ export default class Messages implements OnInit, OnDestroy {
   formatTime(dateStr: string): string {
     const date = new Date(dateStr);
     return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  isShortMessage(content: string): boolean {
+    if (!content) return true;
+    if (content.includes('\n')) return false;
+    return content.trim().length <= 28;
+  }
+
+  hasTail(index: number): boolean {
+    const list = this.messages();
+    const current = list[index];
+    if (!current) return false;
+    const next = list[index + 1];
+    return !next || next.sender_id !== current.sender_id;
   }
 
   formatDate(dateStr: string): string {
