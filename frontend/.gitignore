@@ -51,3 +51,5 @@ Thumbs.db
 
 src/environments/*.ts
 !src/environments/*.template.ts
+!src/environments/environment.prod.ts
+!src/environments/environment.staging.ts
