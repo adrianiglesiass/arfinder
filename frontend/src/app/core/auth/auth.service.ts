@@ -180,19 +180,27 @@ export class AuthService {
   }
 
   async loginWithGoogle(): Promise<void> {
-    const { error } = await this.insforge.auth.signInWithOAuth({
+    const { data, error } = await this.insforge.auth.signInWithOAuth({
       provider: 'google',
       redirectTo: environment.insforge.redirectUri,
+      skipBrowserRedirect: true,
     });
     if (error) throw error;
+    if (data?.url) {
+      window.location.href = data.url;
+    }
   }
 
   async loginWithApple(): Promise<void> {
-    const { error } = await this.insforge.auth.signInWithOAuth({
+    const { data, error } = await this.insforge.auth.signInWithOAuth({
       provider: 'apple',
       redirectTo: environment.insforge.redirectUri,
+      skipBrowserRedirect: true,
     });
     if (error) throw error;
+    if (data?.url) {
+      window.location.href = data.url;
+    }
   }
 
   async login(credentials: { email: string; password: string }): Promise<void> {
