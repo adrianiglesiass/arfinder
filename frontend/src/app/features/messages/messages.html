@@ -1,4 +1,12 @@
-<div class="flex w-full bg-white h-[calc(100dvh-6.5rem)] md:h-screen overflow-hidden">
+<div
+  class="flex w-full bg-white overflow-hidden"
+  [attr.data-chat-fullscreen]="chatActive() ? '' : null"
+  [ngClass]="
+    chatActive()
+      ? 'fixed inset-0 z-50 h-[100dvh] md:relative md:inset-auto md:z-auto md:h-screen'
+      : 'h-[calc(100dvh-6.5rem)] md:h-screen'
+  "
+>
   @if (isLoading()) {
     <div class="flex-1 flex items-center justify-center">
       <div class="flex flex-col items-center gap-3">

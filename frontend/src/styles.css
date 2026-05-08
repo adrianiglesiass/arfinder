@@ -199,6 +199,10 @@
   overflow: hidden !important;
 }
 
+body:has([data-chat-fullscreen]) app-mobile-nav {
+  display: none;
+}
+
 .app-loading-overlay {
   position: fixed;
   inset: 0;
