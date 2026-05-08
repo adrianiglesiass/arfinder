@@ -74,6 +74,14 @@ export default class Messages implements OnInit, OnDestroy {
     () => this.selectedConversation() !== null || this.draftRecipient() !== null
   );
 
+  viewportHeight = signal<number | null>(null);
+  isMobile = signal(false);
+
+  readonly mobileChatHeightPx = computed(() => {
+    if (!this.chatActive() || !this.isMobile()) return null;
+    return this.viewportHeight();
+  });
+
   readonly headerInfo = computed<ChatHeader | null>(() => {
     const conv = this.selectedConversation();
     if (conv?.other_user) {
@@ -96,6 +104,8 @@ export default class Messages implements OnInit, OnDestroy {
 
   private unsubMessage: (() => void) | null = null;
   private unsubRead: (() => void) | null = null;
+  private cleanupViewport: (() => void) | null = null;
+  private cleanupMq: (() => void) | null = null;
   private selectionEpoch = 0;
   private intersectionObserver: IntersectionObserver | null = null;
   private observedSentinel: HTMLElement | null = null;
@@ -111,6 +121,8 @@ export default class Messages implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    this.setupViewportTracking();
+
     await this.store.refresh();
     this.isLoading.set(false);
 
@@ -155,8 +167,35 @@ export default class Messages implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.unsubMessage?.();
     this.unsubRead?.();
+    this.cleanupViewport?.();
+    this.cleanupMq?.();
     this.disconnectIntersectionObserver();
     this.store.setActiveConversation(null);
+  }
+
+  private setupViewportTracking(): void {
+    if (typeof window === 'undefined') return;
+
+    const mq = window.matchMedia('(max-width: 767px)');
+    this.isMobile.set(mq.matches);
+    const onMqChange = (e: MediaQueryListEvent) => this.isMobile.set(e.matches);
+    mq.addEventListener('change', onMqChange);
+    this.cleanupMq = () => mq.removeEventListener('change', onMqChange);
+
+    const vv = window.visualViewport;
+    if (!vv) {
+      this.viewportHeight.set(window.innerHeight);
+      return;
+    }
+
+    const update = () => this.viewportHeight.set(vv.height);
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    this.cleanupViewport = () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
   }
 
   closeConversation(): void {
