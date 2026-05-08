@@ -3,7 +3,7 @@
   [attr.data-chat-fullscreen]="chatActive() ? '' : null"
   [ngClass]="
     chatActive()
-      ? 'fixed inset-0 z-50 h-[100dvh] md:relative md:inset-auto md:z-auto md:h-screen'
+      ? 'fixed top-0 inset-x-0 z-50 h-[100dvh] md:relative md:inset-auto md:top-auto md:z-auto md:h-screen'
       : 'h-[calc(100dvh-6.5rem)] md:h-screen'
   "
 >
@@ -90,7 +90,7 @@
     </aside>
 
     <main
-      class="flex-1 flex-col bg-white h-full min-w-0"
+      class="flex-1 flex-col bg-white h-full min-w-0 min-h-0"
       [ngClass]="chatActive() ? 'flex' : 'hidden md:flex'"
     >
       @if (!chatActive()) {
@@ -158,7 +158,10 @@
           }
         </header>
 
-        <div class="flex-1 overflow-y-auto px-3 sm:px-4 py-3 space-y-1.5" #messagesContainer>
+        <div
+          class="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 py-3 space-y-1.5"
+          #messagesContainer
+        >
           @if (hasMoreMessages()) {
             <div #topSentinel aria-hidden="true" class="h-1 w-full"></div>
           }

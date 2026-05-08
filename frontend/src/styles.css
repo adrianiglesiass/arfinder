@@ -203,6 +203,10 @@ body:has([data-chat-fullscreen]) app-mobile-nav {
   display: none;
 }
 
+body:has([data-chat-fullscreen]) {
+  overflow: hidden;
+}
+
 .app-loading-overlay {
   position: fixed;
   inset: 0;
@@ -259,7 +263,6 @@ body:has([data-chat-fullscreen]) app-mobile-nav {
 .app-spinner--muted {
   color: #d4d4d8;
 }
-/* .app-spinner--current → inherits parent color (e.g. button text color) */
 
 @keyframes app-spinner-rotate {
   to {
