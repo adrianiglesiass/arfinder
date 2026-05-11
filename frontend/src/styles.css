@@ -203,10 +203,6 @@ body:has([data-chat-fullscreen]) app-mobile-nav {
   display: none;
 }
 
-body:has([data-chat-fullscreen]) {
-  overflow: hidden;
-}
-
 .app-loading-overlay {
   position: fixed;
   inset: 0;

@@ -75,11 +75,17 @@ export default class Messages implements OnInit, OnDestroy {
   );
 
   viewportHeight = signal<number | null>(null);
+  viewportOffsetTop = signal(0);
   isMobile = signal(false);
 
   readonly mobileChatHeightPx = computed(() => {
     if (!this.chatActive() || !this.isMobile()) return null;
     return this.viewportHeight();
+  });
+
+  readonly mobileChatTopPx = computed(() => {
+    if (!this.chatActive() || !this.isMobile()) return null;
+    return this.viewportOffsetTop();
   });
 
   readonly headerInfo = computed<ChatHeader | null>(() => {
@@ -109,6 +115,15 @@ export default class Messages implements OnInit, OnDestroy {
   private selectionEpoch = 0;
   private intersectionObserver: IntersectionObserver | null = null;
   private observedSentinel: HTMLElement | null = null;
+  private bodyLockState: {
+    scrollY: number;
+    position: string;
+    top: string;
+    left: string;
+    right: string;
+    width: string;
+    overflow: string;
+  } | null = null;
 
   constructor() {
     afterNextRender(() => this.scrollToBottom());
@@ -117,6 +132,10 @@ export default class Messages implements OnInit, OnDestroy {
       const hasMore = this.hasMoreMessages();
       const ready = this.initialScrollDone();
       queueMicrotask(() => this.syncSentinelObserver(active && hasMore && ready));
+    });
+    effect(() => {
+      const shouldLock = this.chatActive() && this.isMobile();
+      queueMicrotask(() => this.setBodyScrollLock(shouldLock));
     });
   }
 
@@ -170,6 +189,7 @@ export default class Messages implements OnInit, OnDestroy {
     this.cleanupViewport?.();
     this.cleanupMq?.();
     this.disconnectIntersectionObserver();
+    this.setBodyScrollLock(false);
     this.store.setActiveConversation(null);
   }
 
@@ -185,10 +205,14 @@ export default class Messages implements OnInit, OnDestroy {
     const vv = window.visualViewport;
     if (!vv) {
       this.viewportHeight.set(window.innerHeight);
+      this.viewportOffsetTop.set(0);
       return;
     }
 
-    const update = () => this.viewportHeight.set(vv.height);
+    const update = () => {
+      this.viewportHeight.set(vv.height);
+      this.viewportOffsetTop.set(vv.offsetTop);
+    };
     update();
     vv.addEventListener('resize', update);
     vv.addEventListener('scroll', update);
@@ -196,6 +220,43 @@ export default class Messages implements OnInit, OnDestroy {
       vv.removeEventListener('resize', update);
       vv.removeEventListener('scroll', update);
     };
+  }
+
+  private setBodyScrollLock(lock: boolean): void {
+    if (typeof document === 'undefined') return;
+    const body = document.body;
+    if (!body) return;
+
+    if (lock) {
+      if (this.bodyLockState) return;
+      const scrollY = window.scrollY;
+      this.bodyLockState = {
+        scrollY,
+        position: body.style.position,
+        top: body.style.top,
+        left: body.style.left,
+        right: body.style.right,
+        width: body.style.width,
+        overflow: body.style.overflow,
+      };
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
+    } else {
+      const state = this.bodyLockState;
+      if (!state) return;
+      body.style.position = state.position;
+      body.style.top = state.top;
+      body.style.left = state.left;
+      body.style.right = state.right;
+      body.style.width = state.width;
+      body.style.overflow = state.overflow;
+      window.scrollTo(0, state.scrollY);
+      this.bodyLockState = null;
+    }
   }
 
   closeConversation(): void {
