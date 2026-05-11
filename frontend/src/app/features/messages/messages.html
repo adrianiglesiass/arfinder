@@ -277,6 +277,7 @@
             class="relative flex items-center w-full"
           >
             <textarea
+              #messageInput
               [(ngModel)]="newMessage"
               name="message"
               rows="1"
@@ -287,6 +288,7 @@
             ></textarea>
             <button
               type="submit"
+              (mousedown)="$event.preventDefault()"
               [disabled]="!newMessage().trim()"
               class="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3 rounded-full flex items-center justify-center transition-all duration-100 text-white select-none"
               [ngClass]="

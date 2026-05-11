@@ -48,6 +48,7 @@ const PAGE_SIZE = 50;
 export default class Messages implements OnInit, OnDestroy {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('topSentinel') topSentinel?: ElementRef<HTMLDivElement>;
+  @ViewChild('messageInput') messageInput?: ElementRef<HTMLTextAreaElement>;
 
   private readonly route = inject(ActivatedRoute);
   private readonly conversationApi = inject(ConversationApiService);
@@ -363,6 +364,8 @@ export default class Messages implements OnInit, OnDestroy {
 
     this.messages.update((msgs) => [...msgs, optimistic]);
     this.newMessage.set('');
+    const ta = this.messageInput?.nativeElement;
+    if (ta) ta.style.height = 'auto';
     setTimeout(() => this.scrollToBottom(), 50);
 
     try {
