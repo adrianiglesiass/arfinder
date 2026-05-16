@@ -1,0 +1,131 @@
+<div>
+  <div class="mb-10 text-center md:text-left">
+    <h2 class="text-3xl font-bold text-primary mb-3">Cuéntanos sobre ti</h2>
+    <p class="text-gray-400 font-medium">
+      Esta información nos ayuda a sugerirte los mejores perfiles.
+    </p>
+  </div>
+
+  <div class="space-y-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div class="flex flex-col gap-3">
+        <label
+          for="fullName"
+          class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+        >
+          Nombre completo <span class="text-red-400">*</span>
+        </label>
+        <input
+          pInputText
+          id="fullName"
+          [ngModel]="name()"
+          (ngModelChange)="onModelChange('name', $event)"
+          class="w-full rounded-2xl py-3 px-4 border transition-colors duration-200 shadow-none bg-white font-medium"
+          [class]="showErrors() && !name().trim() ? 'border-red-400' : 'border-gray-border'"
+          placeholder="Ej. Alex García"
+        />
+        @if (showErrors() && !name().trim()) {
+          <span
+            class="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-wider animate-fade-in"
+            >Campo obligatorio</span
+          >
+        }
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <label
+          for="age"
+          class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+        >
+          Edad <span class="text-red-400">*</span>
+        </label>
+        <input
+          pInputText
+          id="age"
+          type="number"
+          [ngModel]="age()"
+          (ngModelChange)="onModelChange('age', $event)"
+          class="w-full rounded-2xl py-3 px-4 border transition-colors duration-200 shadow-none bg-white font-medium"
+          [class]="showErrors() && !age() ? 'border-red-400' : 'border-gray-border'"
+          placeholder="Ej. 26"
+        />
+        @if (showErrors() && !age()) {
+          <span
+            class="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-wider animate-fade-in"
+            >Campo obligatorio</span
+          >
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <label for="city" class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
+        Ciudad
+      </label>
+      <div [class.ring-1.ring-red-400.rounded-2xl]="showErrors() && !city().trim()">
+        <app-city-autocomplete [city]="city()" (citySelected)="onCitySelect($event)" />
+      </div>
+      @if (showErrors() && !city().trim()) {
+        <span
+          class="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-wider animate-fade-in"
+          >Campo obligatorio</span
+        >
+      }
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <label for="bio" class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
+        Biografía
+      </label>
+      <textarea
+        pTextarea
+        id="bio"
+        [ngModel]="bio()"
+        (ngModelChange)="onModelChange('bio', $event)"
+        class="w-full rounded-2xl min-h-40 py-3 px-4 border border-gray-border shadow-none bg-white font-medium"
+        placeholder="Escribe algo sobre ti, tus intereses o lo que buscas en un compañero de piso..."
+        style="resize: none"
+      >
+      </textarea>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div class="flex flex-col gap-3">
+        <label
+          for="gender"
+          class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+        >
+          Género
+        </label>
+        <select
+          id="gender"
+          [ngModel]="gender()"
+          (ngModelChange)="onModelChange('gender', $event)"
+          class="w-full rounded-2xl py-3 px-4 border border-gray-border transition-colors duration-200 shadow-none bg-white font-medium"
+        >
+          <option value="">Selecciona una opción</option>
+          <option value="Mujer">Mujer</option>
+          <option value="Hombre">Hombre</option>
+          <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <label
+          for="availableFrom"
+          class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+        >
+          Disponible desde
+        </label>
+        <input
+          pInputText
+          id="availableFrom"
+          type="date"
+          [ngModel]="availableFrom()"
+          (ngModelChange)="onModelChange('available_from', $event)"
+          class="w-full rounded-2xl py-3 px-4 border border-gray-border transition-colors duration-200 shadow-none bg-white font-medium"
+        />
+      </div>
+    </div>
+  </div>
+</div>

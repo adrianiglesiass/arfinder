@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 
+import { STORAGE_KEYS } from '@core/constants/storage-keys';
+
 export interface StoredLocalPhoto {
   id: string;
   preview: string;
@@ -9,8 +11,8 @@ export interface StoredLocalPhoto {
 
 @Injectable()
 export class PhotoStorageService {
-  private readonly PENDING_PHOTOS_KEY = 'arfinder_pending_photos';
-  private readonly PHOTO_ORDER_KEY = 'arfinder_pending_photos_order';
+  private readonly PENDING_PHOTOS_KEY = STORAGE_KEYS.onboarding.pendingPhotos;
+  private readonly PHOTO_ORDER_KEY = STORAGE_KEYS.onboarding.pendingPhotosOrder;
 
   readStoredLocalPhotos(): StoredLocalPhoto[] {
     try {

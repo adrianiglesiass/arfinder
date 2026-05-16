@@ -17,12 +17,8 @@ import { ProfilePhotoResponse } from '@core/api/api.models';
 import { ErrorService } from '@core/errors';
 import { ProfileService } from '@core/profile/profile.service';
 
-import { PhotoCard } from '@features/onboarding/components/step-photos/photo-card/photo-card';
-import {
-  CombinedPhoto,
-  isLocalPhoto,
-  validateFile,
-} from '@features/onboarding/components/step-photos/photo.utils';
+import { PhotoCard } from '@shared/components/profile-form/photo-card/photo-card';
+import { CombinedPhoto, isLocalPhoto, validateFile } from '@shared/utils/photo.utils';
 
 @Component({
   selector: 'app-photos-editor',

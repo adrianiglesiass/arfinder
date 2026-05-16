@@ -15,7 +15,7 @@ import {
 
 import type { ProfileSearchFilters, ScheduleEnum, TypeEnum } from '@core/api/api.models';
 import { RightPanelService } from '@core/layout/right-panel.service';
-import { ProfileSearchService } from '@core/profileSearch/profile-search.service';
+import { ProfileSearchService } from '@core/profile-search/profile-search.service';
 
 import { Button } from '@shared/components/button/button';
 

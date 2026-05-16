@@ -21,6 +21,8 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 
 import { AuthService } from '@core/auth/auth.service';
+import { ROUTES } from '@core/constants/routes';
+import { STORAGE_KEYS } from '@core/constants/storage-keys';
 import { ErrorService } from '@core/errors';
 
 import { AuthCard } from '@features/auth/components/auth-card/auth-card';
@@ -34,7 +36,7 @@ export default class VerifyEmail implements AfterViewInit {
   constructor() {
     const router = inject(Router);
     if (!this.email()) {
-      router.navigate(['/login']);
+      router.navigate([ROUTES.LOGIN]);
     }
   }
   private readonly fb = inject(FormBuilder);
@@ -54,7 +56,7 @@ export default class VerifyEmail implements AfterViewInit {
     this.resendDisabled() ? `Reenviar en ${this.countdown()}s` : 'Reenviar código'
   );
 
-  email = signal<string>(sessionStorage.getItem('arfinder_pending_email') || '');
+  email = signal<string>(sessionStorage.getItem(STORAGE_KEYS.auth.pendingEmail) || '');
 
   form = this.fb.group({
     otp: this.fb.array(

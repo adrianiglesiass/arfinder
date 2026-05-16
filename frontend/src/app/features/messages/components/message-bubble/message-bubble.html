@@ -1,0 +1,75 @@
+<div class="flex" [class.justify-end]="isOwn()">
+  <div
+    class="relative max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[60%] px-3 py-1.5 rounded-xl text-[15px]"
+    [class]="bubbleClass()"
+  >
+    @if (hasTail()) {
+      @if (isOwn()) {
+        <svg
+          class="absolute bottom-0 -right-2.25 w-2.75 h-4 text-[#007aff]"
+          viewBox="0 0 11 16"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M0 0 C0 10 3 14 11 16 L0 16 Z" />
+        </svg>
+      } @else {
+        <svg
+          class="absolute bottom-0 -left-2.25 w-2.75 h-4 text-[#e5e5ea]"
+          viewBox="0 0 11 16"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M11 0 C11 10 8 14 0 16 L11 16 Z" />
+        </svg>
+      }
+    }
+    @if (isShort()) {
+      <div class="flex items-end gap-2">
+        <span class="leading-relaxed whitespace-pre-wrap wrap-break-word">{{
+          message().content
+        }}</span>
+        <span class="flex items-center gap-1 shrink-0 pb-0.5" [class]="metaClass()">
+          <span class="text-[10px] leading-none whitespace-nowrap">{{ time() }}</span>
+          @if (isOwn()) {
+            <svg
+              viewBox="0 0 18 14"
+              class="w-4 h-3 shrink-0"
+              [class.text-[#5ac8fa]]="message().is_read"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M1.5 8 L4.5 11 L10.5 3" />
+              <path d="M7.5 8 L10.5 11 L16.5 3" />
+            </svg>
+          }
+        </span>
+      </div>
+    } @else {
+      <p class="leading-relaxed whitespace-pre-wrap wrap-break-word">{{ message().content }}</p>
+      <div class="flex items-center justify-end gap-1 mt-1 -mb-0.5" [class]="metaClass()">
+        <span class="text-[10px] leading-none">{{ time() }}</span>
+        @if (isOwn()) {
+          <svg
+            viewBox="0 0 18 14"
+            class="w-4 h-3 shrink-0"
+            [class.text-[#5ac8fa]]="message().is_read"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M1.5 8 L4.5 11 L10.5 3" />
+            <path d="M7.5 8 L10.5 11 L16.5 3" />
+          </svg>
+        }
+      </div>
+    }
+  </div>
+</div>

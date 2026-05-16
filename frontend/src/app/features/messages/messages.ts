@@ -1,60 +1,62 @@
-import { CommonModule } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
-  OnDestroy,
   OnInit,
   signal,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { ConversationApiService } from '@infrastructure/api/conversation/conversation.api.service';
 
 import type { ConversationResponse, MessageResponse } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { ROUTES } from '@core/constants/routes';
 import { ConversationStore } from '@core/conversations/conversation.store';
 import { RealtimeService } from '@core/realtime/realtime.service';
 
 import { Spinner } from '@shared/components/spinner/spinner';
 
-interface DraftRecipient {
-  user_id: number;
-  profile_id: number | null;
-  name: string | null;
-  photo_url: string | null;
-}
-
-interface ChatHeader {
-  name: string;
-  photo_url: string | null;
-  profile_id: number | null;
-}
+import { ChatHeader as ChatHeaderComponent } from '@features/messages/components/chat-header/chat-header';
+import { ConversationListItem } from '@features/messages/components/conversation-list-item/conversation-list-item';
+import { MessageBubble } from '@features/messages/components/message-bubble/message-bubble';
+import { MessageComposer } from '@features/messages/components/message-composer/message-composer';
+import type { ChatHeader, DraftRecipient } from '@features/messages/messages.types';
 
 const PAGE_SIZE = 50;
 
 @Component({
   selector: 'app-messages',
-  imports: [CommonModule, RouterLink, FormsModule, Spinner],
+  imports: [
+    RouterLink,
+    Spinner,
+    ConversationListItem,
+    ChatHeaderComponent,
+    MessageBubble,
+    MessageComposer,
+  ],
   templateUrl: './messages.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export default class Messages implements OnInit, OnDestroy {
-  @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
-  @ViewChild('topSentinel') topSentinel?: ElementRef<HTMLDivElement>;
-  @ViewChild('messageInput') messageInput?: ElementRef<HTMLTextAreaElement>;
+export default class Messages implements OnInit {
+  private readonly messagesContainer = viewChild<ElementRef<HTMLDivElement>>('messagesContainer');
+  private readonly topSentinel = viewChild<ElementRef<HTMLDivElement>>('topSentinel');
+  private readonly composer = viewChild(MessageComposer);
+
+  protected readonly exploreRoute = ROUTES.EXPLORE;
 
   private readonly route = inject(ActivatedRoute);
   private readonly conversationApi = inject(ConversationApiService);
   private readonly authService = inject(AuthService);
   private readonly realtimeService = inject(RealtimeService);
   private readonly store = inject(ConversationStore);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly conversations = this.store.conversations;
   selectedConversation = signal<ConversationResponse | null>(null);
@@ -142,6 +144,7 @@ export default class Messages implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.setupViewportTracking();
+    this.registerCleanup();
 
     await this.store.refresh();
     this.isLoading.set(false);
@@ -184,18 +187,20 @@ export default class Messages implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    this.unsubMessage?.();
-    this.unsubRead?.();
-    this.cleanupViewport?.();
-    this.cleanupMq?.();
-    this.disconnectIntersectionObserver();
-    this.setBodyScrollLock(false);
-    this.store.setActiveConversation(null);
+  private registerCleanup(): void {
+    this.destroyRef.onDestroy(() => {
+      this.unsubMessage?.();
+      this.unsubRead?.();
+      this.cleanupViewport?.();
+      this.cleanupMq?.();
+      this.disconnectIntersectionObserver();
+      this.setBodyScrollLock(false);
+      this.store.setActiveConversation(null);
+    });
   }
 
   private setupViewportTracking(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
 
     const mq = window.matchMedia('(max-width: 767px)');
     this.isMobile.set(mq.matches);
@@ -313,7 +318,7 @@ export default class Messages implements OnInit, OnDestroy {
     const epoch = this.selectionEpoch;
     this.isLoadingOlder.set(true);
 
-    const container = this.messagesContainer?.nativeElement;
+    const container = this.messagesContainer()?.nativeElement;
     const prevHeight = container?.scrollHeight ?? 0;
     const prevTop = container?.scrollTop ?? 0;
 
@@ -330,7 +335,7 @@ export default class Messages implements OnInit, OnDestroy {
       this.messages.update((msgs) => [...older, ...msgs]);
 
       requestAnimationFrame(() => {
-        const el = this.messagesContainer?.nativeElement;
+        const el = this.messagesContainer()?.nativeElement;
         if (!el) return;
         el.scrollTop = el.scrollHeight - prevHeight + prevTop;
       });
@@ -364,8 +369,7 @@ export default class Messages implements OnInit, OnDestroy {
 
     this.messages.update((msgs) => [...msgs, optimistic]);
     this.newMessage.set('');
-    const ta = this.messageInput?.nativeElement;
-    if (ta) ta.style.height = 'auto';
+    this.composer()?.resetHeight();
     setTimeout(() => this.scrollToBottom(), 50);
 
     try {
@@ -420,22 +424,6 @@ export default class Messages implements OnInit, OnDestroy {
     if (date.toDateString() === today.toDateString()) return 'Hoy';
     if (date.toDateString() === yesterday.toDateString()) return 'Ayer';
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-  }
-
-  onInputKeydown(event: Event): void {
-    const keyEvent = event as KeyboardEvent;
-    const target = event.target as HTMLTextAreaElement;
-    if (keyEvent.key === 'Enter' && !keyEvent.shiftKey) {
-      event.preventDefault();
-      this.sendMessage();
-      target.style.height = 'auto';
-    }
-  }
-
-  autoResize(event: Event): void {
-    const target = event.target as HTMLTextAreaElement;
-    target.style.height = 'auto';
-    target.style.height = Math.min(target.scrollHeight, 120) + 'px';
   }
 
   getLastMessagePreview(conv: ConversationResponse): string {
@@ -531,13 +519,13 @@ export default class Messages implements OnInit, OnDestroy {
   }
 
   private scrollToBottom(): void {
-    const el = this.messagesContainer?.nativeElement;
+    const el = this.messagesContainer()?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
   }
 
   private syncSentinelObserver(shouldObserve: boolean): void {
-    const sentinel = this.topSentinel?.nativeElement ?? null;
-    const root = this.messagesContainer?.nativeElement ?? null;
+    const sentinel = this.topSentinel()?.nativeElement ?? null;
+    const root = this.messagesContainer()?.nativeElement ?? null;
 
     if (!shouldObserve || !sentinel || !root) {
       this.disconnectIntersectionObserver();

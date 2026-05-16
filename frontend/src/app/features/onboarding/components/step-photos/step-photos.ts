@@ -18,7 +18,7 @@ import { ProfilePhotoResponse } from '@core/api/api.models';
 import { ErrorService } from '@core/errors';
 import { ProfileService } from '@core/profile/profile.service';
 
-import { PhotoCard } from '@features/onboarding/components/step-photos/photo-card/photo-card';
+import { PhotoCard } from '@shared/components/profile-form/photo-card/photo-card';
 import {
   applyStoredOrder,
   CombinedPhoto,
@@ -26,7 +26,8 @@ import {
   isLocalPhoto,
   LocalPhoto,
   validateFile,
-} from '@features/onboarding/components/step-photos/photo.utils';
+} from '@shared/utils/photo.utils';
+
 import { PhotoStorageService } from '@features/onboarding/components/step-photos/services/photo-storage.service';
 import { PhotoUploadService } from '@features/onboarding/components/step-photos/services/photo-upload.service';
 

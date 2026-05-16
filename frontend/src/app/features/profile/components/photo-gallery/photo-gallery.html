@@ -1,0 +1,66 @@
+<div
+  class="relative w-full bg-gray-100 overflow-hidden group aspect-4/5 sm:aspect-3/4 md:aspect-auto md:h-[calc(100svh-7rem)] md:sticky md:top-4"
+  (touchstart)="onTouchStart($event)"
+  (touchend)="onTouchEnd($event)"
+>
+  @if (hasPhotos()) {
+    @for (photo of photos(); track photo.id; let i = $index) {
+      <img
+        [src]="photo.photo_url"
+        [alt]="name() + ' foto ' + (i + 1)"
+        class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+        [class.opacity-100]="i === activeIndex()"
+        [class.opacity-0]="i !== activeIndex()"
+        [attr.aria-hidden]="i !== activeIndex()"
+        [attr.fetchpriority]="i === 0 ? 'high' : 'low'"
+        [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+        [attr.decoding]="i === 0 ? 'sync' : 'async'"
+      />
+    }
+
+    @if (hasMultiple()) {
+      <button
+        type="button"
+        (click)="onPrev($event)"
+        aria-label="Foto anterior"
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-primary shadow-md md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-opacity cursor-pointer z-10"
+      >
+        <i class="pi pi-chevron-left text-xs"></i>
+      </button>
+      <button
+        type="button"
+        (click)="onNext($event)"
+        aria-label="Foto siguiente"
+        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-primary shadow-md md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-opacity cursor-pointer z-10"
+      >
+        <i class="pi pi-chevron-right text-xs"></i>
+      </button>
+
+      <div
+        class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-2 rounded-full bg-black/35 backdrop-blur-sm z-10"
+      >
+        @for (photo of photos(); track photo.id; let i = $index) {
+          <button
+            type="button"
+            (click)="onGoTo(i, $event)"
+            [attr.aria-label]="'Ir a foto ' + (i + 1)"
+            class="h-1.5 rounded-full bg-white transition-all cursor-pointer"
+            [class.w-5]="i === activeIndex()"
+            [class.w-1.5]="i !== activeIndex()"
+            [class.opacity-60]="i !== activeIndex()"
+          ></button>
+        }
+      </div>
+    }
+  } @else {
+    <div class="w-full h-full flex items-center justify-center text-gray-300">
+      <span class="material-symbols-rounded text-8xl">person</span>
+    </div>
+  }
+
+  <span
+    class="absolute top-4 left-4 px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-full text-[11px] font-bold uppercase tracking-wider text-primary shadow-sm z-10"
+  >
+    {{ typeLabel() }}
+  </span>
+</div>

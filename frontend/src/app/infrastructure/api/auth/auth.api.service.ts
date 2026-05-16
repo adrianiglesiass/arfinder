@@ -14,4 +14,8 @@ export class AuthApiService {
   async getMe(): Promise<UserResponse> {
     return firstValueFrom(this.http.get<UserResponse>(`${this.APIURL}/me`));
   }
+
+  async deleteAccount(): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(`${this.APIURL}/me`));
+  }
 }

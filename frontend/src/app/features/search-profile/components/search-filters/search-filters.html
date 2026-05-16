@@ -25,7 +25,7 @@
     <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
       Ciudad
     </span>
-    <app-search [city]="city()" (citySelected)="setCity($event)" />
+    <app-city-autocomplete [city]="city()" (citySelected)="setCity($event)" />
   </div>
 
   <app-filter-chip-group

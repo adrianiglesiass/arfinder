@@ -1,45 +1,41 @@
-import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  HostListener,
+  effect,
   inject,
-  OnInit,
+  input,
   signal,
 } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
-import type { ProfileResponse, ScheduleEnum, TypeEnum } from '@core/api/api.models';
+import type { ProfileResponse } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { ROUTES } from '@core/constants/routes';
 import { ProfileService } from '@core/profile/profile.service';
 
 import { Button } from '@shared/components/button/button';
+import { Skeleton } from '@shared/components/skeleton/skeleton';
 
-const TYPE_LABELS: Record<TypeEnum, string> = {
-  looking_for_flat: 'Busca piso',
-  looking_for_roommate: 'Busca compañero',
-};
-
-const SCHEDULE_LABELS: Record<ScheduleEnum, string> = {
-  morning: 'Mañana',
-  afternoon: 'Tarde',
-  night: 'Noche',
-  flexible: 'Flexible',
-};
+import { PhotoGallery } from '@features/profile/components/photo-gallery/photo-gallery';
+import { ProfileInfoBlock } from '@features/profile/components/profile-info-block/profile-info-block';
 
 @Component({
   selector: 'app-profile-detail',
-  imports: [CommonModule, RouterLink, Button],
+  imports: [RouterLink, Button, Skeleton, PhotoGallery, ProfileInfoBlock],
   templateUrl: './profile-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(window:keydown)': 'handleKeydown($event)',
+  },
 })
-export default class ProfileDetail implements OnInit {
-  private readonly route = inject(ActivatedRoute);
+export default class ProfileDetail {
   private readonly router = inject(Router);
   private readonly profileService = inject(ProfileService);
   private readonly authService = inject(AuthService);
+
+  readonly id = input.required<string>();
 
   profile = signal<ProfileResponse | null>(null);
   isLoading = signal(true);
@@ -47,23 +43,20 @@ export default class ProfileDetail implements OnInit {
   activePhotoIndex = signal(0);
   sendingMessage = signal(false);
 
+  protected readonly exploreRoute = ROUTES.EXPLORE;
+
   private touchStartX: number | null = null;
   private touchStartY: number | null = null;
 
-  ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      this.router.navigate(['/explorar']);
-      return;
-    }
-
-    const profileId = Number(id);
-    if (isNaN(profileId)) {
-      this.router.navigate(['/explorar']);
-      return;
-    }
-
-    this.loadProfile(profileId);
+  constructor() {
+    effect(() => {
+      const profileId = Number(this.id());
+      if (Number.isNaN(profileId)) {
+        this.router.navigate([ROUTES.EXPLORE]);
+        return;
+      }
+      this.loadProfile(profileId);
+    });
   }
 
   async loadProfile(id: number): Promise<void> {
@@ -94,7 +87,9 @@ export default class ProfileDetail implements OnInit {
     const currentUser = this.authService.currentUser();
 
     if (!currentUser) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/perfil/' + p?.id } });
+      this.router.navigate([ROUTES.LOGIN], {
+        queryParams: { redirect: `${ROUTES.PROFILE_DETAIL}/${p?.id}` },
+      });
       return;
     }
 
@@ -108,7 +103,7 @@ export default class ProfileDetail implements OnInit {
     this.sendingMessage.set(true);
     const mainPhoto = p.photos?.find((photo) => photo.is_main) ?? p.photos?.[0] ?? null;
     try {
-      await this.router.navigate(['/mensajes'], {
+      await this.router.navigate([ROUTES.MESSAGES], {
         queryParams: { recipient: p.user_id },
         state: {
           recipient: {
@@ -124,7 +119,6 @@ export default class ProfileDetail implements OnInit {
     }
   }
 
-  @HostListener('window:keydown', ['$event'])
   handleKeydown(event: KeyboardEvent): void {
     if (!this.hasMultiplePhotos()) return;
     const target = event.target as HTMLElement | null;
@@ -194,19 +188,4 @@ export default class ProfileDetail implements OnInit {
     event.stopPropagation();
     this.activePhotoIndex.set(index);
   }
-  readonly typeLabel = computed(() => {
-    const p = this.profile();
-    return p ? TYPE_LABELS[p.type] : '';
-  });
-  readonly scheduleLabel = computed(() => {
-    const p = this.profile();
-    return p?.schedule ? SCHEDULE_LABELS[p.schedule] : null;
-  });
-  readonly isRoommate = computed(() => this.profile()?.type === 'looking_for_roommate');
-  readonly formattedAvailableFrom = computed(() => {
-    const p = this.profile();
-    if (!p?.available_from) return null;
-    const date = new Date(p.available_from);
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-  });
 }
