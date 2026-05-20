@@ -1,0 +1,18 @@
+<section
+  [id]="htmlId()"
+  [attr.aria-labelledby]="titleId()"
+  class="scroll-mt-20 md:scroll-mt-24 bg-white border border-gray-border rounded-3xl p-5 md:p-7"
+>
+  <header class="mb-6 flex items-end justify-between gap-4">
+    <div>
+      <h2 [id]="titleId()" class="text-lg md:text-xl font-bold text-primary leading-tight">
+        {{ title() }}
+      </h2>
+      @if (description()) {
+        <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">{{ description() }}</p>
+      }
+    </div>
+    <ng-content select="[slot=header-extra]" />
+  </header>
+  <ng-content />
+</section>

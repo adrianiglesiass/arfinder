@@ -1,0 +1,26 @@
+<header class="mb-6">
+  <span
+    class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-red-500"
+  >
+    <i class="pi pi-exclamation-triangle text-[22px]"></i>
+    CUIDADO
+  </span>
+  <h2 class="text-lg md:text-xl font-bold text-primary leading-tight mt-2">Eliminar cuenta</h2>
+  <p class="text-xs md:text-sm text-gray-500 font-medium mt-1">
+    Borra tu perfil, fotos, conversaciones y mensajes. Dejarás de aparecer en las búsquedas. Esta
+    acción no se puede deshacer.
+  </p>
+</header>
+
+<app-button variant="danger" size="sm" (click)="open()" [disabled]="isDeleting()">
+  <i class="pi pi-trash text-xs"></i>
+  Eliminar mi cuenta
+</app-button>
+
+@if (showConfirm()) {
+  <app-confirm-destructive-dialog
+    [isDeleting]="isDeleting()"
+    (dismissed)="cancel()"
+    (confirmed)="confirm()"
+  />
+}

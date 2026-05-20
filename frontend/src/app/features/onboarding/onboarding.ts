@@ -9,17 +9,19 @@ import { ToastModule } from 'primeng/toast';
 
 import { ProfileCreate, ProfilePhotoResponse, ScheduleEnum, TypeEnum } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { ROUTES } from '@core/constants/routes';
 import { ErrorService } from '@core/errors';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
 import { ProfileService } from '@core/profile/profile.service';
 
 import { Button } from '@shared/components/button/button';
+import { ConfirmDestructiveDialog } from '@shared/components/confirm-destructive-dialog/confirm-destructive-dialog';
+import { StepLifestyle } from '@shared/components/profile-form/step-lifestyle/step-lifestyle';
+import { StepObjective } from '@shared/components/profile-form/step-objective/step-objective';
+import { StepProfile } from '@shared/components/profile-form/step-profile/step-profile';
+import { isLocalPhoto } from '@shared/utils/photo.utils';
 
-import { StepLifestyle } from '@features/onboarding/components/step-lifestyle/step-lifestyle';
-import { StepObjective } from '@features/onboarding/components/step-objective/step-objective';
-import { isLocalPhoto } from '@features/onboarding/components/step-photos/photo.utils';
 import { StepPhotos } from '@features/onboarding/components/step-photos/step-photos';
-import { StepProfile } from '@features/onboarding/components/step-profile/step-profile';
 
 @Component({
   selector: 'app-onboarding',
@@ -32,6 +34,7 @@ import { StepProfile } from '@features/onboarding/components/step-profile/step-p
     StepPhotos,
     DecimalPipe,
     Button,
+    ConfirmDestructiveDialog,
   ],
   providers: [MessageService],
   templateUrl: './onboarding.html',
@@ -51,6 +54,9 @@ export default class Onboarding implements OnInit {
   showErrors = signal(false);
   isReady = signal(false);
   totalSteps = 4;
+
+  showExitConfirm = signal(false);
+  isExiting = signal(false);
 
   form = signal<Partial<ProfileCreate>>({
     name: '',
@@ -207,6 +213,36 @@ export default class Onboarding implements OnInit {
     if (this.currentStep() > 1) {
       this.direction.set('backward');
       this.currentStep.update((s) => s - 1);
+    }
+  }
+
+  openExitConfirm(): void {
+    if (this.isExiting()) return;
+    this.showExitConfirm.set(true);
+  }
+
+  dismissExit(): void {
+    if (this.isExiting()) return;
+    this.showExitConfirm.set(false);
+  }
+
+  async confirmExit(): Promise<void> {
+    if (this.isExiting()) return;
+    this.isExiting.set(true);
+    try {
+      await this.authService.deleteAccount();
+      this.showExitConfirm.set(false);
+      await this.router.navigate([ROUTES.LOGIN]);
+    } catch (error: unknown) {
+      const { general } = this.errorService.processError(error as HttpErrorResponse);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'No se pudo cancelar el registro',
+        detail: general || 'Inténtalo de nuevo en unos segundos.',
+        life: 5000,
+      });
+    } finally {
+      this.isExiting.set(false);
     }
   }
 }

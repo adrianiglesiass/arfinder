@@ -1,0 +1,111 @@
+<aside class="bg-white border border-gray-border rounded-2xl p-5 md:p-6">
+  <div class="min-w-0">
+    <h1 class="text-xl md:text-2xl font-bold text-primary leading-tight">
+      {{ profile().name }}<span class="font-medium text-gray-400">, {{ profile().age }} años</span>
+    </h1>
+    <div class="flex items-center gap-1.5 text-gray-500 mt-1.5">
+      <i class="pi pi-map-marker text-xs"></i>
+      <span class="font-medium text-sm">{{ profile().city }}</span>
+    </div>
+  </div>
+
+  @if (showSendMessageButton()) {
+    <div class="hidden md:block mt-4">
+      <app-button
+        size="sm"
+        (click)="onSendMessage()"
+        [loading]="sendingMessage()"
+        [disabled]="sendingMessage()"
+      >
+        <i class="pi pi-send text-xs"></i>
+        Enviar mensaje
+      </app-button>
+    </div>
+  }
+
+  <div class="mt-5 flex items-center justify-between gap-3 px-4 py-3 bg-gray-50 rounded-xl">
+    <span class="text-xs font-bold uppercase tracking-wider text-gray-400">
+      Presupuesto máximo
+    </span>
+    @if (profile().max_budget) {
+      <span class="text-xl font-bold text-primary leading-none tabular-nums">
+        {{ profile().max_budget }} €
+        <span class="text-[11px] font-bold text-gray-400 tracking-wider ml-0.5">/ MES</span>
+      </span>
+    } @else {
+      <span class="inline-flex items-center gap-1.5 text-xl font-bold text-primary leading-none">
+        <span class="material-symbols-rounded text-[20px]! text-gray-400">all_inclusive</span>
+        Sin límite
+      </span>
+    }
+  </div>
+
+  <div class="mt-5 flex flex-wrap gap-2">
+    <span
+      class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[12px] font-bold"
+      [class.bg-emerald-50]="profile().has_pets"
+      [class.text-emerald-700]="profile().has_pets"
+      [class.bg-gray-50]="!profile().has_pets"
+      [class.text-gray-500]="!profile().has_pets"
+    >
+      <span class="material-symbols-rounded text-[16px]!">pets</span>
+      {{ profile().has_pets ? 'Mascotas' : 'Sin mascotas' }}
+    </span>
+    <span
+      class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[12px] font-bold"
+      [class.bg-amber-50]="profile().is_smoker"
+      [class.text-amber-700]="profile().is_smoker"
+      [class.bg-gray-50]="!profile().is_smoker"
+      [class.text-gray-500]="!profile().is_smoker"
+    >
+      <span class="material-symbols-rounded text-[16px]!">smoking_rooms</span>
+      {{ profile().is_smoker ? 'Fumador/a' : 'No fumador/a' }}
+    </span>
+    @if (scheduleLabel()) {
+      <span
+        class="inline-flex items-center gap-1.5 h-8 px-3 bg-indigo-50 text-indigo-700 rounded-full text-[12px] font-bold"
+      >
+        <span class="material-symbols-rounded text-[16px]!">schedule</span>
+        {{ scheduleLabel() }}
+      </span>
+    }
+    @if (profile().gender) {
+      <span
+        class="inline-flex items-center gap-1.5 h-8 px-3 bg-gray-50 text-primary rounded-full text-[12px] font-bold"
+      >
+        <span class="material-symbols-rounded text-[16px]!">person</span>
+        {{ profile().gender }}
+      </span>
+    }
+  </div>
+
+  @if (formattedAvailableFrom()) {
+    <div class="mt-4 flex items-center gap-2 text-sm text-gray-500">
+      <span class="material-symbols-rounded text-[18px]! text-gray-400">event</span>
+      <span
+        >Disponible desde
+        <span class="font-semibold text-primary">{{ formattedAvailableFrom() }}</span></span
+      >
+    </div>
+  }
+
+  <div class="mt-6 pt-6 border-t border-gray-100">
+    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Sobre mí</h2>
+    @if (profile().bio) {
+      <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ profile().bio }}</p>
+    } @else {
+      <p class="text-gray-400 italic text-sm">
+        {{ profile().name }} aún no ha escrito una descripción.
+      </p>
+    }
+  </div>
+
+  @if (isRoommate() && profile().room_description) {
+    <div class="mt-6 pt-6 border-t border-gray-100">
+      <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">La habitación</h2>
+      <p class="text-gray-700 leading-relaxed whitespace-pre-line">
+        {{ profile().room_description }}
+      </p>
+    </div>
+  }
+</aside>

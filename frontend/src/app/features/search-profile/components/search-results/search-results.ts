@@ -8,11 +8,12 @@ import {
   viewChild,
 } from '@angular/core';
 
-import { ProfileSearchService } from '@core/profileSearch/profile-search.service';
+import { ProfileSearchService } from '@core/profile-search/profile-search.service';
 
 import { Button } from '@shared/components/button/button';
-import { ProfileCard } from '@shared/components/profile-card/profile-card';
 import { Spinner } from '@shared/components/spinner/spinner';
+
+import { ProfileCard } from '@features/profile/components/profile-card/profile-card';
 
 @Component({
   selector: 'app-search-results',

@@ -21,16 +21,18 @@ import {
   ScheduleEnum,
   TypeEnum,
 } from '@core/api/api.models';
+import { ROUTES } from '@core/constants/routes';
 import { ErrorService } from '@core/errors';
 import { ProfileService } from '@core/profile/profile.service';
 
 import { Button } from '@shared/components/button/button';
+import { StepLifestyle } from '@shared/components/profile-form/step-lifestyle/step-lifestyle';
+import { StepObjective } from '@shared/components/profile-form/step-objective/step-objective';
+import { StepProfile } from '@shared/components/profile-form/step-profile/step-profile';
 
-import { StepLifestyle } from '@features/onboarding/components/step-lifestyle/step-lifestyle';
-import { StepObjective } from '@features/onboarding/components/step-objective/step-objective';
-import { StepProfile } from '@features/onboarding/components/step-profile/step-profile';
-
-import { PhotosEditor } from './photos-editor/photos-editor';
+import { DangerZone } from '@features/profile/edit/danger-zone/danger-zone';
+import { EditSection } from '@features/profile/edit/edit-section/edit-section';
+import { PhotosEditor } from '@features/profile/edit/photos-editor/photos-editor';
 
 type EditableField =
   | 'name'
@@ -49,7 +51,7 @@ type EditableField =
 type FormState = Pick<ProfileResponse, EditableField>;
 
 interface Section {
-  id: 'photos' | 'profile' | 'objective' | 'lifestyle';
+  id: 'photos' | 'profile' | 'objective' | 'lifestyle' | 'danger';
   label: string;
   icon: string;
 }
@@ -64,6 +66,8 @@ interface Section {
     StepObjective,
     StepLifestyle,
     PhotosEditor,
+    DangerZone,
+    EditSection,
   ],
   providers: [MessageService],
   templateUrl: './profile-edit.html',
@@ -87,6 +91,7 @@ export default class ProfileEdit implements OnInit {
     { id: 'profile', label: 'Información', icon: 'pi pi-user' },
     { id: 'objective', label: 'Objetivo', icon: 'pi pi-compass' },
     { id: 'lifestyle', label: 'Estilo', icon: 'pi pi-heart' },
+    { id: 'danger', label: 'Cuenta', icon: 'pi pi-shield' },
   ];
 
   private readonly initialState = signal<FormState | null>(null);
@@ -247,6 +252,6 @@ export default class ProfileEdit implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/explorar']);
+    this.router.navigate([ROUTES.EXPLORE]);
   }
 }

@@ -1,0 +1,40 @@
+<header class="px-3 sm:px-4 py-3 border-b border-gray-100 flex items-center gap-2 sm:gap-3">
+  <button
+    type="button"
+    class="md:hidden -ml-1 w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-700 transition-colors"
+    aria-label="Volver"
+    (click)="onBack()"
+  >
+    <span class="material-symbols-rounded">arrow_back</span>
+  </button>
+  @if (header()?.profile_id; as pid) {
+    <a
+      [routerLink]="[profileRoute, pid]"
+      class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 -my-1 py-1 px-1.5 -ml-1.5 rounded-full hover:bg-gray-50 active:bg-gray-100 transition-colors no-underline group cursor-pointer"
+      [attr.aria-label]="'Ver perfil de ' + (header()?.name ?? 'usuario')"
+    >
+      <app-avatar
+        [src]="header()?.photo_url ?? null"
+        [alt]="header()?.name ?? 'Usuario'"
+        size="sm"
+      />
+      <h3
+        class="font-semibold text-gray-900 text-sm sm:text-base truncate group-hover:text-primary transition-colors"
+      >
+        {{ header()?.name ?? 'Usuario' }}
+      </h3>
+      <i class="pi pi-arrow-up-right text-[10px] text-gray-400 shrink-0 hidden sm:inline"></i>
+    </a>
+  } @else {
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+      <app-avatar
+        [src]="header()?.photo_url ?? null"
+        [alt]="header()?.name ?? 'Usuario'"
+        size="sm"
+      />
+      <h3 class="font-semibold text-gray-900 text-sm sm:text-base truncate">
+        {{ header()?.name ?? 'Usuario' }}
+      </h3>
+    </div>
+  }
+</header>

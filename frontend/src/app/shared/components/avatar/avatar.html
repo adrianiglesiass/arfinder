@@ -1,0 +1,10 @@
+<div
+  [class]="sizeClass()"
+  class="rounded-full overflow-hidden bg-zinc-100 flex items-center justify-center shrink-0"
+>
+  @if (src()) {
+    <img [src]="src()" [alt]="alt()" class="w-full h-full object-cover" />
+  } @else {
+    <span [class]="iconSizeClass()" class="material-symbols-rounded text-zinc-400">person</span>
+  }
+</div>
