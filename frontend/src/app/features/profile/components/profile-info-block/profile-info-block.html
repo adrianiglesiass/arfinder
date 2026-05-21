@@ -26,21 +26,23 @@
   }
 
   <div class="mt-7 pt-7 border-t border-hairline">
-    <div class="flex items-end justify-between gap-3">
-      <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400 pb-2">
-        Presupuesto máximo
+    <span class="block text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">
+      Presupuesto máximo
+    </span>
+    @if (profile().max_budget) {
+      <span
+        class="mt-2 block text-[40px] font-bold text-primary leading-none tracking-tight tabular-nums whitespace-nowrap"
+      >
+        {{ profile().max_budget }}<span class="text-2xl"> €</span>
       </span>
-      @if (profile().max_budget) {
-        <span class="text-[40px] font-bold text-primary leading-none tracking-tight tabular-nums">
-          {{ profile().max_budget }}<span class="text-2xl"> €</span>
-        </span>
-      } @else {
-        <span class="inline-flex items-center gap-1.5 text-2xl font-bold text-primary leading-none">
-          <span class="material-symbols-rounded text-[22px]! text-gray-400">all_inclusive</span>
-          Sin límite
-        </span>
-      }
-    </div>
+    } @else {
+      <span
+        class="mt-2 inline-flex items-center gap-1.5 text-2xl font-bold text-primary leading-none"
+      >
+        <span class="material-symbols-rounded text-[22px]! text-gray-400">all_inclusive</span>
+        Sin límite
+      </span>
+    }
   </div>
 
   <dl class="mt-7 border-t border-hairline">

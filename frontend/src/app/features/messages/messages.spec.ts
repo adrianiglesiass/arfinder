@@ -86,7 +86,12 @@ describe('Messages — pagination', () => {
         { provide: AuthService, useValue: authMock },
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { queryParamMap: convertToParamMap({}) } },
+          useValue: {
+            snapshot: {
+              paramMap: convertToParamMap({}),
+              queryParamMap: convertToParamMap({}),
+            },
+          },
         },
       ],
     }).compileComponents();

@@ -3,7 +3,19 @@ from app.models import Conversation, User, Profile
 
 
 def get_conversation_by_id(db: Session, conversation_id: int) -> Conversation | None:
-    return db.get(Conversation, conversation_id)
+    return (
+        db.query(Conversation)
+        .options(
+            joinedload(Conversation.user1)
+            .joinedload(User.profile)
+            .selectinload(Profile.photos),
+            joinedload(Conversation.user2)
+            .joinedload(User.profile)
+            .selectinload(Profile.photos),
+        )
+        .filter(Conversation.id == conversation_id)
+        .first()
+    )
 
 
 def get_conversation_between_users(

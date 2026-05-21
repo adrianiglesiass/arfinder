@@ -129,7 +129,7 @@ async def upload_profile_photo(
 
 
 @router.get("/me/photos", response_model=List[ProfilePhotoResponse], responses=UNAUTH)
-async def list_profile_photos(
+def list_profile_photos(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     try:
@@ -143,7 +143,7 @@ async def list_profile_photos(
 @router.patch(
     "/me/photos/reorder", response_model=List[ProfilePhotoResponse], responses=PROTECTED
 )
-async def reorder_profile_photos(
+def reorder_profile_photos(
     data: _PhotoReorder,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -161,7 +161,7 @@ async def catch_reorder_delete():
 @router.patch(
     "/me/photos/{photo_id}", response_model=ProfilePhotoResponse, responses=PROTECTED
 )
-async def update_profile_photo(
+def update_profile_photo(
     photo_id: int,
     data: _PhotoUpdate,
     db: Session = Depends(get_db),
@@ -173,7 +173,7 @@ async def update_profile_photo(
 
 
 @router.delete("/me/photos/{photo_id}", responses=PROTECTED)
-async def delete_profile_photo(
+def delete_profile_photo(
     photo_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

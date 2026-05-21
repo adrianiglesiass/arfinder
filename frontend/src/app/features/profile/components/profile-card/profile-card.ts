@@ -17,6 +17,7 @@ import { SCHEDULE_LABELS, TYPE_LABELS } from '@features/profile/profile-labels';
 })
 export class ProfileCard {
   readonly profile = input.required<ProfileSummary>();
+  readonly priority = input(false);
 
   private readonly profileService = inject(ProfileService);
 

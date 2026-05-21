@@ -15,6 +15,7 @@ export class ConversationListItem {
   readonly isSelected = input<boolean>(false);
   readonly lastMessageTime = input<string>('');
   readonly lastMessagePreview = input<string>('');
+  readonly priority = input<boolean>(false);
 
   readonly selected = output<ConversationResponse>();
 

@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -52,6 +53,7 @@ export default class Messages implements OnInit {
   protected readonly exploreRoute = ROUTES.EXPLORE;
 
   private readonly route = inject(ActivatedRoute);
+  private readonly location = inject(Location);
   private readonly conversationApi = inject(ConversationApiService);
   private readonly authService = inject(AuthService);
   private readonly realtimeService = inject(RealtimeService);
@@ -156,9 +158,8 @@ export default class Messages implements OnInit {
       this.onReadForActive(convId, msgId, isRead, readAt)
     );
 
-    const params = this.route.snapshot.queryParamMap;
-    const conversationId = params.get('conversation');
-    const recipient = params.get('recipient');
+    const conversationId = this.route.snapshot.paramMap.get('conversationId');
+    const recipient = this.route.snapshot.queryParamMap.get('recipient');
 
     if (conversationId) {
       const convId = Number(conversationId);
@@ -268,6 +269,7 @@ export default class Messages implements OnInit {
   closeConversation(): void {
     this.selectionEpoch++;
     this.store.setActiveConversation(null);
+    this.location.go(ROUTES.MESSAGES);
     this.selectedConversation.set(null);
     this.draftRecipient.set(null);
     this.messages.set([]);
@@ -285,6 +287,7 @@ export default class Messages implements OnInit {
     this.isLoadingOlder.set(false);
     this.initialScrollDone.set(false);
     this.store.setActiveConversation(conv.id);
+    this.location.go(`${ROUTES.MESSAGES}/${conv.id}`);
     void this.realtimeService.subscribeConversation(conv.id);
 
     try {
@@ -442,6 +445,7 @@ export default class Messages implements OnInit {
       this.draftRecipient.set(null);
       this.selectedConversation.set(created);
       this.store.setActiveConversation(created.id);
+      this.location.go(`${ROUTES.MESSAGES}/${created.id}`);
       void this.realtimeService.subscribeConversation(created.id);
       return;
     }
@@ -465,6 +469,7 @@ export default class Messages implements OnInit {
     this.draftRecipient.set(null);
     this.selectedConversation.set(fallback);
     this.store.setActiveConversation(fallback.id);
+    this.location.go(`${ROUTES.MESSAGES}/${fallback.id}`);
     void this.realtimeService.subscribeConversation(fallback.id);
   }
 
