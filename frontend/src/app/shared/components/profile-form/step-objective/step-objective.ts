@@ -49,6 +49,6 @@ export class StepObjective {
   cardClasses(selected: boolean) {
     return selected
       ? 'border-accent bg-accent/5 ring-1 ring-accent'
-      : 'border-gray-100 hover:border-accent/30 bg-white';
+      : 'border-hairline hover:border-accent/30 bg-white';
   }
 }

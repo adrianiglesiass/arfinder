@@ -26,7 +26,7 @@ export class MessageComposer {
 
   protected readonly submitClass = computed(() =>
     this.canSend()
-      ? 'bg-[#007aff] hover:bg-[#0066d6] active:bg-[#0052b3] active:scale-95 cursor-pointer'
+      ? 'bg-chat-sent hover:bg-chat-sent-hover active:bg-chat-sent-active active:scale-95 cursor-pointer'
       : 'bg-gray-300 cursor-not-allowed'
   );
 

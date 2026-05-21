@@ -10,6 +10,14 @@
   --color-gray-border: #e4e4e7;
   --color-gray-soft: #ffffff;
 
+  --color-hairline: #ececec;
+
+  --color-chat-sent: #007aff;
+  --color-chat-sent-hover: #0066d6;
+  --color-chat-sent-active: #0052b3;
+  --color-chat-received: #e5e5ea;
+  --color-chat-read: #5ac8fa;
+
   --shadow-premium: 0 4px 12px 0 rgba(0, 0, 0, 0.03);
   --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
 
@@ -193,6 +201,21 @@
   to {
     opacity: 1;
   }
+}
+
+@keyframes deck-enter {
+  from {
+    transform: translate3d(-130%, 0, 0) rotate(-14deg);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0) rotate(0);
+    opacity: 1;
+  }
+}
+
+.deck-enter {
+  animation: deck-enter 300ms var(--ease-apple) both;
 }
 
 .cdk-drop-list-dragging {

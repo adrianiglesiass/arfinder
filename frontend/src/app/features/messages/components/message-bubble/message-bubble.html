@@ -6,7 +6,7 @@
     @if (hasTail()) {
       @if (isOwn()) {
         <svg
-          class="absolute bottom-0 -right-2.25 w-2.75 h-4 text-[#007aff]"
+          class="absolute bottom-0 -right-2.25 w-2.75 h-4 text-chat-sent"
           viewBox="0 0 11 16"
           fill="currentColor"
           aria-hidden="true"
@@ -15,7 +15,7 @@
         </svg>
       } @else {
         <svg
-          class="absolute bottom-0 -left-2.25 w-2.75 h-4 text-[#e5e5ea]"
+          class="absolute bottom-0 -left-2.25 w-2.75 h-4 text-chat-received"
           viewBox="0 0 11 16"
           fill="currentColor"
           aria-hidden="true"
@@ -35,7 +35,7 @@
             <svg
               viewBox="0 0 18 14"
               class="w-4 h-3 shrink-0"
-              [class.text-[#5ac8fa]]="message().is_read"
+              [class.text-chat-read]="message().is_read"
               fill="none"
               stroke="currentColor"
               stroke-width="1.8"
