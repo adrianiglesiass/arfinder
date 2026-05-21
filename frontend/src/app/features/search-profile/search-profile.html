@@ -1,7 +1,9 @@
-<section class="w-full px-5 md:px-6 xl:px-8 pt-6 pb-16">
-  <header class="mb-5 flex items-end justify-between gap-3">
+<section class="w-full px-3 md:px-6 xl:px-8 pt-5 pb-3" [class]="sectionClass()">
+  <header class="shrink-0 mb-4 flex items-end justify-between gap-3">
     <div class="min-w-0">
-      <h1 class="text-xl md:text-2xl font-bold text-primary leading-tight">Explora compañeros</h1>
+      <h1 class="text-2xl md:text-3xl font-bold text-primary tracking-tight leading-none">
+        Explora compañeros
+      </h1>
       <p class="text-sm text-gray-500 font-medium mt-1" aria-live="polite">
         @if (isLoading()) {
           Buscando perfiles...
@@ -11,17 +13,38 @@
       </p>
     </div>
 
-    <div class="lg:hidden shrink-0">
+    <div class="shrink-0 flex items-center gap-2">
+      <div class="inline-flex border border-gray-border" role="group" aria-label="Tipo de vista">
+        <app-icon-button
+          variant="toggle"
+          size="sm"
+          label="Vista de tarjetas"
+          [active]="viewMode() === 'deck'"
+          (click)="setViewMode('deck')"
+        >
+          <span class="material-symbols-rounded text-[20px]!">style</span>
+        </app-icon-button>
+        <app-icon-button
+          variant="toggle"
+          size="sm"
+          label="Vista de cuadrícula"
+          [active]="viewMode() === 'grid'"
+          (click)="setViewMode('grid')"
+        >
+          <span class="material-symbols-rounded text-[20px]!">grid_view</span>
+        </app-icon-button>
+      </div>
+
       <button
         type="button"
         (click)="toggleFilters()"
-        class="relative inline-flex items-center gap-2 h-10 px-4 rounded-full bg-primary text-white text-[12px] font-bold transition-all active:scale-[0.97] cursor-pointer"
+        class="lg:hidden relative inline-flex items-center gap-2 h-10 px-4 bg-primary text-white text-[12px] font-bold uppercase tracking-wider transition-all active:scale-[0.97] cursor-pointer"
       >
         <i class="pi pi-sliders-h text-[12px]"></i>
         Filtros
         @if (activeFilterCount()) {
           <span
-            class="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-white text-primary text-[10px] font-bold tabular-nums"
+            class="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 bg-white text-primary text-[10px] font-bold tabular-nums"
           >
             {{ activeFilterCount() }}
           </span>
@@ -31,16 +54,20 @@
   </header>
 
   @if (activeChips().length) {
-    <div class="flex flex-wrap items-center gap-2 mb-5" role="region" aria-label="Filtros activos">
+    <div
+      class="shrink-0 flex flex-wrap items-center gap-2 mb-3"
+      role="region"
+      aria-label="Filtros activos"
+    >
       @for (chip of activeChips(); track chip.key) {
         <button
           type="button"
           (click)="removeFilter(chip.key)"
-          class="inline-flex items-center gap-1.5 h-8 pl-3 pr-2 bg-primary text-white rounded-full text-[12px] font-semibold cursor-pointer transition-all active:scale-[0.97]"
+          class="inline-flex items-center gap-1.5 h-8 pl-3 pr-2 bg-primary text-white text-[12px] font-semibold cursor-pointer transition-all active:scale-[0.97]"
           [attr.aria-label]="'Quitar filtro ' + chip.label"
         >
           <span>{{ chip.label }}</span>
-          <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20">
+          <span class="inline-flex items-center justify-center w-5 h-5 bg-white/20">
             <i class="pi pi-times text-[9px]"></i>
           </span>
         </button>
@@ -48,7 +75,11 @@
     </div>
   }
 
-  <app-search-results />
+  @if (viewMode() === 'deck') {
+    <app-profile-deck class="flex-1 min-h-0 block" />
+  } @else {
+    <app-profile-grid />
+  }
 
   @if (filtersOpen()) {
     <div class="lg:hidden fixed inset-0 z-50 animate-fade-in">
@@ -94,7 +125,7 @@
           <app-search-filters />
         </div>
 
-        <div class="shrink-0 px-4 pt-4 pb-24 border-t border-gray-100">
+        <div class="shrink-0 px-4 pt-4 pb-24 border-t border-hairline">
           <app-button class="w-full" (click)="closeFilters()">Ver resultados</app-button>
         </div>
       </div>

@@ -1,0 +1,62 @@
+@if (isLoading()) {
+  <div
+    class="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 animate-fade-in"
+    aria-busy="true"
+    aria-live="polite"
+  >
+    @for (s of skeletons; track $index) {
+      <div class="bg-white border border-gray-border rounded-3xl overflow-hidden">
+        <div class="aspect-3/4 bg-gray-100 animate-pulse"></div>
+        <div class="flex gap-1.5 p-4">
+          <div class="h-7 w-16 bg-gray-100 rounded-full animate-pulse"></div>
+          <div class="h-7 w-20 bg-gray-100 rounded-full animate-pulse"></div>
+        </div>
+      </div>
+    }
+  </div>
+  <span class="sr-only">Cargando perfiles...</span>
+} @else if (error() && profiles().length === 0) {
+  <app-empty-state
+    icon="error"
+    title="No pudimos cargar los perfiles"
+    message="Revisa tu conexión e inténtalo de nuevo."
+  >
+    <app-button (click)="retry()">Reintentar</app-button>
+  </app-empty-state>
+} @else if (!profiles().length) {
+  <app-empty-state
+    icon="search_off"
+    title="Sin resultados"
+    [message]="
+      hasActiveFilters()
+        ? 'No hay perfiles con estos filtros. Prueba a relajar alguno.'
+        : 'Aún no hay perfiles disponibles. Vuelve más tarde.'
+    "
+  >
+    @if (hasActiveFilters()) {
+      <app-button (click)="reset()">
+        <i class="pi pi-refresh text-xs"></i>
+        Limpiar filtros
+      </app-button>
+    }
+  </app-empty-state>
+} @else {
+  <div class="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 animate-fade-in">
+    @for (profile of profiles(); track profile.id) {
+      <app-profile-card [profile]="profile" />
+    }
+  </div>
+
+  <div #sentinel class="h-px w-full" aria-hidden="true"></div>
+
+  @if (isLoadingMore()) {
+    <div class="flex items-center justify-center py-8">
+      <app-spinner />
+      <span class="sr-only">Cargando más perfiles...</span>
+    </div>
+  } @else if (!hasMore() && profiles().length > 8) {
+    <p class="text-center text-xs font-medium text-gray-400 py-8">
+      Has visto todos los perfiles disponibles
+    </p>
+  }
+}
