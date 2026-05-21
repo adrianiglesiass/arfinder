@@ -34,7 +34,12 @@
       </div>
 
       <div class="relative pt-4">
-        <div class="relative w-full h-full">
+        <div
+          #stepHost
+          class="relative w-full h-full transition-[height] duration-700 ease-apple"
+          [class.overflow-hidden]="lockedHeight() !== null"
+          [style.height.px]="lockedHeight()"
+        >
           @switch (currentStep()) {
             @case (1) {
               <div
