@@ -3,7 +3,7 @@
   [attr.data-chat-fullscreen]="chatActive() ? '' : null"
   [class]="
     chatActive()
-      ? 'fixed top-0 inset-x-0 z-50 h-[100dvh] md:relative md:inset-auto md:top-auto md:z-auto md:h-screen'
+      ? 'fixed top-0 inset-x-0 z-50 h-dvh md:relative md:inset-auto md:top-auto md:z-auto md:h-screen'
       : 'h-[calc(100dvh-6.5rem)] md:h-screen'
   "
   [style.height.px]="mobileChatHeightPx()"
@@ -40,12 +40,13 @@
             </a>
           </div>
         } @else {
-          @for (conv of conversations(); track conv.id) {
+          @for (conv of conversations(); track conv.id; let i = $index) {
             <app-conversation-list-item
               [conversation]="conv"
               [isSelected]="selectedConversation()?.id === conv.id"
               [lastMessageTime]="getLastMessageTime(conv)"
               [lastMessagePreview]="getLastMessagePreview(conv)"
+              [priority]="i < 6"
               (selected)="selectConversation($event)"
             />
           }

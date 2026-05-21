@@ -1,3 +1,4 @@
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import type { ProfilePhotoResponse, TypeEnum } from '@core/api/api.models';
@@ -8,6 +9,7 @@ import { TYPE_LABELS } from '@features/profile/profile-labels';
   selector: 'app-photo-gallery',
   templateUrl: './photo-gallery.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgOptimizedImage],
 })
 export class PhotoGallery {
   readonly photos = input.required<ProfilePhotoResponse[]>();

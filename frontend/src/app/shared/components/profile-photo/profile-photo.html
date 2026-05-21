@@ -1,11 +1,22 @@
 @if (src(); as source) {
-  <img
-    [src]="source"
-    [alt]="alt()"
-    loading="lazy"
-    draggable="false"
-    [class]="'absolute inset-0 w-full h-full object-cover ' + imgClass()"
-  />
+  @if (priority()) {
+    <img
+      [ngSrc]="source"
+      fill
+      priority
+      [alt]="alt()"
+      draggable="false"
+      [class]="'absolute inset-0 w-full h-full object-cover ' + imgClass()"
+    />
+  } @else {
+    <img
+      [ngSrc]="source"
+      fill
+      [alt]="alt()"
+      draggable="false"
+      [class]="'absolute inset-0 w-full h-full object-cover ' + imgClass()"
+    />
+  }
 } @else {
   <div class="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-300">
     <span class="material-symbols-rounded text-7xl">person</span>

@@ -1,3 +1,4 @@
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 export type AvatarSize = 'sm' | 'md' | 'lg';
@@ -6,11 +7,13 @@ export type AvatarSize = 'sm' | 'md' | 'lg';
   selector: 'app-avatar',
   templateUrl: './avatar.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgOptimizedImage],
 })
 export class Avatar {
   readonly src = input<string | null>(null);
   readonly alt = input<string>('Avatar');
   readonly size = input<AvatarSize>('md');
+  readonly priority = input(false);
 
   protected readonly sizeClass = computed(() => {
     const map: Record<AvatarSize, string> = {

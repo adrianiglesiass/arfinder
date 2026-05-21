@@ -6,15 +6,15 @@
   @if (hasPhotos()) {
     @for (photo of photos(); track photo.id; let i = $index) {
       <img
-        [src]="photo.photo_url"
+        [ngSrc]="photo.photo_url"
+        fill
+        sizes="(max-width: 768px) 100vw, 50vw"
+        [priority]="i === 0"
         [alt]="name() + ' foto ' + (i + 1)"
         class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
         [class.opacity-100]="i === activeIndex()"
         [class.opacity-0]="i !== activeIndex()"
         [attr.aria-hidden]="i !== activeIndex()"
-        [attr.fetchpriority]="i === 0 ? 'high' : 'low'"
-        [attr.loading]="i === 0 ? 'eager' : 'lazy'"
-        [attr.decoding]="i === 0 ? 'sync' : 'async'"
       />
     }
 

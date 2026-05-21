@@ -9,6 +9,7 @@
       [src]="conversation().other_user?.photo_url ?? null"
       [alt]="conversation().other_user?.name ?? 'Usuario'"
       size="md"
+      [priority]="priority()"
     />
     <div class="flex-1 min-w-0">
       <div class="flex items-center justify-between gap-2">
