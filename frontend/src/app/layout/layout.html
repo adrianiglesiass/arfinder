@@ -8,7 +8,7 @@
     [class.xl:grid-cols-[260px_minmax(0,1fr)_360px]]="!!rightPanel.template()"
     [class.2xl:grid-cols-[280px_minmax(0,1fr)_380px]]="!!rightPanel.template()"
   >
-    <div class="hidden md:block border-r border-gray-100">
+    <div class="hidden md:block border-r border-hairline">
       <app-sidebar-nav />
     </div>
 
@@ -17,7 +17,7 @@
     </main>
 
     @if (rightPanel.template(); as tpl) {
-      <aside class="hidden lg:block border-l border-gray-100">
+      <aside class="hidden lg:block border-l border-hairline">
         <div class="sticky top-0 h-screen overflow-y-auto py-6 px-4">
           <ng-container [ngTemplateOutlet]="tpl" />
         </div>

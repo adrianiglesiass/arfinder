@@ -8,16 +8,12 @@
         routerLinkActive
         #rla="routerLinkActive"
         class="flex flex-col items-center justify-center gap-1 no-underline transition-all duration-200 min-w-17.5"
-        [class]="rla.isActive ? 'text-primary scale-110' : 'text-zinc-500'"
+        [class]="rla.isActive ? 'text-primary scale-110' : 'text-gray-500'"
       >
         <div class="h-8 flex items-center justify-center relative">
           <i [class]="item.icon + ' text-xl'"></i>
           @if (item.badge?.(); as badge) {
-            <span
-              class="absolute -top-0.5 -right-1.5 bg-red-500 text-white text-[8px] min-w-3.5 h-3.5 px-0.5 rounded-full flex items-center justify-center font-bold border border-white shadow-sm"
-            >
-              {{ badge }}
-            </span>
+            <app-nav-badge>{{ badge }}</app-nav-badge>
           }
         </div>
         <span class="text-[10px] font-semibold leading-none">{{ item.label }}</span>
@@ -28,7 +24,7 @@
       class="flex flex-col items-center justify-center gap-1 transition-all duration-200 min-w-17.5"
     >
       <app-navbar-user-menu />
-      <span class="text-[10px] font-semibold leading-none text-zinc-500">{{ profileLabel() }}</span>
+      <span class="text-[10px] font-semibold leading-none text-gray-500">{{ profileLabel() }}</span>
     </div>
   </div>
 </nav>

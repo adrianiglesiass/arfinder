@@ -32,16 +32,12 @@
             class="group flex items-center gap-4 px-3 py-3 rounded-full transition-colors no-underline hover:bg-gray-50 justify-center xl:justify-start"
             [class.font-bold]="rla.isActive"
             [class.text-primary]="rla.isActive"
-            [class.text-zinc-600]="!rla.isActive"
+            [class.text-gray-600]="!rla.isActive"
           >
             <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
               <i [class]="item.icon + ' text-xl'"></i>
               @if (item.badge?.(); as badge) {
-                <span
-                  class="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] min-w-4 h-4 px-1 rounded-full inline-flex items-center justify-center font-bold leading-none"
-                >
-                  {{ badge }}
-                </span>
+                <app-nav-badge>{{ badge }}</app-nav-badge>
               }
             </div>
             <span class="hidden xl:inline text-[15px]">{{ item.label }}</span>
