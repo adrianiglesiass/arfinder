@@ -58,6 +58,11 @@ export const routes: Routes = [
         loadComponent: () => import('@features/messages/messages'),
         canActivate: [authGuard],
       },
+      {
+        path: 'mensajes/:conversationId',
+        loadComponent: () => import('@features/messages/messages'),
+        canActivate: [authGuard],
+      },
     ],
   },
 
