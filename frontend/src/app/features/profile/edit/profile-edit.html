@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-gray-50/40 pb-32 md:pb-10">
-  <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-gray-100">
+  <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-hairline">
     <div
       class="w-full max-w-5xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-3"
     >
@@ -144,7 +144,7 @@
 
           <section
             id="section-danger"
-            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-red-200 rounded-3xl p-5 md:p-7"
+            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-red-200 rounded-3xl p-5 mt-5 md:p-7"
           >
             <app-danger-zone />
           </section>
@@ -153,17 +153,12 @@
     </div>
 
     @if (isDirty()) {
-      <div class="md:hidden fixed bottom-24 left-4 right-4 z-40">
-        <div
-          class="bg-white border border-gray-border rounded-full shadow-lg p-1.5 pl-4 flex items-center justify-between gap-3"
-        >
-          <span class="text-[12px] font-bold text-primary truncate"> Editando perfil </span>
-          <app-button size="sm" (click)="save()" [disabled]="!canSave()" [loading]="isSaving()">
-            <i class="pi pi-check text-xs"></i>
-            Guardar
-          </app-button>
-        </div>
-      </div>
+      <app-mobile-action-bar label="Editando perfil">
+        <app-button size="sm" (click)="save()" [disabled]="!canSave()" [loading]="isSaving()">
+          <i class="pi pi-check text-xs"></i>
+          Guardar
+        </app-button>
+      </app-mobile-action-bar>
     }
   }
 </div>

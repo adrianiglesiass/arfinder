@@ -1,5 +1,5 @@
 <div
-  class="relative w-full bg-gray-100 overflow-hidden group aspect-4/5 sm:aspect-3/4 md:aspect-auto md:h-[calc(100svh-7rem)] md:sticky md:top-4"
+  class="relative w-full bg-gray-100 overflow-hidden rounded-3xl group aspect-4/5 sm:aspect-3/4 md:aspect-auto md:h-[calc(100svh-7rem)] md:sticky md:top-4"
   (touchstart)="onTouchStart($event)"
   (touchend)="onTouchEnd($event)"
 >
@@ -19,38 +19,34 @@
     }
 
     @if (hasMultiple()) {
-      <button
-        type="button"
-        (click)="onPrev($event)"
-        aria-label="Foto anterior"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-primary shadow-md md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-opacity cursor-pointer z-10"
-      >
-        <i class="pi pi-chevron-left text-xs"></i>
-      </button>
-      <button
-        type="button"
-        (click)="onNext($event)"
-        aria-label="Foto siguiente"
-        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-primary shadow-md md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-opacity cursor-pointer z-10"
-      >
-        <i class="pi pi-chevron-right text-xs"></i>
-      </button>
-
-      <div
-        class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-2 rounded-full bg-black/35 backdrop-blur-sm z-10"
-      >
+      <div class="absolute top-0 inset-x-0 flex gap-1 p-3 z-10">
         @for (photo of photos(); track photo.id; let i = $index) {
           <button
             type="button"
             (click)="onGoTo(i, $event)"
             [attr.aria-label]="'Ir a foto ' + (i + 1)"
-            class="h-1.5 rounded-full bg-white transition-all cursor-pointer"
-            [class.w-5]="i === activeIndex()"
-            [class.w-1.5]="i !== activeIndex()"
-            [class.opacity-60]="i !== activeIndex()"
+            class="flex-1 h-0.5 transition-colors cursor-pointer"
+            [class]="i === activeIndex() ? 'bg-white' : 'bg-white/35'"
           ></button>
         }
       </div>
+
+      <button
+        type="button"
+        (click)="onPrev($event)"
+        aria-label="Foto anterior"
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/45 text-white focus-visible:outline-none transition-all cursor-pointer z-10"
+      >
+        <i class="pi pi-chevron-left text-sm"></i>
+      </button>
+      <button
+        type="button"
+        (click)="onNext($event)"
+        aria-label="Foto siguiente"
+        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/45 text-white focus-visible:outline-none transition-all cursor-pointer z-10"
+      >
+        <i class="pi pi-chevron-right text-sm"></i>
+      </button>
     }
   } @else {
     <div class="w-full h-full flex items-center justify-center text-gray-300">
@@ -59,7 +55,7 @@
   }
 
   <span
-    class="absolute top-4 left-4 px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-full text-[11px] font-bold uppercase tracking-wider text-primary shadow-sm z-10"
+    class="absolute bottom-4 left-4 px-3 py-1.5 bg-white text-[11px] font-bold uppercase tracking-[0.18em] text-primary z-10"
   >
     {{ typeLabel() }}
   </span>

@@ -4,7 +4,7 @@ import type { ProfileResponse } from '@core/api/api.models';
 
 import { Button } from '@shared/components/button/button';
 
-import { SCHEDULE_LABELS } from '@features/profile/profile-labels';
+import { SCHEDULE_LABELS, TYPE_LABELS } from '@features/profile/profile-labels';
 
 @Component({
   selector: 'app-profile-info-block',
@@ -23,6 +23,8 @@ export class ProfileInfoBlock {
     const schedule = this.profile().schedule;
     return schedule ? SCHEDULE_LABELS[schedule] : null;
   });
+
+  protected readonly typeLabel = computed(() => TYPE_LABELS[this.profile().type]);
 
   protected readonly isRoommate = computed(() => this.profile().type === 'looking_for_roommate');
 
