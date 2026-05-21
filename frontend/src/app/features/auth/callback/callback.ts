@@ -35,7 +35,7 @@ export default class AuthCallback implements OnInit {
       try {
         await this.authService.navigatePostAuth();
       } catch {
-        /* invalidateSession already routes to /login on auth failure */
+        //
       }
     }
   }

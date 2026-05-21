@@ -26,6 +26,7 @@ import { ErrorService } from '@core/errors';
 import { ProfileService } from '@core/profile/profile.service';
 
 import { Button } from '@shared/components/button/button';
+import { MobileActionBar } from '@shared/components/mobile-action-bar/mobile-action-bar';
 import { StepLifestyle } from '@shared/components/profile-form/step-lifestyle/step-lifestyle';
 import { StepObjective } from '@shared/components/profile-form/step-objective/step-objective';
 import { StepProfile } from '@shared/components/profile-form/step-profile/step-profile';
@@ -62,6 +63,7 @@ interface Section {
     CommonModule,
     ToastModule,
     Button,
+    MobileActionBar,
     StepProfile,
     StepObjective,
     StepLifestyle,

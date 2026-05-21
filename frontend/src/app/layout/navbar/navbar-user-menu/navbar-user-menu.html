@@ -3,7 +3,7 @@
     <p-menu #userMenu [model]="items" [popup]="true" appendTo="body" styleClass="w-48 " />
     <button
       type="button"
-      class="rounded-full overflow-hidden cursor-pointer border border-gray-200 shadow-sm hover:shadow-md transition-shadow focus:outline-none"
+      class="rounded-full overflow-hidden cursor-pointer border border-gray-border shadow-sm hover:shadow-md transition-shadow focus:outline-none"
       (click)="userMenu.toggle($event)"
       aria-label="Abrir menú de usuario"
     >
@@ -13,7 +13,7 @@
 } @else {
   <a
     routerLink="/login"
-    class="w-11 h-11 rounded-full flex items-center justify-center cursor-pointer border border-gray-200 shadow-sm hover:shadow-md transition-shadow text-zinc-500 no-underline"
+    class="w-11 h-11 rounded-full flex items-center justify-center cursor-pointer border border-gray-border shadow-sm hover:shadow-md transition-shadow text-gray-500 no-underline"
     aria-label="Iniciar sesión"
   >
     <i class="pi pi-sign-in text-xl"></i>

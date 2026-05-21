@@ -2,9 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
+import { NavbarUserMenu } from '@layout/navbar/navbar-user-menu/navbar-user-menu';
+
 import { AuthService } from '@core/auth/auth.service';
 import { ConversationStore } from '@core/conversations/conversation.store';
-import { NavbarUserMenu } from '@core/layout/navbar/navbar-user-menu/navbar-user-menu';
+
+import { NavBadge } from '@shared/components/nav-badge/nav-badge';
 
 interface NavItem {
   label: string;
@@ -15,7 +18,7 @@ interface NavItem {
 
 @Component({
   selector: 'app-mobile-nav',
-  imports: [CommonModule, RouterLink, RouterLinkActive, NavbarUserMenu],
+  imports: [CommonModule, RouterLink, RouterLinkActive, NavbarUserMenu, NavBadge],
   templateUrl: './mobile-nav.html',
 })
 export class MobileNav {

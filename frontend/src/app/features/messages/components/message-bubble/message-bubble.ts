@@ -5,6 +5,7 @@ import type { MessageResponse } from '@core/api/api.models';
 @Component({
   selector: 'app-message-bubble',
   templateUrl: './message-bubble.html',
+  host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MessageBubble {
@@ -17,9 +18,9 @@ export class MessageBubble {
   protected readonly bubbleClass = computed(() => {
     const tail = this.hasTail();
     if (this.isOwn()) {
-      return `bg-[#007aff] text-white ${tail ? 'rounded-br-none' : 'rounded-br-sm'}`;
+      return `bg-chat-sent text-white ${tail ? 'rounded-br-none' : 'rounded-br-sm'}`;
     }
-    return `bg-[#e5e5ea] text-gray-900 ${tail ? 'rounded-bl-none' : 'rounded-bl-sm'}`;
+    return `bg-chat-received text-gray-900 ${tail ? 'rounded-bl-none' : 'rounded-bl-sm'}`;
   });
 
   protected readonly metaClass = computed(() => (this.isOwn() ? 'text-white/70' : 'text-gray-500'));

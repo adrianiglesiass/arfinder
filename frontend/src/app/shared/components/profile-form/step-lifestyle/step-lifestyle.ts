@@ -34,6 +34,6 @@ export class StepLifestyle {
   getScheduleClass(val: ScheduleEnum) {
     return this.schedule() === val
       ? 'bg-primary text-white border-primary'
-      : 'bg-white text-gray-700 border-gray-200 hover:border-primary';
+      : 'bg-white text-gray-700 border-gray-border hover:border-primary';
   }
 }

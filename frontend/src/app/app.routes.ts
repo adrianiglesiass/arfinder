@@ -1,9 +1,10 @@
 import { Routes } from '@angular/router';
 
+import { Layout } from '@layout/layout';
+
 import { authGuard } from '@core/auth/auth-guard';
 import { guestGuard } from '@core/auth/guest-guard';
 import { verifyEmailGuard } from '@core/auth/verify-email.guard';
-import { Layout } from '@core/layout/layout';
 import { onboardingGuard } from '@core/profile/onboarding.guard';
 import { profileGuard } from '@core/profile/profile-guard';
 

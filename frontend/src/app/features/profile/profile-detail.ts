@@ -8,14 +8,16 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import type { ProfileResponse } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
 import { ROUTES } from '@core/constants/routes';
 import { ProfileService } from '@core/profile/profile.service';
 
+import { BackLink } from '@shared/components/back-link/back-link';
 import { Button } from '@shared/components/button/button';
+import { MobileActionBar } from '@shared/components/mobile-action-bar/mobile-action-bar';
 import { Skeleton } from '@shared/components/skeleton/skeleton';
 
 import { PhotoGallery } from '@features/profile/components/photo-gallery/photo-gallery';
@@ -23,7 +25,7 @@ import { ProfileInfoBlock } from '@features/profile/components/profile-info-bloc
 
 @Component({
   selector: 'app-profile-detail',
-  imports: [RouterLink, Button, Skeleton, PhotoGallery, ProfileInfoBlock],
+  imports: [BackLink, Button, MobileActionBar, Skeleton, PhotoGallery, ProfileInfoBlock],
   templateUrl: './profile-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {

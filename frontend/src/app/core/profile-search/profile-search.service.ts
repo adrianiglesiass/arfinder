@@ -31,6 +31,7 @@ export class ProfileSearchService {
   );
 
   readonly profiles = signal<ProfileSummary[]>([]);
+  readonly deckIndex = signal(0);
   readonly isLoading = signal(true);
   readonly isLoadingMore = signal(false);
   readonly hasMore = signal(true);
@@ -90,6 +91,7 @@ export class ProfileSearchService {
 
   private async resetAndLoad(): Promise<void> {
     this.currentPage = 0;
+    this.deckIndex.set(0);
     this.profiles.set([]);
     this.hasMore.set(true);
     this.error.set(null);
