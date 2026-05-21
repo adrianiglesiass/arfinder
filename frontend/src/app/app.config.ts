@@ -1,9 +1,10 @@
+import { IMAGE_LOADER, ImageLoaderConfig } from '@angular/common';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
   ApplicationConfig,
   inject,
   provideAppInitializer,
-  provideZoneChangeDetection,
+  provideZonelessChangeDetection,
 } from '@angular/core';
 import {
   PreloadAllModules,
@@ -41,9 +42,17 @@ const ArfinderPreset = definePreset(Aura, {
   },
 });
 
+function cloudinaryImageLoader(config: ImageLoaderConfig): string {
+  if (!config.src.includes('/upload/')) return config.src;
+  const params = ['f_auto', 'q_auto'];
+  if (config.width) params.push(`w_${config.width}`);
+  return config.src.replace('/upload/', `/upload/${params.join(',')}/`);
+}
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideZonelessChangeDetection(),
+    { provide: IMAGE_LOADER, useValue: cloudinaryImageLoader },
     provideRouter(
       routes,
       withComponentInputBinding(),
