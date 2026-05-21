@@ -28,7 +28,7 @@ async def delete_my_account(
 
 
 @router.post("/sync-cleanup", include_in_schema=False)
-async def sync_cleanup(
+def sync_cleanup(
     x_sync_token: str | None = Header(default=None),
     db: Session = Depends(get_db),
 ):

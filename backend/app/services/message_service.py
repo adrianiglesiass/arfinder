@@ -41,7 +41,7 @@ def mark_conversation_messages_as_read(
     message_repository.mark_conversation_as_read(db, conversation_id, current_user_id)
 
 
-async def send_message(
+def send_message(
     db: Session,
     conversation_id: int,
     sender_id: int,
