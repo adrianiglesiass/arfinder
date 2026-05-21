@@ -1,0 +1,9 @@
+<button
+  type="button"
+  [class]="classes()"
+  [disabled]="disabled()"
+  [attr.aria-label]="label()"
+  [attr.aria-pressed]="variant() === 'toggle' ? active() : null"
+>
+  <ng-content />
+</button>
