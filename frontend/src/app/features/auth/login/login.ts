@@ -2,15 +2,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 
 import { AuthService } from '@core/auth/auth.service';
+import type { AuthCredentials } from '@core/auth/auth.types';
 import { ErrorService, isInsForgeError } from '@core/errors';
 import { getErrorMessage } from '@core/errors/error-messages';
 
 import { AuthForm } from '@features/auth/components/auth-form/auth-form';
-
-interface AuthCredentials {
-  email: string;
-  password: string;
-}
 
 @Component({
   selector: 'app-login',

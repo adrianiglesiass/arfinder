@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 from app.core.config import settings
 from app.core.exception_handlers import register_exception_handlers
 from app.core.realtime import listener as realtime_listener
+from app.services import city_service
 from app.routes.auth import router as auth_router
 from app.routes.conversations import router as conversations_router
 from app.routes.messages import router as messages_router
@@ -18,7 +20,9 @@ async def lifespan(app: FastAPI):
     if settings.ENVIRONMENT == "production" and settings.DEBUG:
         raise RuntimeError("DEBUG mode must be disabled in production environment")
     await realtime_listener.start()
+    await city_service.start_http_client()
     yield
+    await city_service.stop_http_client()
     await realtime_listener.stop()
 
 
@@ -29,6 +33,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(GZipMiddleware, minimum_size=500)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,

@@ -32,7 +32,11 @@ export default class AuthCallback implements OnInit {
     }
 
     if (window.location.pathname.includes('/auth/callback')) {
-      await this.authService.navigatePostAuth();
+      try {
+        await this.authService.navigatePostAuth();
+      } catch {
+        //
+      }
     }
   }
 }

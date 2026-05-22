@@ -1,0 +1,113 @@
+<div class="h-full flex flex-col">
+  @if (isLoading()) {
+    <div
+      class="flex-1 min-h-0 flex items-center justify-center"
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <div class="w-full max-w-110 h-full max-h-190 bg-gray-100 rounded-3xl animate-pulse"></div>
+      <span class="sr-only">Cargando perfiles...</span>
+    </div>
+  } @else if (error() && total() === 0) {
+    <div class="flex-1 min-h-0 flex items-center justify-center">
+      <app-empty-state
+        icon="error"
+        title="No pudimos cargar los perfiles"
+        message="Revisa tu conexión e inténtalo de nuevo."
+      >
+        <app-button (click)="retry()">Reintentar</app-button>
+      </app-empty-state>
+    </div>
+  } @else if (isEmpty()) {
+    <div class="flex-1 min-h-0 flex items-center justify-center">
+      <app-empty-state
+        icon="search_off"
+        title="Sin resultados"
+        [message]="
+          hasActiveFilters()
+            ? 'No hay perfiles con estos filtros. Prueba a relajar alguno.'
+            : 'Aún no hay perfiles disponibles. Vuelve más tarde.'
+        "
+      >
+        @if (hasActiveFilters()) {
+          <app-button (click)="reset()">
+            <i class="pi pi-refresh text-xs"></i>
+            Limpiar filtros
+          </app-button>
+        }
+      </app-empty-state>
+    </div>
+  } @else if (exhausted()) {
+    <div class="flex-1 min-h-0 flex items-center justify-center">
+      <app-empty-state
+        icon="done_all"
+        title="Has visto todos los perfiles"
+        message="Vuelve a empezar o ajusta los filtros para descubrir más."
+      >
+        <app-button variant="secondary" (click)="reset()">
+          <i class="pi pi-replay text-xs"></i>
+          Empezar de nuevo
+        </app-button>
+      </app-empty-state>
+    </div>
+  } @else {
+    <div class="flex-1 min-h-0 flex items-center justify-center gap-4 md:gap-6 animate-fade-in">
+      <app-icon-button
+        label="Perfil anterior"
+        [disabled]="!canGoBack()"
+        (click)="prev()"
+        class="max-md:hidden shrink-0"
+      >
+        <i class="pi pi-arrow-left text-sm"></i>
+      </app-icon-button>
+
+      <div class="relative h-full w-full max-w-110 md:max-w-125 lg:max-w-140">
+        @for (card of cards(); track card.profile.id) {
+          <article
+            class="group absolute inset-0 bg-white rounded-3xl border border-primary/10 overflow-hidden select-none shadow-(--shadow-glass)"
+            [style.transform]="cardTransform(card.pos)"
+            [style.transition]="cardTransition(card.pos)"
+            [style.opacity]="cardOpacity(card.pos)"
+            [style.zIndex]="30 - card.pos * 10"
+            [style.cursor]="card.pos === 0 ? 'grab' : 'default'"
+            [class.touch-pan-y]="card.pos === 0"
+            [class.deck-enter]="card.pos === 0 && entering()"
+            [attr.role]="card.pos === 0 ? 'button' : null"
+            [attr.tabindex]="card.pos === 0 ? 0 : null"
+            [attr.aria-label]="card.pos === 0 ? 'Ver perfil de ' + card.profile.name : null"
+            (pointerdown)="card.pos === 0 ? onPointerDown($event) : null"
+            (pointermove)="card.pos === 0 ? onPointerMove($event) : null"
+            (pointerup)="card.pos === 0 ? onPointerUp() : null"
+            (pointercancel)="card.pos === 0 ? onPointerUp() : null"
+            (click)="card.pos === 0 ? openProfile(card.profile) : null"
+            (keyup.enter)="card.pos === 0 ? openProfile(card.profile) : null"
+            (mouseenter)="prefetch(card.profile)"
+          >
+            <app-profile-deck-card
+              [profile]="card.profile"
+              [active]="card.pos === 0"
+              [photoIndex]="photoIndex()"
+              (photoPrev)="photoPrev(card.profile, $event)"
+              (photoNext)="photoNext(card.profile, $event)"
+            />
+          </article>
+        }
+      </div>
+
+      <app-icon-button
+        label="Siguiente perfil"
+        [disabled]="!canGoNext()"
+        (click)="next()"
+        class="max-md:hidden shrink-0"
+      >
+        <i class="pi pi-arrow-right text-sm"></i>
+      </app-icon-button>
+    </div>
+
+    <div
+      class="shrink-0 mt-3 text-center text-[11px] font-bold uppercase tracking-[0.22em] text-gray-400 tabular-nums"
+    >
+      {{ position() }} / {{ total() }}
+    </div>
+  }
+</div>

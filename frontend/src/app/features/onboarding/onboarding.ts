@@ -1,6 +1,15 @@
 import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { MessageService } from 'primeng/api';
@@ -9,17 +18,19 @@ import { ToastModule } from 'primeng/toast';
 
 import { ProfileCreate, ProfilePhotoResponse, ScheduleEnum, TypeEnum } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { ROUTES } from '@core/constants/routes';
 import { ErrorService } from '@core/errors';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
 import { ProfileService } from '@core/profile/profile.service';
 
 import { Button } from '@shared/components/button/button';
+import { ConfirmDestructiveDialog } from '@shared/components/confirm-destructive-dialog/confirm-destructive-dialog';
+import { StepLifestyle } from '@shared/components/profile-form/step-lifestyle/step-lifestyle';
+import { StepObjective } from '@shared/components/profile-form/step-objective/step-objective';
+import { StepProfile } from '@shared/components/profile-form/step-profile/step-profile';
+import { isLocalPhoto } from '@shared/utils/photo.utils';
 
-import { StepLifestyle } from '@features/onboarding/components/step-lifestyle/step-lifestyle';
-import { StepObjective } from '@features/onboarding/components/step-objective/step-objective';
-import { isLocalPhoto } from '@features/onboarding/components/step-photos/photo.utils';
 import { StepPhotos } from '@features/onboarding/components/step-photos/step-photos';
-import { StepProfile } from '@features/onboarding/components/step-profile/step-profile';
 
 @Component({
   selector: 'app-onboarding',
@@ -32,6 +43,7 @@ import { StepProfile } from '@features/onboarding/components/step-profile/step-p
     StepPhotos,
     DecimalPipe,
     Button,
+    ConfirmDestructiveDialog,
   ],
   providers: [MessageService],
   templateUrl: './onboarding.html',
@@ -45,12 +57,19 @@ export default class Onboarding implements OnInit {
   private readonly errorService = inject(ErrorService);
 
   stepPhotos = viewChild(StepPhotos);
+  private readonly stepHost = viewChild<ElementRef<HTMLElement>>('stepHost');
+
+  lockedHeight = signal<number | null>(null);
+  private heightReleaseTimer?: ReturnType<typeof setTimeout>;
 
   currentStep = signal(1);
   direction = signal<'forward' | 'backward'>('forward');
   showErrors = signal(false);
   isReady = signal(false);
   totalSteps = 4;
+
+  showExitConfirm = signal(false);
+  isExiting = signal(false);
 
   form = signal<Partial<ProfileCreate>>({
     name: '',
@@ -135,6 +154,22 @@ export default class Onboarding implements OnInit {
 
   submitLabel = computed(() => (this.isLastStep() ? 'Ir a explorar' : 'Continuar'));
 
+  private lockHeightBeforeTransition(): void {
+    const host = this.stepHost()?.nativeElement;
+    if (host) this.lockedHeight.set(host.offsetHeight);
+  }
+
+  private animateHeightAfterTransition(): void {
+    const host = this.stepHost()?.nativeElement;
+    if (!host) return;
+    clearTimeout(this.heightReleaseTimer);
+    requestAnimationFrame(() => {
+      const incoming = host.querySelector<HTMLElement>(':scope > div:not(.animating-step)');
+      if (incoming) this.lockedHeight.set(incoming.offsetHeight);
+      this.heightReleaseTimer = setTimeout(() => this.lockedHeight.set(null), 720);
+    });
+  }
+
   updateForm(newData: Partial<ProfileCreate>) {
     const cleaned: Partial<ProfileCreate> = { ...newData };
 
@@ -158,8 +193,10 @@ export default class Onboarding implements OnInit {
     this.showErrors.set(false);
 
     if (this.currentStep() < this.totalSteps) {
+      this.lockHeightBeforeTransition();
       this.direction.set('forward');
       this.currentStep.update((step) => step + 1);
+      this.animateHeightAfterTransition();
     } else {
       try {
         await this.profileService.saveOnboarding(this.form() as ProfileCreate);
@@ -205,8 +242,40 @@ export default class Onboarding implements OnInit {
   prevStep() {
     this.showErrors.set(false);
     if (this.currentStep() > 1) {
+      this.lockHeightBeforeTransition();
       this.direction.set('backward');
       this.currentStep.update((s) => s - 1);
+      this.animateHeightAfterTransition();
+    }
+  }
+
+  openExitConfirm(): void {
+    if (this.isExiting()) return;
+    this.showExitConfirm.set(true);
+  }
+
+  dismissExit(): void {
+    if (this.isExiting()) return;
+    this.showExitConfirm.set(false);
+  }
+
+  async confirmExit(): Promise<void> {
+    if (this.isExiting()) return;
+    this.isExiting.set(true);
+    try {
+      await this.authService.deleteAccount();
+      this.showExitConfirm.set(false);
+      await this.router.navigate([ROUTES.LOGIN]);
+    } catch (error: unknown) {
+      const { general } = this.errorService.processError(error as HttpErrorResponse);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'No se pudo cancelar el registro',
+        detail: general || 'Inténtalo de nuevo en unos segundos.',
+        life: 5000,
+      });
+    } finally {
+      this.isExiting.set(false);
     }
   }
 }

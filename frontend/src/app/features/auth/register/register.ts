@@ -3,15 +3,13 @@ import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
+import type { AuthCredentials } from '@core/auth/auth.types';
+import { ROUTES } from '@core/constants/routes';
+import { STORAGE_KEYS } from '@core/constants/storage-keys';
 import { ErrorService, isInsForgeError } from '@core/errors';
 
 import { AuthForm } from '@features/auth/components/auth-form/auth-form';
 import type { AuthFormFieldErrors } from '@features/auth/components/auth-form/auth-form';
-
-interface AuthCredentials {
-  email: string;
-  password: string;
-}
 
 @Component({
   selector: 'app-register',
@@ -41,8 +39,8 @@ export default class Register {
     try {
       const response = await this.authService.register(credentials);
       if (response?.requireEmailVerification) {
-        sessionStorage.setItem('arfinder_pending_email', credentials.email);
-        await this.router.navigate(['/verificar-email']);
+        sessionStorage.setItem(STORAGE_KEYS.auth.pendingEmail, credentials.email);
+        await this.router.navigate([ROUTES.VERIFY_EMAIL]);
         return;
       }
       await this.authService.login(credentials);

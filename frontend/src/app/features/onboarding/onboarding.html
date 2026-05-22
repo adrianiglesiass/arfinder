@@ -2,6 +2,17 @@
   <div class="min-h-screen bg-white">
     <div class="max-w-3xl mx-auto w-full pt-12 px-6 pb-16">
       <div class="mb-10">
+        <div class="flex justify-end mb-3">
+          <button
+            type="button"
+            (click)="openExitConfirm()"
+            [disabled]="isExiting()"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold text-red-500 hover:bg-red-50 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <i class="pi pi-sign-out text-xs"></i>
+            Salir
+          </button>
+        </div>
         <div class="flex justify-between items-end mb-4">
           <div>
             <span
@@ -23,7 +34,12 @@
       </div>
 
       <div class="relative pt-4">
-        <div class="relative w-full h-full">
+        <div
+          #stepHost
+          class="relative w-full h-full transition-[height] duration-700 ease-apple"
+          [class.overflow-hidden]="lockedHeight() !== null"
+          [style.height.px]="lockedHeight()"
+        >
           @switch (currentStep()) {
             @case (1) {
               <div
@@ -126,6 +142,17 @@
       <div class="mt-4">Cargando...</div>
     </div>
   </div>
+}
+
+@if (showExitConfirm()) {
+  <app-confirm-destructive-dialog
+    title="¿Cancelar registro?"
+    description="Si sales ahora, tu cuenta y todos los datos asociados se eliminarán. Tendrás que volver a registrarte si cambias de opinión."
+    confirmLabel="Sí, cancelar"
+    [isDeleting]="isExiting()"
+    (dismissed)="dismissExit()"
+    (confirmed)="confirmExit()"
+  />
 }
 
 <p-toast />

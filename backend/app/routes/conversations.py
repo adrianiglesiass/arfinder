@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from app.core.dependencies import get_current_user
 from app.core.openapi import PROTECTED
@@ -65,7 +66,7 @@ def _build_conversation_response(
 
 
 @router.post("", response_model=ConversationResponse, status_code=201)
-async def create_or_get_conversation(
+def create_or_get_conversation(
     body: ConversationCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -82,7 +83,7 @@ async def create_or_get_conversation(
 
 
 @router.get("", response_model=list[ConversationResponse])
-async def list_conversations(
+def list_conversations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -106,7 +107,7 @@ async def list_conversations(
 
 
 @router.get("/{conversation_id}", response_model=ConversationResponse)
-async def get_conversation(
+def get_conversation(
     conversation_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -130,7 +131,7 @@ async def get_conversation_messages(
 
 
 @router.patch("/{conversation_id}/read", status_code=204)
-async def mark_as_read(
+def mark_as_read(
     conversation_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -141,13 +142,13 @@ async def mark_as_read(
 @router.post(
     "/{conversation_id}/messages", response_model=MessageResponse, status_code=201
 )
-async def send_new_message(
+def send_new_message(
     conversation_id: int,
     body: MessageCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(message_rate_limiter),
 ):
-    return await message_service.send_message(
+    return message_service.send_message(
         db, conversation_id, current_user.id, body.content
     )
 
@@ -163,10 +164,17 @@ async def send_message_lazy(
     db: Session = Depends(get_db),
     current_user: User = Depends(message_rate_limiter),
 ):
-    was_new = (
-        get_conversation_between_users(db, current_user.id, recipient_user_id) is None
-    )
-    message = send_message_to_user(db, current_user.id, recipient_user_id, body.content)
+    def _persist():
+        was_new = (
+            get_conversation_between_users(db, current_user.id, recipient_user_id)
+            is None
+        )
+        message = send_message_to_user(
+            db, current_user.id, recipient_user_id, body.content
+        )
+        return was_new, message
+
+    was_new, message = await run_in_threadpool(_persist)
     if was_new:
         await realtime_manager.broadcast_to_user(
             recipient_user_id,

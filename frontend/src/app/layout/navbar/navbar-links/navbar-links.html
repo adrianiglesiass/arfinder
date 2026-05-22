@@ -1,0 +1,28 @@
+<div class="hidden md:flex items-center gap-4">
+  <a
+    routerLink="/explorar"
+    routerLinkActive
+    #rla="routerLinkActive"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="px-3 py-2 rounded-full text-sm font-medium transition-colors no-underline"
+    [class]="rla.isActive ? 'text-primary font-bold' : 'text-gray-500 hover:text-primary'"
+  >
+    Explorar
+  </a>
+
+  <a
+    routerLink="/mensajes"
+    routerLinkActive
+    #rlaMensajes="routerLinkActive"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="px-3 py-2 rounded-full text-sm font-medium transition-colors no-underline flex items-center gap-1"
+    [class]="rlaMensajes.isActive ? 'text-primary font-bold' : 'text-gray-500 hover:text-primary'"
+  >
+    Mensajes
+    <span
+      class="bg-red-500 text-white text-[10px] min-w-5 h-5 px-1 rounded-full inline-flex items-center justify-center ml-1 font-bold leading-none shadow-sm"
+    >
+      0
+    </span>
+  </a>
+</div>

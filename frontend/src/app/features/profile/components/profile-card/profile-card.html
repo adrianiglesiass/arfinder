@@ -1,0 +1,55 @@
+<a
+  [routerLink]="['/perfil', profile().id]"
+  (mouseenter)="prefetch()"
+  (focus)="prefetch()"
+  class="group flex flex-col h-full bg-white rounded-3xl border border-gray-border overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-glass) cursor-pointer text-decoration-none focus-visible:outline-none focus-visible:border-primary"
+>
+  <div class="relative aspect-3/4 bg-gray-100 overflow-hidden">
+    <app-profile-photo
+      [src]="photo()"
+      [alt]="profile().name"
+      [priority]="priority()"
+      imgClass="transition-transform duration-500 ease-(--ease-apple) group-hover:scale-[1.04]"
+    />
+
+    <div class="absolute inset-0 bg-linear-to-t from-black/75 via-black/5 to-transparent"></div>
+
+    <span
+      class="absolute top-4 left-4 px-3 py-1.5 bg-white text-primary text-[10px] font-bold uppercase tracking-[0.16em] z-10"
+    >
+      {{ typeLabel() }}
+    </span>
+
+    <div class="absolute inset-x-0 bottom-0 p-4 z-10">
+      <h3 class="text-white font-bold tracking-tight leading-tight text-2xl truncate">
+        {{ profile().name }}<span class="text-white/60">, {{ profile().age }}</span>
+      </h3>
+      <div class="flex items-center gap-1.5 text-white/85 text-[13px] font-medium mt-1.5">
+        <i class="pi pi-map-marker text-[11px]"></i>
+        <span class="truncate">{{ profile().city }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-1.5 p-4">
+    @if (profile().max_budget) {
+      <app-profile-badge>{{ profile().max_budget }} €</app-profile-badge>
+    }
+    @if (scheduleLabel()) {
+      <app-profile-badge>
+        <i class="pi pi-clock text-[12px]"></i>
+        {{ scheduleLabel() }}
+      </app-profile-badge>
+    }
+    @if (profile().has_pets) {
+      <app-profile-badge tooltip="Acepta mascotas" [iconOnly]="true">
+        <span class="material-symbols-rounded text-[16px]!">pets</span>
+      </app-profile-badge>
+    }
+    @if (profile().is_smoker) {
+      <app-profile-badge tooltip="Fumador/a" [iconOnly]="true">
+        <span class="material-symbols-rounded text-[16px]!">smoking_rooms</span>
+      </app-profile-badge>
+    }
+  </div>
+</a>
