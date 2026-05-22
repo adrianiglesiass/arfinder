@@ -22,9 +22,11 @@ import { PhotoCard } from '@shared/components/profile-form/photo-card/photo-card
 import {
   applyStoredOrder,
   CombinedPhoto,
+  fileSignature,
   getPhotoKey,
   isLocalPhoto,
   LocalPhoto,
+  readFileAsDataUrl,
   validateFile,
 } from '@shared/utils/photo.utils';
 
@@ -51,6 +53,7 @@ export class StepPhotos implements AfterViewInit {
   localPhotos = signal<LocalPhoto[]>([]);
   isLoading = signal(false);
   isReordering = signal(false);
+  private isSelecting = signal(false);
   private storedOrder = signal<string[]>([]);
   private isUploadingFinal = signal(false);
 
@@ -118,44 +121,57 @@ export class StepPhotos implements AfterViewInit {
 
   async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const currentCount = this.allPhotos().length;
-      const availableSlots = this.MAX_PHOTOS - currentCount;
+    if (this.isSelecting()) return;
+    if (!input.files || input.files.length === 0) return;
 
+    this.isSelecting.set(true);
+    try {
+      const availableSlots = this.MAX_PHOTOS - this.allPhotos().length;
       if (availableSlots <= 0) {
         this.toast(`Ya has alcanzado el límite de ${this.MAX_PHOTOS} fotos`, 'error');
-        input.value = '';
         return;
       }
 
-      const files = Array.from(input.files).slice(0, availableSlots);
-      if (Array.from(input.files).length > availableSlots) {
-        this.toast(`Solo se pueden añadir ${availableSlots} fotos más`, 'warning');
-      }
-
-      for (const file of files) {
+      const existingSignatures = new Set(this.localPhotos().map((p) => fileSignature(p.file)));
+      const selected = Array.from(input.files);
+      const validFiles: File[] = [];
+      for (const file of selected) {
+        const signature = fileSignature(file);
+        if (existingSignatures.has(signature)) continue;
         const validation = validateFile(file);
         if (!validation.valid) {
           this.toast(validation.error || 'Archivo inválido', 'error');
           continue;
         }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const preview = e.target?.result as string;
-          const localPhoto: LocalPhoto = {
-            id: `local-${Date.now()}-${Math.random()}`,
-            file,
-            preview,
-          };
-          this.localPhotos.set([...this.localPhotos(), localPhoto]);
-          this.persistLocalPhotos();
-          this.toast('Foto cargada (se subirá al crear tu perfil)', 'info');
-        };
-        reader.readAsDataURL(file);
+        existingSignatures.add(signature);
+        validFiles.push(file);
       }
 
+      const files = validFiles.slice(0, availableSlots);
+      if (validFiles.length > availableSlots) {
+        this.toast(`Solo se pueden añadir ${availableSlots} fotos más`, 'warning');
+      }
+      if (files.length === 0) return;
+
+      const newPhotos = await Promise.all(
+        files.map(async (file) => ({
+          id: `local-${Date.now()}-${Math.random()}`,
+          file,
+          preview: await readFileAsDataUrl(file),
+        }))
+      );
+
+      this.localPhotos.set([...this.localPhotos(), ...newPhotos]);
+      this.persistLocalPhotos();
+      this.toast(
+        newPhotos.length === 1
+          ? 'Foto cargada (se subirá al crear tu perfil)'
+          : 'Fotos cargadas (se subirán al crear tu perfil)',
+        'info'
+      );
+    } finally {
       input.value = '';
+      this.isSelecting.set(false);
     }
   }
 
@@ -206,8 +222,6 @@ export class StepPhotos implements AfterViewInit {
           URL.revokeObjectURL(localPhoto.preview);
         } catch (err: unknown) {
           console.error('Error uploading photo', err);
-          const { general } = this.errorService.processError(err as HttpErrorResponse);
-          this.toast(general || 'Error al subir una foto', 'error');
           throw err;
         }
       }

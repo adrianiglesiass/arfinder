@@ -23,6 +23,7 @@ import { providePrimeNG } from 'primeng/config';
 
 import { AuthService } from '@core/auth/auth.service';
 import { authErrorInterceptor, jwtInterceptor } from '@core/interceptors/jwt-interceptor';
+import { retryInterceptor } from '@core/interceptors/retry-interceptor';
 
 const ArfinderPreset = definePreset(Aura, {
   semantic: {
@@ -66,7 +67,7 @@ export const appConfig: ApplicationConfig = {
       void inject(AuthService).init();
     }),
 
-    provideHttpClient(withInterceptors([jwtInterceptor, authErrorInterceptor])),
+    provideHttpClient(withInterceptors([retryInterceptor, jwtInterceptor, authErrorInterceptor])),
     {
       provide: InsForgeClient,
       useFactory: () =>
