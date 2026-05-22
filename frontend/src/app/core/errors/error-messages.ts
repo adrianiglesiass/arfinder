@@ -8,6 +8,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
   SERVER_ERROR: 'Error en el servidor.',
 
   NETWORK_ERROR: 'Error de conexión. Intenta de nuevo.',
+
+  IMAGE_UPLOAD_FAILED: 'No pudimos subir la foto. Inténtalo de nuevo.',
 };
 
 export const DEFAULT_ERROR_MESSAGE = 'Ocurrió un error inesperado.';
