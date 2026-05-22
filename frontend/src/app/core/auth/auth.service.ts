@@ -9,6 +9,8 @@ import { InsForgeClient } from '@insforge/sdk';
 import { CreateUserResponse, VerifyEmailResponse } from '@insforge/shared-schemas';
 
 import type { UserResponse } from '@core/api/api.models';
+import { ROUTES } from '@core/constants/routes';
+import { STORAGE_KEYS } from '@core/constants/storage-keys';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
 
 interface InsForgeInternal {
@@ -31,9 +33,14 @@ export class AuthService {
   private sdkReadyPromise: Promise<void> | null = null;
   private invalidatePromise: Promise<void> | null = null;
   private refreshPromise: Promise<string | null> | null = null;
-  private readonly PUBLIC_PATHS = ['/login', '/registro', '/verificar-email', '/auth/callback'];
-  private readonly REFRESH_TOKEN_KEY = 'arfinder.auth.refresh.v1';
-  private readonly ACCESS_TOKEN_KEY = 'arfinder.auth.access.v1';
+  private readonly PUBLIC_PATHS = [
+    ROUTES.LOGIN,
+    ROUTES.REGISTER,
+    ROUTES.VERIFY_EMAIL,
+    ROUTES.AUTH_CALLBACK,
+  ];
+  private readonly REFRESH_TOKEN_KEY = STORAGE_KEYS.auth.refreshToken;
+  private readonly ACCESS_TOKEN_KEY = STORAGE_KEYS.auth.accessToken;
 
   init(): Promise<void> {
     if (this.sdkReadyPromise) return this.sdkReadyPromise;
@@ -122,7 +129,7 @@ export class AuthService {
       try {
         await this.logout();
         if (!this.PUBLIC_PATHS.some((p) => window.location.pathname.startsWith(p))) {
-          await this.router.navigate(['/login']);
+          await this.router.navigate([ROUTES.LOGIN]);
         }
       } finally {
         setTimeout(() => {
@@ -180,19 +187,27 @@ export class AuthService {
   }
 
   async loginWithGoogle(): Promise<void> {
-    const { error } = await this.insforge.auth.signInWithOAuth({
+    const { data, error } = await this.insforge.auth.signInWithOAuth({
       provider: 'google',
       redirectTo: environment.insforge.redirectUri,
+      skipBrowserRedirect: true,
     });
     if (error) throw error;
+    if (data?.url) {
+      window.location.href = data.url;
+    }
   }
 
   async loginWithApple(): Promise<void> {
-    const { error } = await this.insforge.auth.signInWithOAuth({
+    const { data, error } = await this.insforge.auth.signInWithOAuth({
       provider: 'apple',
       redirectTo: environment.insforge.redirectUri,
+      skipBrowserRedirect: true,
     });
     if (error) throw error;
+    if (data?.url) {
+      window.location.href = data.url;
+    }
   }
 
   async login(credentials: { email: string; password: string }): Promise<void> {
@@ -234,8 +249,12 @@ export class AuthService {
   }
 
   async navigatePostAuth(): Promise<void> {
-    const hasProfile = await this.hasProfile();
-    await this.router.navigate([hasProfile ? '' : '/bienvenida']);
+    try {
+      const hasProfile = await this.hasProfile();
+      await this.router.navigate([hasProfile ? '' : ROUTES.WELCOME]);
+    } catch {
+      // authErrorInterceptor already redirects on 401; swallow to avoid Uncaught
+    }
   }
 
   async resendVerificationEmail(email: string): Promise<void> {
@@ -280,13 +299,22 @@ export class AuthService {
     } catch {
       /* empty */
     }
+    this.clearSession();
+  }
+
+  async deleteAccount(): Promise<void> {
+    await this.authApi.deleteAccount();
+    this.clearSession();
+  }
+
+  private clearSession(): void {
     this.clearPersistedRefreshToken();
     this.clearPersistedAccessToken();
     this.currentUser.set(null);
     this.onboardingPersistence.clearAll();
     if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.removeItem('arfinder.profiles.byId.v1');
-      sessionStorage.removeItem('arfinder.profiles.me.v1');
+      sessionStorage.removeItem(STORAGE_KEYS.profile.byId);
+      sessionStorage.removeItem(STORAGE_KEYS.profile.me);
     }
   }
 
@@ -311,7 +339,7 @@ export class AuthService {
       await this.profileApi.getMyProfile();
       return true;
     } catch (error) {
-      if (error instanceof HttpErrorResponse && error.status === 404) {
+      if (error instanceof HttpErrorResponse && (error.status === 404 || error.status === 401)) {
         return false;
       }
       throw error;

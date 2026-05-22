@@ -5,14 +5,13 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { Slider } from 'primeng/slider';
 
 import type { ProfileSearchFilters, ScheduleEnum, TypeEnum } from '@core/api/api.models';
-import { ProfileSearchService } from '@core/profileSearch/profile-search.service';
+import { ProfileSearchService } from '@core/profile-search/profile-search.service';
 
+import { CityAutocomplete } from '@shared/components/city-autocomplete/city-autocomplete';
 import {
   FilterChipGroup,
   type FilterChipOption,
 } from '@shared/components/filter-chip-group/filter-chip-group';
-
-import { Search } from '@features/search/search';
 
 type TriState = 'any' | 'yes' | 'no';
 
@@ -40,7 +39,7 @@ const BUDGET_STEP = 50;
 
 @Component({
   selector: 'app-search-filters',
-  imports: [FormsModule, InputNumberModule, FilterChipGroup, Search, Slider],
+  imports: [FormsModule, InputNumberModule, FilterChipGroup, CityAutocomplete, Slider],
   templateUrl: './search-filters.html',
 })
 export class SearchFilters {

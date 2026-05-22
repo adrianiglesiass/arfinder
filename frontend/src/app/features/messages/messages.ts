@@ -1,59 +1,64 @@
-import { CommonModule } from '@angular/common';
+import { Location } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
-  OnDestroy,
   OnInit,
   signal,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { ConversationApiService } from '@infrastructure/api/conversation/conversation.api.service';
 
 import type { ConversationResponse, MessageResponse } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { ROUTES } from '@core/constants/routes';
 import { ConversationStore } from '@core/conversations/conversation.store';
 import { RealtimeService } from '@core/realtime/realtime.service';
 
 import { Spinner } from '@shared/components/spinner/spinner';
 
-interface DraftRecipient {
-  user_id: number;
-  profile_id: number | null;
-  name: string | null;
-  photo_url: string | null;
-}
-
-interface ChatHeader {
-  name: string;
-  photo_url: string | null;
-  profile_id: number | null;
-}
+import { ChatHeader as ChatHeaderComponent } from '@features/messages/components/chat-header/chat-header';
+import { ConversationListItem } from '@features/messages/components/conversation-list-item/conversation-list-item';
+import { MessageBubble } from '@features/messages/components/message-bubble/message-bubble';
+import { MessageComposer } from '@features/messages/components/message-composer/message-composer';
+import type { ChatHeader, DraftRecipient } from '@features/messages/messages.types';
 
 const PAGE_SIZE = 50;
 
 @Component({
   selector: 'app-messages',
-  imports: [CommonModule, RouterLink, FormsModule, Spinner],
+  imports: [
+    RouterLink,
+    Spinner,
+    ConversationListItem,
+    ChatHeaderComponent,
+    MessageBubble,
+    MessageComposer,
+  ],
   templateUrl: './messages.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export default class Messages implements OnInit, OnDestroy {
-  @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
-  @ViewChild('topSentinel') topSentinel?: ElementRef<HTMLDivElement>;
+export default class Messages implements OnInit {
+  private readonly messagesContainer = viewChild<ElementRef<HTMLDivElement>>('messagesContainer');
+  private readonly topSentinel = viewChild<ElementRef<HTMLDivElement>>('topSentinel');
+  private readonly composer = viewChild(MessageComposer);
+
+  protected readonly exploreRoute = ROUTES.EXPLORE;
 
   private readonly route = inject(ActivatedRoute);
+  private readonly location = inject(Location);
   private readonly conversationApi = inject(ConversationApiService);
   private readonly authService = inject(AuthService);
   private readonly realtimeService = inject(RealtimeService);
   private readonly store = inject(ConversationStore);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly conversations = this.store.conversations;
   selectedConversation = signal<ConversationResponse | null>(null);
@@ -73,6 +78,24 @@ export default class Messages implements OnInit, OnDestroy {
   readonly chatActive = computed(
     () => this.selectedConversation() !== null || this.draftRecipient() !== null
   );
+
+  viewportHeight = signal<number | null>(null);
+  viewportOffsetTop = signal(0);
+  isMobile = signal(false);
+
+  private isAtBottom = signal(true);
+  private readonly bottomThresholdPx = 80;
+  private containerScrollCleanup: (() => void) | null = null;
+
+  readonly mobileChatHeightPx = computed(() => {
+    if (!this.chatActive() || !this.isMobile()) return null;
+    return this.viewportHeight();
+  });
+
+  readonly mobileChatTopPx = computed(() => {
+    if (!this.chatActive() || !this.isMobile()) return null;
+    return this.viewportOffsetTop();
+  });
 
   readonly headerInfo = computed<ChatHeader | null>(() => {
     const conv = this.selectedConversation();
@@ -96,9 +119,20 @@ export default class Messages implements OnInit, OnDestroy {
 
   private unsubMessage: (() => void) | null = null;
   private unsubRead: (() => void) | null = null;
+  private cleanupViewport: (() => void) | null = null;
+  private cleanupMq: (() => void) | null = null;
   private selectionEpoch = 0;
   private intersectionObserver: IntersectionObserver | null = null;
   private observedSentinel: HTMLElement | null = null;
+  private bodyLockState: {
+    scrollY: number;
+    position: string;
+    top: string;
+    left: string;
+    right: string;
+    width: string;
+    overflow: string;
+  } | null = null;
 
   constructor() {
     afterNextRender(() => this.scrollToBottom());
@@ -108,9 +142,16 @@ export default class Messages implements OnInit, OnDestroy {
       const ready = this.initialScrollDone();
       queueMicrotask(() => this.syncSentinelObserver(active && hasMore && ready));
     });
+    effect(() => {
+      const shouldLock = this.chatActive() && this.isMobile();
+      queueMicrotask(() => this.setBodyScrollLock(shouldLock));
+    });
   }
 
   async ngOnInit(): Promise<void> {
+    this.setupViewportTracking();
+    this.registerCleanup();
+
     await this.store.refresh();
     this.isLoading.set(false);
 
@@ -121,9 +162,8 @@ export default class Messages implements OnInit, OnDestroy {
       this.onReadForActive(convId, msgId, isRead, readAt)
     );
 
-    const params = this.route.snapshot.queryParamMap;
-    const conversationId = params.get('conversation');
-    const recipient = params.get('recipient');
+    const conversationId = this.route.snapshot.paramMap.get('conversationId');
+    const recipient = this.route.snapshot.queryParamMap.get('recipient');
 
     if (conversationId) {
       const convId = Number(conversationId);
@@ -152,26 +192,108 @@ export default class Messages implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    this.unsubMessage?.();
-    this.unsubRead?.();
-    this.disconnectIntersectionObserver();
-    this.store.setActiveConversation(null);
+  private registerCleanup(): void {
+    this.destroyRef.onDestroy(() => {
+      this.unsubMessage?.();
+      this.unsubRead?.();
+      this.cleanupViewport?.();
+      this.cleanupMq?.();
+      this.disconnectIntersectionObserver();
+      this.containerScrollCleanup?.();
+      this.setBodyScrollLock(false);
+      this.store.setActiveConversation(null);
+    });
+  }
+
+  private setupViewportTracking(): void {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+
+    const mq = window.matchMedia('(max-width: 767px)');
+    this.isMobile.set(mq.matches);
+    const onMqChange = (e: MediaQueryListEvent) => this.isMobile.set(e.matches);
+    mq.addEventListener('change', onMqChange);
+    this.cleanupMq = () => mq.removeEventListener('change', onMqChange);
+
+    const vv = window.visualViewport;
+    if (!vv) {
+      this.viewportHeight.set(window.innerHeight);
+      this.viewportOffsetTop.set(0);
+      return;
+    }
+
+    const update = () => {
+      this.viewportHeight.set(vv.height);
+      this.viewportOffsetTop.set(vv.offsetTop);
+      if (this.initialScrollDone() && this.isAtBottom()) {
+        requestAnimationFrame(() => this.scrollToBottom());
+      }
+    };
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    this.cleanupViewport = () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }
+
+  private setBodyScrollLock(lock: boolean): void {
+    if (typeof document === 'undefined') return;
+    const body = document.body;
+    if (!body) return;
+
+    if (lock) {
+      if (this.bodyLockState) return;
+      const scrollY = window.scrollY;
+      this.bodyLockState = {
+        scrollY,
+        position: body.style.position,
+        top: body.style.top,
+        left: body.style.left,
+        right: body.style.right,
+        width: body.style.width,
+        overflow: body.style.overflow,
+      };
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
+    } else {
+      const state = this.bodyLockState;
+      if (!state) return;
+      body.style.position = state.position;
+      body.style.top = state.top;
+      body.style.left = state.left;
+      body.style.right = state.right;
+      body.style.width = state.width;
+      body.style.overflow = state.overflow;
+      window.scrollTo(0, state.scrollY);
+      this.bodyLockState = null;
+    }
   }
 
   closeConversation(): void {
     this.selectionEpoch++;
     this.store.setActiveConversation(null);
+    this.location.go(ROUTES.MESSAGES);
     this.selectedConversation.set(null);
     this.draftRecipient.set(null);
     this.messages.set([]);
     this.hasMoreMessages.set(false);
     this.isLoadingOlder.set(false);
     this.initialScrollDone.set(false);
+    this.containerScrollCleanup?.();
+    this.containerScrollCleanup = null;
+    this.isAtBottom.set(true);
   }
 
   async selectConversation(conv: ConversationResponse): Promise<void> {
     const epoch = ++this.selectionEpoch;
+    this.containerScrollCleanup?.();
+    this.containerScrollCleanup = null;
+    this.isAtBottom.set(true);
     this.draftRecipient.set(null);
     this.selectedConversation.set(conv);
     this.messages.set([]);
@@ -179,6 +301,7 @@ export default class Messages implements OnInit, OnDestroy {
     this.isLoadingOlder.set(false);
     this.initialScrollDone.set(false);
     this.store.setActiveConversation(conv.id);
+    this.location.go(`${ROUTES.MESSAGES}/${conv.id}`);
     void this.realtimeService.subscribeConversation(conv.id);
 
     try {
@@ -188,14 +311,7 @@ export default class Messages implements OnInit, OnDestroy {
       this.hasMoreMessages.set(msgs.length === PAGE_SIZE);
       void this.conversationApi.markAsRead(conv.id);
 
-      requestAnimationFrame(() => {
-        if (epoch !== this.selectionEpoch) return;
-        this.scrollToBottom();
-        requestAnimationFrame(() => {
-          if (epoch !== this.selectionEpoch) return;
-          this.initialScrollDone.set(true);
-        });
-      });
+      this.scrollToBottomSettled(epoch);
     } catch {
       /* empty */
     }
@@ -212,7 +328,7 @@ export default class Messages implements OnInit, OnDestroy {
     const epoch = this.selectionEpoch;
     this.isLoadingOlder.set(true);
 
-    const container = this.messagesContainer?.nativeElement;
+    const container = this.messagesContainer()?.nativeElement;
     const prevHeight = container?.scrollHeight ?? 0;
     const prevTop = container?.scrollTop ?? 0;
 
@@ -229,7 +345,7 @@ export default class Messages implements OnInit, OnDestroy {
       this.messages.update((msgs) => [...older, ...msgs]);
 
       requestAnimationFrame(() => {
-        const el = this.messagesContainer?.nativeElement;
+        const el = this.messagesContainer()?.nativeElement;
         if (!el) return;
         el.scrollTop = el.scrollHeight - prevHeight + prevTop;
       });
@@ -263,6 +379,7 @@ export default class Messages implements OnInit, OnDestroy {
 
     this.messages.update((msgs) => [...msgs, optimistic]);
     this.newMessage.set('');
+    this.composer()?.resetHeight();
     setTimeout(() => this.scrollToBottom(), 50);
 
     try {
@@ -319,22 +436,6 @@ export default class Messages implements OnInit, OnDestroy {
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   }
 
-  onInputKeydown(event: Event): void {
-    const keyEvent = event as KeyboardEvent;
-    const target = event.target as HTMLTextAreaElement;
-    if (keyEvent.key === 'Enter' && !keyEvent.shiftKey) {
-      event.preventDefault();
-      this.sendMessage();
-      target.style.height = 'auto';
-    }
-  }
-
-  autoResize(event: Event): void {
-    const target = event.target as HTMLTextAreaElement;
-    target.style.height = 'auto';
-    target.style.height = Math.min(target.scrollHeight, 120) + 'px';
-  }
-
   getLastMessagePreview(conv: ConversationResponse): string {
     return conv.last_message?.content ?? 'Sin mensajes';
   }
@@ -351,6 +452,7 @@ export default class Messages implements OnInit, OnDestroy {
       this.draftRecipient.set(null);
       this.selectedConversation.set(created);
       this.store.setActiveConversation(created.id);
+      this.location.go(`${ROUTES.MESSAGES}/${created.id}`);
       void this.realtimeService.subscribeConversation(created.id);
       return;
     }
@@ -374,6 +476,7 @@ export default class Messages implements OnInit, OnDestroy {
     this.draftRecipient.set(null);
     this.selectedConversation.set(fallback);
     this.store.setActiveConversation(fallback.id);
+    this.location.go(`${ROUTES.MESSAGES}/${fallback.id}`);
     void this.realtimeService.subscribeConversation(fallback.id);
   }
 
@@ -428,13 +531,38 @@ export default class Messages implements OnInit, OnDestroy {
   }
 
   private scrollToBottom(): void {
-    const el = this.messagesContainer?.nativeElement;
+    const el = this.messagesContainer()?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
   }
 
+  private bindContainerScroll(): void {
+    const el = this.messagesContainer()?.nativeElement;
+    if (!el || this.containerScrollCleanup) return;
+    const onScroll = () => {
+      const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+      this.isAtBottom.set(dist <= this.bottomThresholdPx);
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    this.containerScrollCleanup = () => el.removeEventListener('scroll', onScroll);
+  }
+
+  private scrollToBottomSettled(epoch: number): void {
+    requestAnimationFrame(() => {
+      if (epoch !== this.selectionEpoch) return;
+      this.bindContainerScroll();
+      this.scrollToBottom();
+      requestAnimationFrame(() => {
+        if (epoch !== this.selectionEpoch) return;
+        this.scrollToBottom();
+        this.isAtBottom.set(true);
+        this.initialScrollDone.set(true);
+      });
+    });
+  }
+
   private syncSentinelObserver(shouldObserve: boolean): void {
-    const sentinel = this.topSentinel?.nativeElement ?? null;
-    const root = this.messagesContainer?.nativeElement ?? null;
+    const sentinel = this.topSentinel()?.nativeElement ?? null;
+    const root = this.messagesContainer()?.nativeElement ?? null;
 
     if (!shouldObserve || !sentinel || !root) {
       this.disconnectIntersectionObserver();

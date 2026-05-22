@@ -1,0 +1,35 @@
+<div class="w-full">
+  <div class="relative w-full">
+    <i class="pi pi-map-marker absolute left-4 top-1/2 -translate-y-1/2 z-10 text-gray-400"></i>
+
+    <p-autoComplete
+      [(ngModel)]="value"
+      [suggestions]="citySuggestions()"
+      (completeMethod)="onCitySearch($event)"
+      (onSelect)="onCitySelect($event.value)"
+      [minLength]="2"
+      placeholder="Selecciona una ciudad"
+      class="w-full"
+      [inputStyle]="{ 'padding-left': '2.8rem' }"
+      inputStyleClass="w-full bg-gray-50 border border-gray-border rounded-xl py-3 px-5 text-gray-700 placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all duration-200"
+      [showEmptyMessage]="!citySearchService.cityResource.isLoading()"
+      emptyMessage="No se encontraron ciudades"
+    >
+      <ng-template let-city pTemplate="item">
+        <div class="flex items-center gap-2 py-1">
+          <i class="pi pi-map-marker text-primary text-sm"></i>
+          <span class="text-sm text-gray-700 font-medium">{{ city }}</span>
+        </div>
+      </ng-template>
+    </p-autoComplete>
+  </div>
+
+  @if (citySearchService.cityResource.error()) {
+    <div
+      class="flex items-center gap-2 mt-2 px-3 py-2 bg-red-50 border border-red-100 rounded-xl animate-in fade-in duration-200"
+    >
+      <i class="pi pi-exclamation-circle text-red-500 text-xs"></i>
+      <span class="text-xs text-red-500 font-medium">No se pudo cargar la lista de ciudades</span>
+    </div>
+  }
+</div>

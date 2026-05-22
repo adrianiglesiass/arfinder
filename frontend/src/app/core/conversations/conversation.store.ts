@@ -53,7 +53,7 @@ export class ConversationStore {
         const ids = list.map((c) => c.id);
         if (ids.length) await this.realtime.subscribeConversations(ids);
       } catch {
-        /* empty */
+        //
       } finally {
         this.initializing = null;
       }

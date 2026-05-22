@@ -10,10 +10,12 @@ import type {
   ProfileResponse,
   ProfileUpdate,
 } from '@core/api/api.models';
+import { ROUTES } from '@core/constants/routes';
+import { STORAGE_KEYS } from '@core/constants/storage-keys';
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
-const STORAGE_KEY_BY_ID = 'arfinder.profiles.byId.v1';
-const STORAGE_KEY_ME = 'arfinder.profiles.me.v1';
+const STORAGE_KEY_BY_ID = STORAGE_KEYS.profile.byId;
+const STORAGE_KEY_ME = STORAGE_KEYS.profile.me;
 
 interface CacheEntry<T> {
   data: T;
@@ -104,7 +106,7 @@ export class ProfileService {
           .catch((error) => {
             if (error instanceof HttpErrorResponse && error.status === 404) {
               this.currentProfile.set(null);
-              this.router.navigate(['/bienvenida']);
+              this.router.navigate([ROUTES.WELCOME]);
             }
             return cached;
           })
@@ -123,7 +125,7 @@ export class ProfileService {
         return profile;
       } catch (error) {
         if (error instanceof HttpErrorResponse && error.status === 404) {
-          await this.router.navigate(['/bienvenida']);
+          await this.router.navigate([ROUTES.WELCOME]);
         }
         throw error;
       } finally {

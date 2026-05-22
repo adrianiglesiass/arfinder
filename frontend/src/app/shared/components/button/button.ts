@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 
 import { Spinner } from '@shared/components/spinner/spinner';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md';
 
 @Component({
@@ -32,8 +32,9 @@ export class Button {
     const variants: Record<ButtonVariant, string> = {
       primary: 'bg-primary text-white font-bold hover:opacity-90 active:opacity-80',
       secondary:
-        'bg-white text-gray-700 border border-gray-200 font-semibold hover:bg-gray-50 active:bg-gray-100',
+        'bg-white text-gray-700 border border-gray-border font-semibold hover:bg-gray-50 active:bg-gray-100',
       ghost: 'text-gray-400 font-bold hover:text-primary active:text-primary',
+      danger: 'bg-red-600 text-white font-bold hover:bg-red-700 active:bg-red-800',
     };
 
     return `${base} ${sizes[this.size()]} ${variants[this.variant()]}`;

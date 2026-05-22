@@ -10,8 +10,8 @@
           [formControl]="$any(control)"
           (input)="onInput($event, $index)"
           (keydown)="onKeyDown($event, $index)"
-          class="w-12 h-14 text-center text-2xl font-bold bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-          [class.border-red-500]="errorMessage()"
+          class="w-12 h-14 text-center text-2xl font-bold bg-gray-50 border border-gray-border rounded-xl focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+          [class.border-red-400]="errorMessage()"
         />
       }
     </div>

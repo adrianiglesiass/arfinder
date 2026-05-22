@@ -13,11 +13,21 @@ class User(Base):
     password_hash = Column(String(255), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
-    profile = relationship("Profile", back_populates="user", uselist=False)
-    sent_messages = relationship("Message", back_populates="sender")
+    profile = relationship(
+        "Profile", back_populates="user", uselist=False, passive_deletes=True
+    )
+    sent_messages = relationship(
+        "Message", back_populates="sender", passive_deletes=True
+    )
     conversations_as_user1 = relationship(
-        "Conversation", foreign_keys="Conversation.user1_id", back_populates="user1"
+        "Conversation",
+        foreign_keys="Conversation.user1_id",
+        back_populates="user1",
+        passive_deletes=True,
     )
     conversations_as_user2 = relationship(
-        "Conversation", foreign_keys="Conversation.user2_id", back_populates="user2"
+        "Conversation",
+        foreign_keys="Conversation.user2_id",
+        back_populates="user2",
+        passive_deletes=True,
     )

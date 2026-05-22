@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-gray-50/40 pb-32 md:pb-10">
-  <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-gray-100">
+  <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-hairline">
     <div
       class="w-full max-w-5xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-3"
     >
@@ -85,48 +85,25 @@
         </nav>
 
         <div class="space-y-6 md:space-y-8 min-w-0">
-          <section
-            id="section-photos"
-            aria-labelledby="photos-title"
-            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-gray-border rounded-3xl p-5 md:p-7"
+          <app-edit-section
+            sectionId="photos"
+            title="Tus fotos"
+            description="Las fotos se guardan al instante. Arrastra para reordenarlas."
           >
-            <header class="mb-6 flex items-end justify-between gap-4">
-              <div>
-                <h2
-                  id="photos-title"
-                  class="text-lg md:text-xl font-bold text-primary leading-tight"
-                >
-                  Tus fotos
-                </h2>
-                <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">
-                  Las fotos se guardan al instante. Arrastra para reordenarlas.
-                </p>
-              </div>
-              <span
-                class="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400"
-              >
-                {{ p.photos.length }} / 6
-              </span>
-            </header>
+            <span
+              slot="header-extra"
+              class="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400"
+            >
+              {{ p.photos.length }} / 6
+            </span>
             <app-photos-editor [photos]="p.photos" />
-          </section>
+          </app-edit-section>
 
-          <section
-            id="section-profile"
-            aria-labelledby="profile-title"
-            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-gray-border rounded-3xl p-5 md:p-7"
+          <app-edit-section
+            sectionId="profile"
+            title="Información personal"
+            description="Estos datos aparecen en tu perfil público."
           >
-            <header class="mb-6">
-              <h2
-                id="profile-title"
-                class="text-lg md:text-xl font-bold text-primary leading-tight"
-              >
-                Información personal
-              </h2>
-              <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">
-                Estos datos aparecen en tu perfil público.
-              </p>
-            </header>
             <app-step-profile
               [name]="safeForm().name"
               [age]="safeForm().age"
@@ -137,71 +114,51 @@
               [showErrors]="showErrors()"
               (changed)="updateForm($event)"
             />
-          </section>
+          </app-edit-section>
 
-          <section
-            id="section-objective"
-            aria-labelledby="objective-title"
-            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-gray-border rounded-3xl p-5 md:p-7"
+          <app-edit-section
+            sectionId="objective"
+            title="Objetivo y presupuesto"
+            description="Cuéntanos qué buscas para ajustar las recomendaciones."
           >
-            <header class="mb-6">
-              <h2
-                id="objective-title"
-                class="text-lg md:text-xl font-bold text-primary leading-tight"
-              >
-                Objetivo y presupuesto
-              </h2>
-              <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">
-                Cuéntanos qué buscas para ajustar las recomendaciones.
-              </p>
-            </header>
             <app-step-objective
               [type]="safeForm().type"
               [budget]="safeForm().max_budget"
               [roomDescription]="safeForm().room_description"
               (dataChange)="updateForm($event)"
             />
-          </section>
+          </app-edit-section>
 
-          <section
-            id="section-lifestyle"
-            aria-labelledby="lifestyle-title"
-            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-gray-border rounded-3xl p-5 md:p-7"
+          <app-edit-section
+            sectionId="lifestyle"
+            title="Estilo de convivencia"
+            description="Cómo es tu día a día en casa."
           >
-            <header class="mb-6">
-              <h2
-                id="lifestyle-title"
-                class="text-lg md:text-xl font-bold text-primary leading-tight"
-              >
-                Estilo de convivencia
-              </h2>
-              <p class="text-xs md:text-sm text-gray-400 font-medium mt-1">
-                Cómo es tu día a día en casa.
-              </p>
-            </header>
             <app-step-lifestyle
               [schedule]="safeForm().schedule"
               [hasPets]="safeForm().has_pets"
               [isSmoker]="safeForm().is_smoker"
               (dataChange)="updateForm($event)"
             />
+          </app-edit-section>
+
+          <section
+            id="section-danger"
+            class="scroll-mt-20 md:scroll-mt-24 bg-white border border-red-200 rounded-3xl p-5 mt-5 md:p-7"
+          >
+            <app-danger-zone />
           </section>
         </div>
       </div>
     </div>
 
     @if (isDirty()) {
-      <div class="md:hidden fixed bottom-24 left-4 right-4 z-40">
-        <div
-          class="bg-white border border-gray-border rounded-full shadow-lg p-1.5 pl-4 flex items-center justify-between gap-3"
-        >
-          <span class="text-[12px] font-bold text-primary truncate"> Editando perfil </span>
-          <app-button size="sm" (click)="save()" [disabled]="!canSave()" [loading]="isSaving()">
-            <i class="pi pi-check text-xs"></i>
-            Guardar
-          </app-button>
-        </div>
-      </div>
+      <app-mobile-action-bar label="Editando perfil">
+        <app-button size="sm" (click)="save()" [disabled]="!canSave()" [loading]="isSaving()">
+          <i class="pi pi-check text-xs"></i>
+          Guardar
+        </app-button>
+      </app-mobile-action-bar>
     }
   }
 </div>

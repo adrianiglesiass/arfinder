@@ -1,0 +1,39 @@
+<button
+  type="button"
+  class="w-full p-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
+  [class.bg-blue-50]="isSelected()"
+  (click)="onClick()"
+>
+  <div class="flex items-center gap-3">
+    <app-avatar
+      [src]="conversation().other_user?.photo_url ?? null"
+      [alt]="conversation().other_user?.name ?? 'Usuario'"
+      size="md"
+      [priority]="priority()"
+    />
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between gap-2">
+        <span class="font-semibold text-primary text-sm truncate">
+          {{ conversation().other_user?.name ?? 'Usuario' }}
+        </span>
+        <span
+          class="text-xs shrink-0"
+          [class.text-primary]="conversation().unread_count > 0"
+          [class.text-gray-400]="conversation().unread_count === 0"
+        >
+          {{ lastMessageTime() }}
+        </span>
+      </div>
+      <div class="flex items-center justify-between gap-2 mt-0.5">
+        <span class="text-sm text-gray-500 truncate">{{ lastMessagePreview() }}</span>
+        @if (conversation().unread_count > 0) {
+          <span
+            class="min-w-4.5 h-4.5 flex items-center justify-center bg-primary text-white text-xs font-medium rounded-full px-1 shrink-0"
+          >
+            {{ conversation().unread_count }}
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+</button>

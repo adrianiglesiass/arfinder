@@ -13,29 +13,24 @@ import {
   viewChild,
 } from '@angular/core';
 
-import type { ProfileSearchFilters, ScheduleEnum, TypeEnum } from '@core/api/api.models';
-import { RightPanelService } from '@core/layout/right-panel.service';
-import { ProfileSearchService } from '@core/profileSearch/profile-search.service';
+import { RightPanelService } from '@layout/right-panel.service';
+
+import type { ProfileSearchFilters } from '@core/api/api.models';
+import { ProfileSearchService } from '@core/profile-search/profile-search.service';
 
 import { Button } from '@shared/components/button/button';
+import { IconButton } from '@shared/components/icon-button/icon-button';
 
+import { SCHEDULE_LABELS, TYPE_LABELS } from '@features/profile/profile-labels';
+import { ProfileDeck } from '@features/search-profile/components/profile-deck/profile-deck';
+import { ProfileGrid } from '@features/search-profile/components/profile-grid/profile-grid';
 import { SearchFilters } from '@features/search-profile/components/search-filters/search-filters';
-import { SearchResults } from '@features/search-profile/components/search-results/search-results';
+
+type ViewMode = 'deck' | 'grid';
+const VIEW_STORAGE_KEY = 'arfinder.exploreView';
 
 const DISMISS_THRESHOLD_PX = 120;
 const BODY_LOCK_CLASS = 'overflow-hidden';
-
-const TYPE_LABELS: Record<TypeEnum, string> = {
-  looking_for_flat: 'Busca piso',
-  looking_for_roommate: 'Busca compañero',
-};
-
-const SCHEDULE_LABELS: Record<ScheduleEnum, string> = {
-  morning: 'Mañana',
-  afternoon: 'Tarde',
-  night: 'Noche',
-  flexible: 'Flexible',
-};
 
 type FilterKey = keyof ProfileSearchFilters;
 type ChipKey = FilterKey | 'age_range';
@@ -59,7 +54,7 @@ const toAgeNumber = (v: number | string | null | undefined): number | null => {
 
 @Component({
   selector: 'app-search-profile',
-  imports: [SearchFilters, SearchResults, Button],
+  imports: [SearchFilters, ProfileDeck, ProfileGrid, Button, IconButton],
   templateUrl: './search-profile.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -71,6 +66,13 @@ export default class SearchProfile implements AfterViewInit, OnDestroy {
 
   protected readonly filtersOpen = signal(false);
   protected readonly filtersTpl = viewChild.required<TemplateRef<unknown>>('filtersTpl');
+
+  protected readonly viewMode = signal<ViewMode>(this.readViewMode());
+  protected readonly sectionClass = computed(() =>
+    this.viewMode() === 'deck'
+      ? 'flex flex-col h-[calc(100dvh-5rem)] md:h-screen overflow-hidden'
+      : 'pb-16'
+  );
 
   protected readonly dragY = signal(0);
   protected readonly isDragging = signal(false);
@@ -126,6 +128,23 @@ export default class SearchProfile implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.rightPanel.clear();
     this.renderer.removeClass(this.document.body, BODY_LOCK_CLASS);
+  }
+
+  setViewMode(mode: ViewMode): void {
+    this.viewMode.set(mode);
+    try {
+      localStorage.setItem(VIEW_STORAGE_KEY, mode);
+    } catch {
+      return;
+    }
+  }
+
+  private readViewMode(): ViewMode {
+    try {
+      return localStorage.getItem(VIEW_STORAGE_KEY) === 'grid' ? 'grid' : 'deck';
+    } catch {
+      return 'deck';
+    }
   }
 
   toggleFilters() {

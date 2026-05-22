@@ -24,11 +24,11 @@ async def delete_my_account(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    delete_user(db, current_user)
+    await delete_user(db, current_user)
 
 
 @router.post("/sync-cleanup", include_in_schema=False)
-async def sync_cleanup(
+def sync_cleanup(
     x_sync_token: str | None = Header(default=None),
     db: Session = Depends(get_db),
 ):

@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 
 import { ProfileCreate } from '@core/api/api.models';
+import { STORAGE_KEYS } from '@core/constants/storage-keys';
 
-const ONBOARDING_STORAGE_KEY = 'arfinder_onboarding_form';
-const CURRENT_STEP_KEY = 'arfinder_current_step';
-const PENDING_PHOTOS_KEY = 'arfinder_pending_photos';
-const PHOTO_ORDER_KEY = 'arfinder_pending_photos_order';
-const LAST_USER_KEY = 'arfinder_onboarding_user_id';
+const ONBOARDING_STORAGE_KEY = STORAGE_KEYS.onboarding.form;
+const CURRENT_STEP_KEY = STORAGE_KEYS.onboarding.currentStep;
+const PENDING_PHOTOS_KEY = STORAGE_KEYS.onboarding.pendingPhotos;
+const PHOTO_ORDER_KEY = STORAGE_KEYS.onboarding.pendingPhotosOrder;
+const LAST_USER_KEY = STORAGE_KEYS.onboarding.lastUserId;
 
 @Injectable({
   providedIn: 'root',

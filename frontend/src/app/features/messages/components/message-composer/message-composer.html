@@ -1,0 +1,36 @@
+<div
+  class="px-4 md:px-6 py-2.5 border-t border-hairline bg-white pb-[max(0.625rem,env(safe-area-inset-bottom))] md:pb-6"
+>
+  <form (submit)="onSubmit($event)" class="relative flex items-center w-full">
+    <textarea
+      #textarea
+      [value]="value()"
+      name="message"
+      rows="1"
+      class="w-full min-w-0 pl-4 pr-14 py-1.5 bg-gray-100 rounded-3xl text-[15px] focus:outline-none focus:ring-1 focus:ring-primary/30 resize-none overflow-hidden"
+      (keydown)="onKeydown($event)"
+      (input)="onInput($event)"
+      placeholder="Mensaje"
+    ></textarea>
+    <button
+      type="submit"
+      (mousedown)="$event.preventDefault()"
+      [disabled]="!canSend()"
+      class="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3 rounded-full flex items-center justify-center transition-all duration-100 text-white select-none"
+      [class]="submitClass()"
+    >
+      <svg
+        viewBox="0 0 16 16"
+        class="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M8 13 V4 M4 8 L8 4 L12 8" />
+      </svg>
+    </button>
+  </form>
+</div>
