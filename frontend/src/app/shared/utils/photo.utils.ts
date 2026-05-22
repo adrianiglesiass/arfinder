@@ -28,6 +28,19 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
+export function fileSignature(file: File): string {
+  return `${file.name}-${file.size}-${file.lastModified}`;
+}
+
+export function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target?.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 export function getPhotoKey(photo: CombinedPhoto): string {
   if ('file' in photo) {
     return `local:${photo.id}`;
