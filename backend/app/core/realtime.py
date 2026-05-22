@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-import select
+import time
 from typing import Any
 
 import psycopg2
@@ -107,6 +107,7 @@ def _parse_conversation_id(channel: str | None) -> int | None:
 class PostgresNotifyListener:
     def __init__(self) -> None:
         self.is_running = False
+        self.last_notify_at: float | None = None
         self._task: asyncio.Task[None] | None = None
         self._conn = None
 
@@ -146,14 +147,7 @@ class PostgresNotifyListener:
                 logger.info(f"[realtime] LISTEN on '{NOTIFY_CHANNEL}' established")
                 backoff = INITIAL_BACKOFF
 
-                while self.is_running:
-                    if select.select([self._conn], [], [], 0.05) != ([], [], []):
-                        self._conn.poll()
-                        while self._conn.notifies:
-                            notify = self._conn.notifies.pop(0)
-                            await self._dispatch(notify.payload)
-                    else:
-                        await asyncio.sleep(0)
+                await self._consume_notifications()
             except Exception as e:
                 logger.error(f"[realtime] listener error: {e}; retrying in {backoff}s")
                 if self._conn is not None:
@@ -164,6 +158,24 @@ class PostgresNotifyListener:
                     self._conn = None
                 await asyncio.sleep(backoff)
                 backoff = min(backoff * BACKOFF_FACTOR, MAX_BACKOFF)
+
+    async def _consume_notifications(self) -> None:
+        loop = asyncio.get_running_loop()
+        conn = self._conn
+        fileno = conn.fileno()
+        readable = asyncio.Event()
+        loop.add_reader(fileno, readable.set)
+        try:
+            while self.is_running:
+                await readable.wait()
+                readable.clear()
+                conn.poll()
+                while conn.notifies:
+                    notify = conn.notifies.pop(0)
+                    self.last_notify_at = time.time()
+                    await self._dispatch(notify.payload)
+        finally:
+            loop.remove_reader(fileno)
 
     async def _dispatch(self, payload_str: str) -> None:
         try:
