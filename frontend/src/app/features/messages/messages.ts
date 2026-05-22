@@ -83,6 +83,10 @@ export default class Messages implements OnInit {
   viewportOffsetTop = signal(0);
   isMobile = signal(false);
 
+  private isAtBottom = signal(true);
+  private readonly bottomThresholdPx = 80;
+  private containerScrollCleanup: (() => void) | null = null;
+
   readonly mobileChatHeightPx = computed(() => {
     if (!this.chatActive() || !this.isMobile()) return null;
     return this.viewportHeight();
@@ -195,6 +199,7 @@ export default class Messages implements OnInit {
       this.cleanupViewport?.();
       this.cleanupMq?.();
       this.disconnectIntersectionObserver();
+      this.containerScrollCleanup?.();
       this.setBodyScrollLock(false);
       this.store.setActiveConversation(null);
     });
@@ -219,6 +224,9 @@ export default class Messages implements OnInit {
     const update = () => {
       this.viewportHeight.set(vv.height);
       this.viewportOffsetTop.set(vv.offsetTop);
+      if (this.initialScrollDone() && this.isAtBottom()) {
+        requestAnimationFrame(() => this.scrollToBottom());
+      }
     };
     update();
     vv.addEventListener('resize', update);
@@ -276,10 +284,16 @@ export default class Messages implements OnInit {
     this.hasMoreMessages.set(false);
     this.isLoadingOlder.set(false);
     this.initialScrollDone.set(false);
+    this.containerScrollCleanup?.();
+    this.containerScrollCleanup = null;
+    this.isAtBottom.set(true);
   }
 
   async selectConversation(conv: ConversationResponse): Promise<void> {
     const epoch = ++this.selectionEpoch;
+    this.containerScrollCleanup?.();
+    this.containerScrollCleanup = null;
+    this.isAtBottom.set(true);
     this.draftRecipient.set(null);
     this.selectedConversation.set(conv);
     this.messages.set([]);
@@ -297,14 +311,7 @@ export default class Messages implements OnInit {
       this.hasMoreMessages.set(msgs.length === PAGE_SIZE);
       void this.conversationApi.markAsRead(conv.id);
 
-      requestAnimationFrame(() => {
-        if (epoch !== this.selectionEpoch) return;
-        this.scrollToBottom();
-        requestAnimationFrame(() => {
-          if (epoch !== this.selectionEpoch) return;
-          this.initialScrollDone.set(true);
-        });
-      });
+      this.scrollToBottomSettled(epoch);
     } catch {
       /* empty */
     }
@@ -526,6 +533,31 @@ export default class Messages implements OnInit {
   private scrollToBottom(): void {
     const el = this.messagesContainer()?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  private bindContainerScroll(): void {
+    const el = this.messagesContainer()?.nativeElement;
+    if (!el || this.containerScrollCleanup) return;
+    const onScroll = () => {
+      const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+      this.isAtBottom.set(dist <= this.bottomThresholdPx);
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    this.containerScrollCleanup = () => el.removeEventListener('scroll', onScroll);
+  }
+
+  private scrollToBottomSettled(epoch: number): void {
+    requestAnimationFrame(() => {
+      if (epoch !== this.selectionEpoch) return;
+      this.bindContainerScroll();
+      this.scrollToBottom();
+      requestAnimationFrame(() => {
+        if (epoch !== this.selectionEpoch) return;
+        this.scrollToBottom();
+        this.isAtBottom.set(true);
+        this.initialScrollDone.set(true);
+      });
+    });
   }
 
   private syncSentinelObserver(shouldObserve: boolean): void {
