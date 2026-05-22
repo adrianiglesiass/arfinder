@@ -4,7 +4,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 
 from app.core.auth_utils import get_or_create_local_user
-from app.core.realtime import manager
+from app.core.realtime import listener, manager
 from app.core.security import validate_insforge_token
 from app.db.database import SessionLocal
 from app.repositories import conversation_repository
@@ -29,6 +29,14 @@ def _extract_bearer_token(websocket: WebSocket) -> str | None:
         return None
     token = subprotocols[1]
     return token if token else None
+
+
+@router.get("/health/realtime")
+def realtime_health():
+    return {
+        "listener_running": listener.is_running,
+        "last_notify_at": listener.last_notify_at,
+    }
 
 
 @router.websocket("/ws/realtime")
