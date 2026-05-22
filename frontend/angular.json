@@ -50,27 +50,6 @@
               ],
               "outputHashing": "all"
             },
-            "staging": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.staging.ts"
-                }
-              ],
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "900kB",
-                  "maximumError": "1.2MB"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
-                }
-              ],
-              "outputHashing": "all"
-            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -87,9 +66,6 @@
           "configurations": {
             "production": {
               "buildTarget": "arfinder-frontend:build:production"
-            },
-            "staging": {
-              "buildTarget": "arfinder-frontend:build:staging"
             },
             "development": {
               "buildTarget": "arfinder-frontend:build:development"
