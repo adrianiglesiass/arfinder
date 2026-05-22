@@ -18,7 +18,12 @@ import { ErrorService } from '@core/errors';
 import { ProfileService } from '@core/profile/profile.service';
 
 import { PhotoCard } from '@shared/components/profile-form/photo-card/photo-card';
-import { CombinedPhoto, isLocalPhoto, validateFile } from '@shared/utils/photo.utils';
+import {
+  CombinedPhoto,
+  fileSignature,
+  isLocalPhoto,
+  validateFile,
+} from '@shared/utils/photo.utils';
 
 @Component({
   selector: 'app-photos-editor',
@@ -54,29 +59,38 @@ export class PhotosEditor {
 
   async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
+    if (this.busy()) return;
     if (!input.files || input.files.length === 0) return;
-
-    const current = this.displayPhotos().length;
-    const available = this.MAX_PHOTOS - current;
-    if (available <= 0) {
-      this.toast(`Ya has alcanzado el límite de ${this.MAX_PHOTOS} fotos`, 'error');
-      input.value = '';
-      return;
-    }
-
-    const files = Array.from(input.files).slice(0, available);
-    if (Array.from(input.files).length > available) {
-      this.toast(`Solo se pueden añadir ${available} fotos más`, 'warning');
-    }
 
     this.busy.set(true);
     try {
-      for (const file of files) {
+      const available = this.MAX_PHOTOS - this.displayPhotos().length;
+      if (available <= 0) {
+        this.toast(`Ya has alcanzado el límite de ${this.MAX_PHOTOS} fotos`, 'error');
+        return;
+      }
+
+      const seenSignatures = new Set<string>();
+      const validFiles: File[] = [];
+      for (const file of Array.from(input.files)) {
+        const signature = fileSignature(file);
+        if (seenSignatures.has(signature)) continue;
         const validation = validateFile(file);
         if (!validation.valid) {
           this.toast(validation.error || 'Archivo inválido', 'error');
           continue;
         }
+        seenSignatures.add(signature);
+        validFiles.push(file);
+      }
+
+      const files = validFiles.slice(0, available);
+      if (validFiles.length > available) {
+        this.toast(`Solo se pueden añadir ${available} fotos más`, 'warning');
+      }
+      if (files.length === 0) return;
+
+      for (const file of files) {
         try {
           await this.profileService.addPhoto(file);
         } catch (err) {
