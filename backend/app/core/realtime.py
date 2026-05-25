@@ -17,6 +17,7 @@ INITIAL_BACKOFF = 1
 MAX_BACKOFF = 60
 BACKOFF_FACTOR = 2
 NOTIFY_CHANNEL = "insforge_realtime"
+HEARTBEAT_SECONDS = 25
 
 
 class ConnectionManager:
@@ -140,7 +141,13 @@ class PostgresNotifyListener:
                 dsn = settings.DATABASE_URL.replace(
                     "postgresql+psycopg2://", "postgresql://"
                 )
-                self._conn = psycopg2.connect(dsn)
+                self._conn = psycopg2.connect(
+                    dsn,
+                    keepalives=1,
+                    keepalives_idle=30,
+                    keepalives_interval=10,
+                    keepalives_count=3,
+                )
                 self._conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
                 cursor = self._conn.cursor()
                 cursor.execute(f"LISTEN {NOTIFY_CHANNEL};")
@@ -167,8 +174,13 @@ class PostgresNotifyListener:
         loop.add_reader(fileno, readable.set)
         try:
             while self.is_running:
-                await readable.wait()
+                try:
+                    await asyncio.wait_for(readable.wait(), timeout=HEARTBEAT_SECONDS)
+                except asyncio.TimeoutError:
+                    pass
                 readable.clear()
+                if conn.closed:
+                    raise psycopg2.OperationalError("connection closed")
                 conn.poll()
                 while conn.notifies:
                     notify = conn.notifies.pop(0)
