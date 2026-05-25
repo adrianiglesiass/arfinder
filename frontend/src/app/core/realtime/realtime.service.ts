@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 
 import { environment } from '@env/environment';
 
@@ -43,6 +43,19 @@ export class RealtimeService {
   private manuallyClosed = false;
 
   isConnected = signal(false);
+
+  private lastSeenUserId: number | null = null;
+
+  constructor() {
+    effect(() => {
+      const user = this.authService.currentUser();
+      const id = user?.id ?? null;
+      if (this.lastSeenUserId !== null && id !== this.lastSeenUserId) {
+        this.disconnect();
+      }
+      this.lastSeenUserId = id;
+    });
+  }
 
   addMessageHandler(handler: MessageHandler): () => void {
     this.messageHandlers.add(handler);

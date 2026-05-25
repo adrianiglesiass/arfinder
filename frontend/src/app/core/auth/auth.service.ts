@@ -312,10 +312,6 @@ export class AuthService {
     this.clearPersistedAccessToken();
     this.currentUser.set(null);
     this.onboardingPersistence.clearAll();
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.removeItem(STORAGE_KEYS.profile.byId);
-      sessionStorage.removeItem(STORAGE_KEYS.profile.me);
-    }
   }
 
   async isAuthenticated(): Promise<boolean> {

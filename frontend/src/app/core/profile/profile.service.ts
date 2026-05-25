@@ -10,6 +10,7 @@ import type {
   ProfileResponse,
   ProfileUpdate,
 } from '@core/api/api.models';
+import { AuthService } from '@core/auth/auth.service';
 import { ROUTES } from '@core/constants/routes';
 import { STORAGE_KEYS } from '@core/constants/storage-keys';
 
@@ -51,6 +52,7 @@ function writeSession<T>(key: string, data: T): void {
 export class ProfileService {
   private readonly authApi = inject(ProfileApiService);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   currentProfile = signal<ProfileResponse | null>(readSession<ProfileResponse>(STORAGE_KEY_ME));
   profilePhotoUrl = computed(() => {
@@ -65,6 +67,8 @@ export class ProfileService {
     new Map(readSession<[number, ProfileResponse][]>(STORAGE_KEY_BY_ID) ?? [])
   );
 
+  private lastSeenUserId: number | null = null;
+
   constructor() {
     effect(() => {
       const me = this.currentProfile();
@@ -74,6 +78,14 @@ export class ProfileService {
     effect(() => {
       const map = this.profilesById();
       writeSession(STORAGE_KEY_BY_ID, Array.from(map.entries()));
+    });
+    effect(() => {
+      const user = this.auth.currentUser();
+      const id = user?.id ?? null;
+      if (this.lastSeenUserId !== null && id !== this.lastSeenUserId) {
+        this.clearCache();
+      }
+      this.lastSeenUserId = id;
     });
   }
 
