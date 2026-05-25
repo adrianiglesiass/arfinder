@@ -150,6 +150,7 @@ export default class Messages implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.setupViewportTracking();
+    this.setupPopStateHandler();
     this.registerCleanup();
 
     await this.store.refresh();
@@ -275,9 +276,13 @@ export default class Messages implements OnInit {
   }
 
   closeConversation(): void {
+    this.location.go(ROUTES.MESSAGES);
+    this.resetConversationState();
+  }
+
+  private resetConversationState(): void {
     this.selectionEpoch++;
     this.store.setActiveConversation(null);
-    this.location.go(ROUTES.MESSAGES);
     this.selectedConversation.set(null);
     this.draftRecipient.set(null);
     this.messages.set([]);
@@ -287,6 +292,18 @@ export default class Messages implements OnInit {
     this.containerScrollCleanup?.();
     this.containerScrollCleanup = null;
     this.isAtBottom.set(true);
+  }
+
+  private setupPopStateHandler(): void {
+    if (typeof window === 'undefined') return;
+    const onPopState = () => {
+      const path = this.location.path().split('?')[0];
+      if (path === ROUTES.MESSAGES && (this.selectedConversation() || this.draftRecipient())) {
+        this.resetConversationState();
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    this.destroyRef.onDestroy(() => window.removeEventListener('popstate', onPopState));
   }
 
   async selectConversation(conv: ConversationResponse): Promise<void> {
