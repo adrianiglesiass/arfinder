@@ -10,8 +10,12 @@ from app.schemas.profile import ProfileCreate, ProfileSummary, ProfileUpdate
 
 def _profile_to_summary(profile: Profile) -> ProfileSummary:
     sorted_photos = sorted(profile.photos, key=attrgetter("order"))
+    seen = set()
     photo_urls = []
     for photo in sorted_photos:
+        if photo.photo_url in seen:
+            continue
+        seen.add(photo.photo_url)
         photo_urls.append(photo.photo_url)
 
     return ProfileSummary(
