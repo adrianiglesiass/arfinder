@@ -118,7 +118,7 @@ export class ProfileDeck {
     const dx = event.clientX - this.startX;
     const dy = event.clientY - this.startY;
     if (Math.abs(dx) > TAP_TOLERANCE_PX || Math.abs(dy) > TAP_TOLERANCE_PX) this.moved = true;
-    this.dragX.set(dx);
+    if (this.moved) this.dragX.set(dx);
   }
 
   protected onPointerUp(): void {
@@ -176,6 +176,7 @@ export class ProfileDeck {
 
   protected photoPrev(p: ProfileSummary, event: Event): void {
     event.stopPropagation();
+    if (this.moved) return;
     const n = this.photosOf(p).length;
     if (n <= 1) return;
     this.photoIndex.update((i) => (i - 1 + n) % n);
@@ -183,6 +184,7 @@ export class ProfileDeck {
 
   protected photoNext(p: ProfileSummary, event: Event): void {
     event.stopPropagation();
+    if (this.moved) return;
     const n = this.photosOf(p).length;
     if (n <= 1) return;
     this.photoIndex.update((i) => (i + 1) % n);
