@@ -121,7 +121,7 @@ export class StepPhotos implements AfterViewInit {
 
   async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (this.isSelecting()) return;
+    if (this.isSelecting() || this.isUploadingFinal() || this.isReordering()) return;
     if (!input.files || input.files.length === 0) return;
 
     this.isSelecting.set(true);
@@ -153,7 +153,7 @@ export class StepPhotos implements AfterViewInit {
       }
       if (files.length === 0) return;
 
-      const newPhotos = await Promise.all(
+      const previewResults = await Promise.allSettled(
         files.map(async (file) => ({
           id: `local-${Date.now()}-${Math.random()}`,
           file,
@@ -161,8 +161,21 @@ export class StepPhotos implements AfterViewInit {
         }))
       );
 
+      const newPhotos = previewResults
+        .filter(
+          (result): result is PromiseFulfilledResult<LocalPhoto> => result.status === 'fulfilled'
+        )
+        .map((result) => result.value);
+
+      const failedCount = previewResults.filter((result) => result.status === 'rejected').length;
+      if (failedCount > 0) {
+        this.toast('Algunas fotos no pudieron procesarse', 'warning');
+      }
+      if (newPhotos.length === 0) return;
+
       this.localPhotos.set([...this.localPhotos(), ...newPhotos]);
       this.persistLocalPhotos();
+      this.persistOrder();
       this.toast(
         newPhotos.length === 1
           ? 'Foto cargada (se subirá al crear tu perfil)'
@@ -176,12 +189,9 @@ export class StepPhotos implements AfterViewInit {
   }
 
   deleteLocalPhoto(photoId: string) {
-    const photo = this.localPhotos().find((p) => p.id === photoId);
-    if (photo) {
-      URL.revokeObjectURL(photo.preview);
-    }
     this.localPhotos.set(this.localPhotos().filter((p) => p.id !== photoId));
     this.persistLocalPhotos();
+    this.persistOrder();
     this.toast('Foto eliminada', 'info');
   }
 
@@ -219,7 +229,6 @@ export class StepPhotos implements AfterViewInit {
           const response = await this.profileService.addPhoto(localPhoto.file);
           uploadedResults.push(response);
           localKeyToRemoteKey.set(`local:${localPhoto.id}`, `remote:${response.id}`);
-          URL.revokeObjectURL(localPhoto.preview);
         } catch (err: unknown) {
           console.error('Error uploading photo', err);
           throw err;
@@ -280,6 +289,7 @@ export class StepPhotos implements AfterViewInit {
   }
 
   onPhotosReordered(event: CdkDragDrop<CombinedPhoto[]>) {
+    if (this.isReordering() || this.isUploadingFinal()) return;
     if (event.previousIndex === event.currentIndex) {
       return;
     }

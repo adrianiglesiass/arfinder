@@ -90,16 +90,26 @@ export class PhotosEditor {
       }
       if (files.length === 0) return;
 
+      let successCount = 0;
+      let failureCount = 0;
       for (const file of files) {
         try {
           await this.profileService.addPhoto(file);
+          successCount += 1;
         } catch (err) {
+          failureCount += 1;
           const { general } = this.errorService.processError(err as HttpErrorResponse);
           this.toast(general || 'Error al subir la foto', 'error');
         }
       }
       this.orderedPhotos.set(null);
-      this.toast('Fotos actualizadas', 'success');
+      if (successCount > 0 && failureCount > 0) {
+        this.toast('Algunas fotos no se pudieron subir', 'warning');
+      } else if (successCount > 0) {
+        this.toast('Fotos actualizadas', 'success');
+      } else {
+        this.toast('No se pudo subir ninguna foto', 'error');
+      }
     } finally {
       this.busy.set(false);
       input.value = '';

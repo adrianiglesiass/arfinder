@@ -1,8 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
 import type { AuthCredentials } from '@core/auth/auth.types';
+import { ROUTES } from '@core/constants/routes';
+import { STORAGE_KEYS } from '@core/constants/storage-keys';
 import { ErrorService, isInsForgeError } from '@core/errors';
 import { getErrorMessage } from '@core/errors/error-messages';
 
@@ -16,6 +19,7 @@ import { AuthForm } from '@features/auth/components/auth-form/auth-form';
 export default class Login {
   private readonly authService = inject(AuthService);
   private readonly errorService = inject(ErrorService);
+  private readonly router = inject(Router);
 
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
@@ -31,6 +35,14 @@ export default class Login {
       if (error instanceof HttpErrorResponse) {
         const { general } = this.errorService.processError(error);
         this.errorMessage.set(general);
+      } else if (
+        isInsForgeError(error) &&
+        error.statusCode === 403 &&
+        error.message === 'Email verification required'
+      ) {
+        sessionStorage.setItem(STORAGE_KEYS.auth.pendingEmail, credentials.email);
+        await this.router.navigate([ROUTES.VERIFY_EMAIL]);
+        return;
       } else if (isInsForgeError(error) && (error.statusCode === 400 || error.statusCode === 401)) {
         this.errorMessage.set(getErrorMessage('INVALID_CREDENTIALS'));
       } else {
