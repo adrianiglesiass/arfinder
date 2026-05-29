@@ -1,20 +1,20 @@
 <div
-  class="min-h-screen bg-white flex flex-col items-center justify-center p-6 relative overflow-hidden"
+  class="min-h-screen bg-white flex flex-col items-center justify-center p-6 lg:p-8 relative overflow-hidden"
 >
   <div
-    class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-orange-100 blur-[100px] pointer-events-none"
+    class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] max-w-160 max-h-160 rounded-full bg-orange-100 blur-[100px] pointer-events-none"
   ></div>
   <div
-    class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-rose-100 blur-[100px] pointer-events-none"
+    class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] max-w-160 max-h-160 rounded-full bg-rose-100 blur-[100px] pointer-events-none"
   ></div>
 
-  <div class="w-full max-w-100 relative z-10">
+  <div class="w-full max-w-100 lg:max-w-110 xl:max-w-120 relative z-10">
     <div class="flex justify-center mb-4">
       <app-arfinder-logo size="lg" />
     </div>
 
     <div
-      class="bg-white/80 backdrop-blur-xl p-8 rounded-4xl shadow-glass border border-hairline animate-card-enter"
+      class="bg-white/80 backdrop-blur-xl p-8 lg:p-10 rounded-4xl shadow-glass border border-hairline animate-card-enter"
     >
       @if (showTabs()) {
         <div

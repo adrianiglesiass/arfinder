@@ -1,10 +1,12 @@
 <div class="min-h-screen bg-gray-50/40">
   @if (profile(); as p) {
-    <div class="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5 pb-32 md:pb-8">
+    <div
+      class="w-full max-w-7xl xl:max-w-360 2xl:max-w-400 mx-auto px-4 md:px-6 py-4 md:py-5 pb-32 md:pb-8"
+    >
       <app-back-link [link]="exploreRoute" label="Explorar" class="mb-5" />
 
       <div
-        class="grid grid-cols-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start"
+        class="grid grid-cols-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 lg:gap-8 xl:gap-12 items-start"
       >
         <app-photo-gallery
           [photos]="photos()"
@@ -48,13 +50,13 @@
     </div>
   } @else if (isLoading()) {
     <div
-      class="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-5"
+      class="w-full max-w-7xl xl:max-w-360 2xl:max-w-400 mx-auto px-4 md:px-6 py-4 md:py-5"
       aria-busy="true"
       aria-live="polite"
     >
       <app-skeleton shape="bar" size="h-8 w-40 mb-4" />
       <div
-        class="grid grid-cols-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 lg:gap-8 items-start"
+        class="grid grid-cols-1 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 lg:gap-8 xl:gap-12 items-start"
       >
         <app-skeleton
           shape="rect"
