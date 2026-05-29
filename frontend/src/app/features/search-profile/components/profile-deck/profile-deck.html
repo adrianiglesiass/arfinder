@@ -5,7 +5,9 @@
       aria-busy="true"
       aria-live="polite"
     >
-      <div class="w-full max-w-110 h-full max-h-190 bg-gray-100 rounded-3xl animate-pulse"></div>
+      <div
+        class="relative h-full max-h-245 aspect-3/4 max-w-full bg-gray-100 rounded-3xl animate-pulse"
+      ></div>
       <span class="sr-only">Cargando perfiles...</span>
     </div>
   } @else if (error() && total() === 0) {
@@ -61,7 +63,7 @@
         <i class="pi pi-arrow-left text-sm"></i>
       </app-icon-button>
 
-      <div class="relative h-full w-full max-w-110 md:max-w-125 lg:max-w-140">
+      <div class="relative h-full max-h-245 aspect-3/4 max-w-full">
         @for (card of cards(); track card.profile.id) {
           <article
             class="group absolute inset-0 bg-white rounded-3xl border border-primary/10 overflow-hidden select-none shadow-(--shadow-glass)"

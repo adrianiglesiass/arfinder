@@ -11,7 +11,7 @@
 
 @if (active() && hasMultiple()) {
   <div class="absolute top-0 inset-x-0 flex gap-1 p-3 z-20">
-    @for (photo of photos(); track photo; let i = $index) {
+    @for (photo of photos(); track i; let i = $index) {
       <span
         class="flex-1 h-0.5 transition-colors"
         [class]="i === photoIndex() ? 'bg-white' : 'bg-white/30'"
@@ -21,12 +21,14 @@
 
   <button
     type="button"
+    (pointerdown)="$event.stopPropagation()"
     (click)="photoPrev.emit($event)"
     aria-label="Foto anterior"
     class="md:hidden absolute left-0 top-0 bottom-1/3 w-1/3 z-10 cursor-pointer"
   ></button>
   <button
     type="button"
+    (pointerdown)="$event.stopPropagation()"
     (click)="photoNext.emit($event)"
     aria-label="Foto siguiente"
     class="md:hidden absolute right-0 top-0 bottom-1/3 w-1/3 z-10 cursor-pointer"
@@ -34,6 +36,7 @@
 
   <button
     type="button"
+    (pointerdown)="$event.stopPropagation()"
     (click)="photoPrev.emit($event)"
     aria-label="Foto anterior"
     class="hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full bg-black/30 hover:bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-20"
@@ -42,6 +45,7 @@
   </button>
   <button
     type="button"
+    (pointerdown)="$event.stopPropagation()"
     (click)="photoNext.emit($event)"
     aria-label="Foto siguiente"
     class="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 items-center justify-center rounded-full bg-black/30 hover:bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer z-20"
