@@ -2,7 +2,7 @@ from datetime import date
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.schemas.types import UTCDatetime
 
@@ -82,6 +82,18 @@ class ProfileResponse(BaseModel):
     photos: List[ProfilePhotoResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("photos")
+    @classmethod
+    def _dedupe_photos(cls, photos: List[ProfilePhotoResponse]):
+        seen = set()
+        unique = []
+        for photo in photos:
+            if photo.photo_url in seen:
+                continue
+            seen.add(photo.photo_url)
+            unique.append(photo)
+        return unique
 
 
 class ProfileSummary(BaseModel):

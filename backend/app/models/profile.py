@@ -38,5 +38,8 @@ class Profile(Base):
 
     user = relationship("User", back_populates="profile")
     photos = relationship(
-        "ProfilePhoto", back_populates="profile", cascade="all, delete-orphan"
+        "ProfilePhoto",
+        back_populates="profile",
+        cascade="all, delete-orphan",
+        order_by="ProfilePhoto.order, ProfilePhoto.id",
     )

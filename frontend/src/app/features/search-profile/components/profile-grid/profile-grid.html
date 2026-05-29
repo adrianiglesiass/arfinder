@@ -1,6 +1,6 @@
 @if (isLoading()) {
   <div
-    class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in"
+    class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 animate-fade-in"
     aria-busy="true"
     aria-live="polite"
   >
@@ -41,7 +41,7 @@
     }
   </app-empty-state>
 } @else {
-  <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
+  <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 animate-fade-in">
     @for (profile of profiles(); track profile.id; let i = $index) {
       <app-profile-card [profile]="profile" [priority]="i < 6" />
     }
