@@ -1,9 +1,24 @@
-<app-profile-photo
-  [src]="currentPhoto()"
-  [alt]="profile().name"
-  [priority]="active()"
-  imgClass="pointer-events-none"
-/>
+@if (active() && photos().length) {
+  @for (photo of photos(); track i; let i = $index) {
+    <app-profile-photo
+      [src]="photo"
+      [alt]="profile().name"
+      [priority]="i === 0"
+      [eager]="i !== 0"
+      [imgClass]="
+        (i === photoIndex() ? 'opacity-100' : 'opacity-0') +
+        ' transition-opacity duration-200 pointer-events-none'
+      "
+    />
+  }
+} @else {
+  <app-profile-photo
+    [src]="currentPhoto()"
+    [alt]="profile().name"
+    [priority]="active()"
+    imgClass="pointer-events-none"
+  />
+}
 
 <div
   class="absolute inset-0 bg-linear-to-t from-black/85 via-black/10 to-black/25 pointer-events-none"
