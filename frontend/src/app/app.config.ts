@@ -45,7 +45,7 @@ const ArfinderPreset = definePreset(Aura, {
 
 function cloudinaryImageLoader(config: ImageLoaderConfig): string {
   if (!config.src.includes('/upload/')) return config.src;
-  const params = ['f_auto', 'q_auto'];
+  const params = ['f_auto', 'q_auto', 'c_limit'];
   if (config.width) params.push(`w_${config.width}`);
   return config.src.replace('/upload/', `/upload/${params.join(',')}/`);
 }
