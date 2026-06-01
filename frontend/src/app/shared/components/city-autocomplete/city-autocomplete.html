@@ -7,18 +7,48 @@
       [suggestions]="citySuggestions()"
       (completeMethod)="onCitySearch($event)"
       (onSelect)="onCitySelect($event.value)"
+      (onKeyUp)="onKeyUp($event)"
+      (onClear)="onClear()"
       [minLength]="2"
       placeholder="Selecciona una ciudad"
       class="w-full"
       [inputStyle]="{ 'padding-left': '2.8rem' }"
       inputStyleClass="w-full bg-gray-50 border border-gray-border rounded-xl py-3 px-5 text-gray-700 placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all duration-200"
       [showEmptyMessage]="!citySearchService.cityResource.isLoading()"
-      emptyMessage="No se encontraron ciudades"
     >
       <ng-template let-city pTemplate="item">
         <div class="flex items-center gap-2 py-1">
           <i class="pi pi-map-marker text-primary text-sm"></i>
           <span class="text-sm text-gray-700 font-medium">{{ city }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="empty">
+        <div class="flex flex-col gap-2 px-4 py-3">
+          <span class="text-sm text-gray-500">No se encontraron ciudades</span>
+          @if (value().trim().length >= 3) {
+            <button
+              type="button"
+              (mousedown)="$event.preventDefault()"
+              (click)="onSearchMore()"
+              [disabled]="citySearchService.isExtendedLoading()"
+              class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-colors duration-200 disabled:opacity-50"
+            >
+              <i
+                class="pi text-xs"
+                [class.pi-search]="!citySearchService.isExtendedLoading()"
+                [class.pi-spinner]="citySearchService.isExtendedLoading()"
+                [class.pi-spin]="citySearchService.isExtendedLoading()"
+              ></i>
+              <span>
+                {{
+                  citySearchService.isExtendedLoading()
+                    ? 'Buscando en el mapa…'
+                    : 'Buscar más resultados'
+                }}
+              </span>
+            </button>
+          }
         </div>
       </ng-template>
     </p-autoComplete>

@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     CLOUDINARY_API_SECRET: str
 
     # Nominatim
-    NOMINATIM_USER_AGENT: str = "Arfinder/1.0"
+    NOMINATIM_USER_AGENT: str = "Arfinder/1.0 (contacto@arfinder.com)"
 
     # JWT Authentication
     SECRET_KEY: str

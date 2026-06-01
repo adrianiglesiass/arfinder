@@ -18,7 +18,9 @@ export class CityAutocomplete {
 
   protected readonly value = signal<string>('');
 
-  citySuggestions = computed(() => this.citySearchService.cityResource.value() ?? []);
+  citySuggestions = computed(() =>
+    this.value().trim().length < 2 ? [] : this.citySearchService.suggestions()
+  );
 
   constructor() {
     effect(() => {
@@ -28,6 +30,21 @@ export class CityAutocomplete {
 
   onCitySearch(event: { query: string }) {
     this.citySearchService.onCitySearch(event);
+  }
+
+  onKeyUp(event: KeyboardEvent) {
+    const query = (event.target as HTMLInputElement).value ?? '';
+    if (query.trim().length < 2) {
+      this.citySearchService.reset();
+    }
+  }
+
+  onClear() {
+    this.citySearchService.reset();
+  }
+
+  onSearchMore() {
+    this.citySearchService.searchExtended(this.value());
   }
 
   onCitySelect(city: string) {
