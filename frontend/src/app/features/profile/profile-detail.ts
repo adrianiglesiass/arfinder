@@ -7,6 +7,7 @@ import {
   inject,
   input,
   signal,
+  untracked,
 } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -57,7 +58,7 @@ export default class ProfileDetail {
         this.router.navigate([ROUTES.EXPLORE]);
         return;
       }
-      this.loadProfile(profileId);
+      untracked(() => this.loadProfile(profileId));
     });
   }
 
