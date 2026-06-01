@@ -25,4 +25,17 @@ export class CityApiService {
       })
     );
   }
+
+  searchCitiesExtended(query: string): Observable<string[]> {
+    if (!query.trim()) return of([]);
+
+    const params = new HttpParams().set('q', query);
+
+    return this.http.get<CitySearchResponse>(`${this.APIURL}/extended`, { params }).pipe(
+      catchError((error) => {
+        console.error('Error en busqueda extendida de ciudades:', error);
+        return of([]);
+      })
+    );
+  }
 }
