@@ -20,6 +20,7 @@ async def lifespan(app: FastAPI):
     if settings.ENVIRONMENT == "production" and settings.DEBUG:
         raise RuntimeError("DEBUG mode must be disabled in production environment")
     await realtime_listener.start()
+    city_service.load_cities()
     await city_service.start_http_client()
     yield
     await city_service.stop_http_client()
