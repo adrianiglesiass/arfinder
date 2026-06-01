@@ -1,5 +1,7 @@
 <div align="center">
-  <h1>Arfinder</h1>
+  <h1>
+    <img src="frontend/public/favicon.svg" alt="Arfinder" height="30" align="absmiddle" />rfinder
+  </h1>
   <p>Encuentra compañero de piso. Crea tu perfil, explora con filtros y habla en tiempo real.</p>
 </div>
 
@@ -102,7 +104,7 @@ chat en tiempo real.
 ## Instalación
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/adrianiglesiass/arfinder.git
 cd arfinder
 ```
 
