@@ -3,11 +3,12 @@ from typing import Annotated
 
 from pydantic import PlainSerializer
 
+
+def _serialize_utc(dt: datetime) -> str:
+    return dt.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+
+
 UTCDatetime = Annotated[
     datetime,
-    PlainSerializer(
-        lambda dt: dt.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z"),
-        return_type=str,
-        when_used="json",
-    ),
+    PlainSerializer(_serialize_utc, return_type=str, when_used="json"),
 ]
