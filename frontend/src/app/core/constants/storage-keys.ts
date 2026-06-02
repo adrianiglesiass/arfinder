@@ -15,4 +15,7 @@ export const STORAGE_KEYS = {
     pendingPhotosOrder: 'arfinder_pending_photos_order',
     lastUserId: 'arfinder_onboarding_user_id',
   },
+  pwa: {
+    iosHintDismissed: 'arfinder.pwa.iosHintDismissed.v1',
+  },
 } as const;
