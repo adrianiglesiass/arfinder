@@ -1,23 +1,27 @@
-@if (active() && photos().length) {
-  @for (photo of photos(); track i; let i = $index) {
+<app-profile-photo
+  [src]="photos()[0]"
+  [alt]="profile().name"
+  [eager]="true"
+  sizes="(max-width: 768px) 100vw, 740px"
+  [imgClass]="
+    (active() && photoIndex() !== 0 ? 'opacity-0' : 'opacity-100') +
+    ' transition-opacity duration-200 pointer-events-none'
+  "
+/>
+
+@if (active() && hasMultiple()) {
+  @for (photo of secondaryPhotos(); track idx; let idx = $index) {
     <app-profile-photo
       [src]="photo"
       [alt]="profile().name"
-      [priority]="i === 0"
-      [eager]="i !== 0"
+      [eager]="true"
+      sizes="(max-width: 768px) 100vw, 740px"
       [imgClass]="
-        (i === photoIndex() ? 'opacity-100' : 'opacity-0') +
+        (photoIndex() === idx + 1 ? 'opacity-100' : 'opacity-0') +
         ' transition-opacity duration-200 pointer-events-none'
       "
     />
   }
-} @else {
-  <app-profile-photo
-    [src]="currentPhoto()"
-    [alt]="profile().name"
-    [priority]="active()"
-    imgClass="pointer-events-none"
-  />
 }
 
 <div
