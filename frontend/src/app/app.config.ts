@@ -3,6 +3,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
   ApplicationConfig,
   inject,
+  isDevMode,
   provideAppInitializer,
   provideZonelessChangeDetection,
 } from '@angular/core';
@@ -20,6 +21,8 @@ import { InsForgeClient } from '@insforge/sdk';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
+
+import { provideServiceWorker } from '@angular/service-worker';
 
 import { AuthService } from '@core/auth/auth.service';
 import { authErrorInterceptor, jwtInterceptor } from '@core/interceptors/jwt-interceptor';
@@ -68,6 +71,10 @@ export const appConfig: ApplicationConfig = {
     }),
 
     provideHttpClient(withInterceptors([retryInterceptor, jwtInterceptor, authErrorInterceptor])),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
     {
       provide: InsForgeClient,
       useFactory: () =>
