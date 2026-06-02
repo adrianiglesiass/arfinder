@@ -2,6 +2,7 @@
   [src]="photos()[0]"
   [alt]="profile().name"
   [eager]="true"
+  sizes="(max-width: 768px) 100vw, 740px"
   [imgClass]="
     (active() && photoIndex() !== 0 ? 'opacity-0' : 'opacity-100') +
     ' transition-opacity duration-200 pointer-events-none'
@@ -14,6 +15,7 @@
       [src]="photo"
       [alt]="profile().name"
       [eager]="true"
+      sizes="(max-width: 768px) 100vw, 740px"
       [imgClass]="
         (photoIndex() === idx + 1 ? 'opacity-100' : 'opacity-0') +
         ' transition-opacity duration-200 pointer-events-none'

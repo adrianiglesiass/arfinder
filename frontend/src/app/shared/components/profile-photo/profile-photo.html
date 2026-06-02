@@ -4,6 +4,7 @@
       [ngSrc]="source"
       fill
       priority
+      [sizes]="sizes()"
       [alt]="alt()"
       draggable="false"
       [class]="'absolute inset-0 w-full h-full object-cover ' + imgClass()"
@@ -13,6 +14,7 @@
       [ngSrc]="source"
       fill
       [loading]="eager() ? 'eager' : 'lazy'"
+      [sizes]="sizes()"
       [alt]="alt()"
       draggable="false"
       [class]="'absolute inset-0 w-full h-full object-cover ' + imgClass()"
