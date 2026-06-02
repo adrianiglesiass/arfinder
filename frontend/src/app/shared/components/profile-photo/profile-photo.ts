@@ -14,5 +14,4 @@ export class ProfilePhoto {
   readonly imgClass = input('');
   readonly priority = input(false);
   readonly eager = input(false);
-  readonly sizes = input<string>();
 }
