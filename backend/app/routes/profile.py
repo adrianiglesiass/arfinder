@@ -85,7 +85,7 @@ async def get_my_profile(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    response.headers["Cache-Control"] = "private, max-age=60"
+    response.headers["Cache-Control"] = "no-store"
     return profile_service.get_profile(db, current_user.id)
 
 
