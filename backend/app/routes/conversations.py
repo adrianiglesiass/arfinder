@@ -93,6 +93,13 @@ def list_conversations(
     unread_counts = message_repository.get_unread_counts_for_conversations(
         db, conv_ids, current_user.id
     )
+
+    def _last_activity(conv):
+        last = last_messages.get(conv.id)
+        return last.sent_at if last else conv.created_at
+
+    conversations.sort(key=_last_activity, reverse=True)
+
     return [
         ConversationResponse(
             id=conv.id,
