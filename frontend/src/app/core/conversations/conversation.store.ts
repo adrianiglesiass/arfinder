@@ -74,20 +74,22 @@ export class ConversationStore {
 
   upsertConversationPreview(conversationId: number, message: MessageResponse): void {
     this.rememberMessageId(message.id);
-    this.conversations.update((list) =>
-      list.map((c) =>
-        c.id === conversationId
-          ? {
-              ...c,
-              last_message: {
-                content: message.content,
-                sent_at: message.sent_at,
-                is_read: message.is_read,
-              },
-            }
-          : c
-      )
-    );
+    this.conversations.update((list) => {
+      const idx = list.findIndex((c) => c.id === conversationId);
+      if (idx === -1) return list;
+      const updated: ConversationResponse = {
+        ...list[idx],
+        last_message: {
+          content: message.content,
+          sent_at: message.sent_at,
+          is_read: message.is_read,
+        },
+      };
+      const next = list.slice();
+      next.splice(idx, 1);
+      next.unshift(updated);
+      return next;
+    });
   }
 
   private bootstrap(): Promise<void> {
@@ -125,7 +127,8 @@ export class ConversationStore {
         unread_count: skipUnread ? current.unread_count : (current.unread_count ?? 0) + 1,
       };
       const next = list.slice();
-      next[idx] = updated;
+      next.splice(idx, 1);
+      next.unshift(updated);
       return next;
     });
   }

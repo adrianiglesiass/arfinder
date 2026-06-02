@@ -17,6 +17,7 @@ const SCHEDULE_VALUES: ReadonlySet<string> = new Set(['morning', 'afternoon', 'n
 const TYPE_VALUES: ReadonlySet<string> = new Set(['looking_for_flat', 'looking_for_roommate']);
 
 const PAGE_SIZE = 24;
+const STALE_AFTER_MS = 2 * 60 * 1000;
 
 @Injectable({ providedIn: 'root' })
 export class ProfileSearchService {
@@ -39,6 +40,7 @@ export class ProfileSearchService {
 
   private currentPage = 0;
   private requestId = 0;
+  private lastLoadedAt: number | null = null;
 
   constructor() {
     this.router.events
@@ -50,8 +52,16 @@ export class ProfileSearchService {
         const next = this.readFromUrl();
         if (!this.sameFilters(next, this.filters())) {
           this.filters.set(next);
+          return;
         }
+        this.refreshIfStale();
       });
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') this.refreshIfStale();
+      });
+    }
 
     effect(() => {
       this.filters();
@@ -89,6 +99,13 @@ export class ProfileSearchService {
     await this.loadPage(this.currentPage);
   }
 
+  private refreshIfStale(): void {
+    if (this.router.url.split('?')[0] !== '/explorar') return;
+    if (this.isLoading() || this.isLoadingMore()) return;
+    if (this.lastLoadedAt !== null && Date.now() - this.lastLoadedAt < STALE_AFTER_MS) return;
+    void this.resetAndLoad();
+  }
+
   private async resetAndLoad(): Promise<void> {
     this.currentPage = 0;
     this.deckIndex.set(0);
@@ -114,6 +131,7 @@ export class ProfileSearchService {
       if (reqId !== this.requestId) return;
       this.profiles.update((prev) => (isFirst ? data : [...prev, ...data]));
       this.hasMore.set(data.length === PAGE_SIZE);
+      if (isFirst) this.lastLoadedAt = Date.now();
     } catch (e) {
       if (reqId !== this.requestId) return;
       this.error.set(e);
