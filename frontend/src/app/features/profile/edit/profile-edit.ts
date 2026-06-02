@@ -146,9 +146,16 @@ export default class ProfileEdit implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const existing = this.profile();
-      if (!existing) {
-        await this.profileService.ensureProfile();
+      const fresh = await this.profileService.loadProfile();
+      if (!this.isDirty()) {
+        const snap = this.snapshotFrom(fresh);
+        this.form.set(snap);
+        this.initialState.set(snap);
+      }
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
+        this.router.navigate([ROUTES.WELCOME]);
+        return;
       }
     } finally {
       if (this.profile()) this.isLoading.set(false);
