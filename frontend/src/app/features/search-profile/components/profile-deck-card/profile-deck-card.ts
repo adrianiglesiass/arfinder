@@ -21,16 +21,11 @@ export class ProfileDeckCard {
   readonly photoNext = output<Event>();
 
   protected readonly photos = computed(() => this.profile().photo_urls ?? []);
+  protected readonly secondaryPhotos = computed(() => this.photos().slice(1));
   protected readonly hasMultiple = computed(() => this.photos().length > 1);
   protected readonly typeLabel = computed(() => TYPE_LABELS[this.profile().type]);
   protected readonly scheduleLabel = computed(() => {
     const schedule = this.profile().schedule;
     return schedule ? SCHEDULE_LABELS[schedule] : null;
-  });
-  protected readonly currentPhoto = computed(() => {
-    const photos = this.photos();
-    if (!photos.length) return null;
-    const i = this.active() ? this.photoIndex() : 0;
-    return photos[i] ?? photos[0];
   });
 }
