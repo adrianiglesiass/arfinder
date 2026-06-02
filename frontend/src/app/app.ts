@@ -8,13 +8,14 @@ import {
   RouterOutlet,
 } from '@angular/router';
 
+import { PwaBanner } from '@shared/components/pwa-banner/pwa-banner';
 import { Spinner } from '@shared/components/spinner/spinner';
 
 const SPINNER_DELAY_MS = 200;
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Spinner],
+  imports: [RouterOutlet, Spinner, PwaBanner],
   templateUrl: './app.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

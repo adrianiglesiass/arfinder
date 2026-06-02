@@ -1,0 +1,40 @@
+@if (showUpdate()) {
+  <div
+    class="fixed inset-x-4 bottom-24 md:inset-x-auto md:right-6 md:bottom-6 md:max-w-sm z-40 bg-white/90 backdrop-blur-xl border border-gray-border rounded-3xl shadow-(--shadow-glass) p-4 flex items-center gap-3 animate-fade-in"
+  >
+    <i class="pi pi-refresh text-primary"></i>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-primary leading-tight">Nueva versión disponible</p>
+      <p class="text-xs text-gray-500 mt-0.5">Actualiza para tener lo último.</p>
+    </div>
+    <app-button size="sm" (click)="reload()">Actualizar</app-button>
+    <button
+      type="button"
+      (click)="dismissUpdate()"
+      aria-label="Cerrar"
+      class="shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary transition-colors cursor-pointer"
+    >
+      <i class="pi pi-times text-xs"></i>
+    </button>
+  </div>
+} @else if (showInstall()) {
+  <div
+    class="fixed inset-x-4 bottom-24 md:inset-x-auto md:right-6 md:bottom-6 md:max-w-sm z-40 bg-white/90 backdrop-blur-xl border border-gray-border rounded-3xl shadow-(--shadow-glass) p-4 flex items-center gap-3 animate-fade-in"
+  >
+    <span class="material-symbols-rounded text-primary text-[22px]">ios_share</span>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-primary leading-tight">Instala Arfinder</p>
+      <p class="text-xs text-gray-500 mt-0.5">
+        Toca Compartir y luego "Añadir a pantalla de inicio".
+      </p>
+    </div>
+    <button
+      type="button"
+      (click)="dismissInstall()"
+      aria-label="Cerrar"
+      class="shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary transition-colors cursor-pointer"
+    >
+      <i class="pi pi-times text-xs"></i>
+    </button>
+  </div>
+}
