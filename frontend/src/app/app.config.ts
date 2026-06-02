@@ -14,6 +14,7 @@ import {
   withInMemoryScrolling,
   withPreloading,
 } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 
 import { routes } from '@app/app.routes';
 import { environment } from '@env/environment';
@@ -21,8 +22,6 @@ import { InsForgeClient } from '@insforge/sdk';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
-
-import { provideServiceWorker } from '@angular/service-worker';
 
 import { AuthService } from '@core/auth/auth.service';
 import { authErrorInterceptor, jwtInterceptor } from '@core/interceptors/jwt-interceptor';
