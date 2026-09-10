@@ -41,7 +41,7 @@ fecha: 2026-09-10
 | 14 | `POST /conversations` sin emitir `conversation_created` | backend | backend-bugs | ✅ done (#289) |
 | 15 | Pendientes de auditoría frontend (re-auditar) | frontend | frontend-bugs | ✅ done (#290) |
 | T | Arquitectura: router de conversaciones inflado, duplicación, capas | backend | architecture-cleanup | ✅ done (#291) |
-| F1 | Filtro de edad + género en búsqueda | frontend+backend | feature | ⏳ pendiente |
+| F1 | Filtro de edad + género en búsqueda | frontend+backend | feature | ✅ done (PR siguiente) |
 | F2 | Filtro "disponible desde" | frontend+backend | feature | ⏳ pendiente |
 | F3 | Favoritos | frontend+backend | feature | ⏳ pendiente |
 | F4 | Bloqueo de usuarios | frontend+backend | feature | ⏳ pendiente |
@@ -51,15 +51,14 @@ fecha: 2026-09-10
 1. ✅ **fix/critical-issues** → PR #288 (mergeado).
 2. ✅ **fix/backend-bugs** → PR #289 (mergeado).
 3. ✅ **fix/frontend-bugs** → PR #290 (mergeado).
-4. ⏳ **refactor/architecture-cleanup** — router de conversaciones, reutilización, capas. RAMA ACTUAL → PR #291.
-5. ⏳ **feat/age-gender-filters**, **feat/available-from-filter**, **feat/favorites**, **feat/user-block**, **feat/reports**.
+4. ✅ **refactor/architecture-cleanup** → PR #291 (mergeado).
+5. ⏳ **feat/age-gender-filters** — RAMA ACTUAL (PR pendiente), luego **feat/available-from-filter**, **feat/favorites**, **feat/user-block**, **feat/reports**.
 
-## Estado de la rama actual (refactor/architecture-cleanup)
-- Base: `develop` (incluye #288, #289 y #290).
-- Implementación completa: router de conversaciones delgado + response-mapping/was_new en
-  `conversation_service.py` + tests. Spec `specs/refactor-conversations-layering.md` en `done`.
-- Verificación local: `ruff check` ✓, `ruff format --check` ✓, pytest **51 passed**
-  (override `DATABASE_URL` a compose `db-test` — `arfinder_test_user:TVprI5Ipni4KNQzDOewAOHkKBI0965CJ@localhost:5433/arfinder_test_db`).
+## Estado de la rama actual (feat/age-gender-filters)
+- Base: `develop` (incluye #288–#291).
+- Implementación completa: controles de edad (Mín/Máx) y género en el panel de filtros de `/explorar`
+  reutilizando el estado/URL/chips ya existentes. Spec `specs/feat-age-gender-filters.md` en `done`.
+- Verificación local: `format:check` ✓, `lint` ✓, `test:ci` **15 passed** (3 files, incl. `search-filters.spec.ts`), build producción ✓.
 - Ambiente local: Postgres de dev en 5432; test en 5433 vía `docker compose up -d db-test`
   (credenciales de conftest y compose difieren → override `DATABASE_URL` al correr pytest).
 - Realtime/CI: `gh` CLI en `C:\Program Files\GitHub CLI\gh.exe`; en Windows usar `--body-file <archivo>` para el body de PR.

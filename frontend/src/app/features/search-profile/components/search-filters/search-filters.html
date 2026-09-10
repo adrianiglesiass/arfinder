@@ -69,6 +69,40 @@
     </div>
   </div>
 
+  <div class="flex flex-col gap-3">
+    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
+      Edad
+    </span>
+    <div class="flex items-center gap-2">
+      <p-inputnumber
+        inputId="ageMin"
+        [ngModel]="ageMin()"
+        (ngModelChange)="setAgeMin($event)"
+        [min]="ageMinLimit"
+        [max]="ageMaxLimit"
+        placeholder="Mín"
+        class="flex-1"
+      />
+      <span class="text-gray-400 font-bold select-none">–</span>
+      <p-inputnumber
+        inputId="ageMax"
+        [ngModel]="ageMax()"
+        (ngModelChange)="setAgeMax($event)"
+        [min]="ageMinLimit"
+        [max]="ageMaxLimit"
+        placeholder="Máx"
+        class="flex-1"
+      />
+    </div>
+  </div>
+
+  <app-filter-chip-group
+    label="Género"
+    [options]="genderOptions"
+    [value]="gender()"
+    (changed)="setGender($event)"
+  />
+
   <app-filter-chip-group
     label="Mascotas"
     [options]="triStateOptions"
