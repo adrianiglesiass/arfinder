@@ -1,8 +1,11 @@
+import logging
 from typing import Any
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.repositories import user_repository, profile_repository
+from app.repositories import user_repository
+
+logger = logging.getLogger(__name__)
 
 
 def get_or_create_local_user(db: Session, insforge_user: Any) -> User:
@@ -16,9 +19,13 @@ def get_or_create_local_user(db: Session, insforge_user: Any) -> User:
 
     if existing_user:
         if existing_user.insforge_id and existing_user.insforge_id != insforge_id:
-            if existing_user.profile:
-                profile_repository.delete_profile(db, existing_user.profile)
-            existing_user.insforge_id = None
+            logger.warning(
+                "email %s already linked to insforge_id=%s, relinking to %s; "
+                "keeping local profile",
+                existing_user.email,
+                existing_user.insforge_id,
+                insforge_id,
+            )
 
         existing_user.insforge_id = insforge_id
         db.commit()

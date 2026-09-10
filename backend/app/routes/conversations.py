@@ -66,20 +66,30 @@ def _build_conversation_response(
 
 
 @router.post("", response_model=ConversationResponse, status_code=201)
-def create_or_get_conversation(
+async def create_or_get_conversation(
     body: ConversationCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    conv = get_or_create_conversation(db, current_user.id, body.other_user_id)
-    return ConversationResponse(
-        id=conv.id,
-        user1_id=conv.user1_id,
-        user2_id=conv.user2_id,
-        other_user=_get_other_user_summary(conv, current_user.id, db),
-        last_message=None,
-        unread_count=0,
-    )
+    def _persist():
+        was_new = (
+            get_conversation_between_users(db, current_user.id, body.other_user_id)
+            is None
+        )
+        conv = get_or_create_conversation(db, current_user.id, body.other_user_id)
+        response = _build_conversation_response(conv, current_user.id, db)
+        return was_new, response
+
+    was_new, response = await run_in_threadpool(_persist)
+    if was_new:
+        await realtime_manager.broadcast_to_user(
+            body.other_user_id,
+            {
+                "event": "conversation_created",
+                "conversation_id": response.id,
+            },
+        )
+    return response
 
 
 @router.get("", response_model=list[ConversationResponse])
@@ -124,9 +134,9 @@ def get_conversation(
 
 
 @router.get("/{conversation_id}/messages", response_model=list[MessageResponse])
-async def get_conversation_messages(
+def get_conversation_messages(
     conversation_id: int,
-    limit: int = Query(default=50, le=100),
+    limit: int = Query(default=50, ge=1, le=100),
     before_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

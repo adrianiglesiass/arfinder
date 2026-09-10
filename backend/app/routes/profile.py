@@ -27,7 +27,7 @@ _MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 class _PhotoUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    order: Optional[int] = None
+    order: Optional[int] = Field(default=None, ge=0)
     is_main: Optional[bool] = None
 
 
@@ -80,7 +80,7 @@ def search(
 
 
 @router.get("/me", response_model=ProfileResponse, responses=PROTECTED)
-async def get_my_profile(
+def get_my_profile(
     response: Response,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -90,7 +90,7 @@ async def get_my_profile(
 
 
 @router.post("/me", response_model=ProfileResponse, responses=UNAUTH)
-async def create_my_profile(
+def create_my_profile(
     data: ProfileCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -99,7 +99,7 @@ async def create_my_profile(
 
 
 @router.patch("/me", response_model=ProfileResponse, responses=PROTECTED)
-async def update_my_profile(
+def update_my_profile(
     data: ProfileUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -191,7 +191,7 @@ def get_public_profile(
 
 
 @router.delete("/me", status_code=204, responses=PROTECTED)
-async def delete_my_profile(
+def delete_my_profile(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     profile_service.delete_profile(db, current_user.id)

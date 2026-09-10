@@ -2,9 +2,10 @@ from operator import attrgetter
 
 from sqlalchemy.orm import Session
 
+from app.clients.storage_client import delete_image
 from app.core.exceptions.profile import ProfileAlreadyExistsError, ProfileNotFoundError
 from app.models.profile import Profile, ScheduleEnum, TypeEnum
-from app.repositories import profile_repository
+from app.repositories import profile_photo_repository, profile_repository
 from app.schemas.profile import ProfileCreate, ProfileSummary, ProfileUpdate
 
 
@@ -60,7 +61,13 @@ def delete_profile(db: Session, user_id: int):
     profile = profile_repository.get_profile_by_user_id(db, user_id)
     if not profile:
         raise ProfileNotFoundError(user_id)
+    photo_urls = [
+        photo.photo_url
+        for photo in profile_photo_repository.get_photos_by_profile(db, profile.id)
+    ]
     profile_repository.delete_profile(db, profile)
+    for photo_url in photo_urls:
+        delete_image(photo_url)
 
 
 def get_public_profile(db: Session, profile_id: int):

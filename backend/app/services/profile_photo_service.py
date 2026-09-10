@@ -1,11 +1,17 @@
 import logging
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.repositories import profile_photo_repository
 from app.repositories import profile_repository
-from app.clients.storage_client import upload_image
+from app.clients.storage_client import delete_image, upload_image
 from app.core.exceptions.profile import ProfileNotFoundError
-from app.core.exceptions.photo import PhotoAccessDeniedError, ImageUploadFailedError
+from app.core.exceptions.photo import (
+    PhotoAccessDeniedError,
+    ImageUploadFailedError,
+    PhotoOrderConflictError,
+    PhotoReorderValidationError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -50,18 +56,28 @@ def update(
     _get_photo_or_403(photo, profile)
     if is_main is True:
         profile_photo_repository.clear_main_profile_photo(db, profile.id)
-    return profile_photo_repository.update_profile_photo(
-        db, photo, order=order, is_main=is_main
-    )
+    try:
+        return profile_photo_repository.update_profile_photo(
+            db, photo, order=order, is_main=is_main
+        )
+    except IntegrityError:
+        # order ya ocupado por otra foto del mismo perfil (unique constraint).
+        db.rollback()
+        raise PhotoOrderConflictError(order=order)
 
 
 def delete(db: Session, user_id: int, photo_id: int):
     profile = _get_profile_or_404(db, user_id)
     photo = profile_photo_repository.get_profile_photo_by_id(db, photo_id)
     _get_photo_or_403(photo, profile)
+    photo_url = photo.photo_url
     profile_photo_repository.delete_profile_photo(db, photo)
+    delete_image(photo_url)
 
 
 def reorder(db: Session, user_id: int, ordered_ids: list[int]):
     profile = _get_profile_or_404(db, user_id)
+    photos = profile_photo_repository.get_photos_by_profile(db, profile.id)
+    if set(ordered_ids) != {photo.id for photo in photos}:
+        raise PhotoReorderValidationError()
     return profile_photo_repository.reorder_photos(db, profile.id, ordered_ids)
