@@ -12,7 +12,7 @@ router = APIRouter(prefix="/messages", tags=["messages"], responses=PROTECTED)
 
 
 @router.patch("/{message_id}/read", response_model=MessageResponse)
-async def mark_as_read(
+def mark_as_read(
     message_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
