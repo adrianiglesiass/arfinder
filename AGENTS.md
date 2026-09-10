@@ -53,7 +53,9 @@ Ubicación del código: `backend/app/` y `frontend/src/app/`. Es un monorepo con
 
 ## Reglas transversales
 
-- **Idioma**: documentos y comunicaciones de UI en **español**; identificadores de código en inglés.
+- **Idioma**: documentos (`specs/`, `docs/`) y textos de UI en **español**; identificadores de
+  código, **mensajes de commit y títulos de PR en inglés**. El historial de `main` está en inglés
+  desde el inicio: no lo mezcles.
 - **Responsabilidad única**: un archivo = una responsabilidad; cambios pequeños y con sentido.
 - **Reutilización primero**: revisar `backend/app/core/` y `frontend/src/app/shared/` antes de crear duplicados.
 - **Tipos autogenerados**: si cambia el contrato de la API, regenerar `frontend/src/app/core/api/api.types.ts` con `npm run generate:types` (nunca editar a mano).
