@@ -21,3 +21,9 @@ class InvalidCredentialsError(AuthError):
     status_code = 401
     code = "INVALID_CREDENTIALS"
     default_detail = "Invalid email or password"
+
+
+class AccountDeletionError(AuthError):
+    status_code = 502
+    code = "ACCOUNT_DELETION_FAILED"
+    default_detail = "No se pudo eliminar la cuenta en el proveedor externo"

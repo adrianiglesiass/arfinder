@@ -1,36 +1,18 @@
 import os
 
 
-import pytest
 from dotenv import load_dotenv
-from fastapi import Depends
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-import app.models  # noqa: E402
-from app.core.config import settings
-from app.core.dependencies import (
-    bearer_scheme,
-    get_current_user,
-    get_current_user_optional,
-)
-from app.core.exceptions.auth import InvalidCredentialsError
-from app.db.database import Base, get_db
-from app.main import app
-from app.models.user import User
-from app.repositories import user_repository
+_TEST_DB_URL = "postgresql+psycopg2://root:root1234@localhost:5433/arfinder_test_db"
 
-settings.ENVIRONMENT = "testing"
-
+# Config MUST be applied before importing app.*: Settings() is instantiated at
+# import time in app/core/config.py and reads values only once.
 load_dotenv(".env.test", override=False)
-
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only-32chars")
 os.environ.setdefault("ALGORITHM", "HS256")
-os.environ.setdefault(
-    "DATABASE_URL",
-    "postgresql+psycopg2://root:root1234@localhost:5433/arfinder_test_db",
-)
+# Only fall back to the local test DB when no DATABASE_URL is provided (e.g. CI
+# already injects the Postgres service URL on port 5432 and must win).
+os.environ.setdefault("DATABASE_URL", _TEST_DB_URL)
 os.environ.setdefault("INSFORGE_URL", "https://placeholder.insforge.app")
 os.environ.setdefault("INSFORGE_API_KEY", "placeholder_key")
 os.environ.setdefault("OSS_HOST", "https://placeholder.insforge.app")
@@ -38,6 +20,28 @@ os.environ.setdefault("CLOUDINARY_CLOUD_NAME", "test")
 os.environ.setdefault("CLOUDINARY_API_KEY", "test")
 os.environ.setdefault("CLOUDINARY_API_SECRET", "test")
 os.environ.setdefault("NOMINATIM_USER_AGENT", "Arfinder/1.0")
+
+
+import pytest  # noqa: E402
+from fastapi import Depends  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy.orm import sessionmaker  # noqa: E402
+
+import app.models  # noqa: E402
+from app.core.config import settings  # noqa: E402
+from app.core.dependencies import (  # noqa: E402
+    bearer_scheme,
+    get_current_user,
+    get_current_user_optional,
+)
+from app.core.exceptions.auth import InvalidCredentialsError  # noqa: E402
+from app.db.database import Base, get_db  # noqa: E402
+from app.main import app  # noqa: E402
+from app.models.user import User  # noqa: E402
+from app.repositories import user_repository  # noqa: E402
+
+settings.ENVIRONMENT = "testing"
 
 engine = create_engine(settings.DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
