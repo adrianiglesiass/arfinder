@@ -9,4 +9,5 @@ export const ROUTES = {
   PROFILE: '/perfil',
   PROFILE_DETAIL: '/perfil',
   MESSAGES: '/mensajes',
+  FAVORITES: '/favoritos',
 } as const;

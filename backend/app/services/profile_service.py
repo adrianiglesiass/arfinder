@@ -111,9 +111,8 @@ def search_profiles(
         exclude_user_id=exclude_user_id,
     )
 
-    profile_summaries = []
-    for profile in profiles:
-        summary = _profile_to_summary(profile)
-        profile_summaries.append(summary)
+    return build_profile_summaries(profiles)
 
-    return profile_summaries
+
+def build_profile_summaries(profiles: list[Profile]) -> list[ProfileSummary]:
+    return [_profile_to_summary(profile) for profile in profiles]

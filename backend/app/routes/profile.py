@@ -19,7 +19,7 @@ from app.schemas.profile import (
     ProfileSummary,
     ProfileUpdate,
 )
-from app.services import profile_photo_service, profile_service
+from app.services import favorite_service, profile_photo_service, profile_service
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
@@ -80,6 +80,47 @@ def search(
         limit,
         exclude_user_id=current_user.id if current_user else None,
     )
+
+
+@router.get("/me/favorites", response_model=List[ProfileSummary], responses=PROTECTED)
+def get_my_favorites(
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    response.headers["Cache-Control"] = "no-store"
+    return favorite_service.list_favorites(db, current_user.id)
+
+
+@router.post(
+    "/{profile_id}/favorite",
+    status_code=204,
+    responses={
+        **PROTECTED,
+        **NOT_FOUND,
+        400: {"description": "Self favorite"},
+        409: {"description": "Already a favorite"},
+    },
+)
+def favorite_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    favorite_service.favorite_profile(db, current_user.id, profile_id)
+
+
+@router.delete(
+    "/{profile_id}/favorite",
+    status_code=204,
+    responses={**PROTECTED, **NOT_FOUND},
+)
+def unfavorite_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    favorite_service.unfavorite_profile(db, current_user.id, profile_id)
 
 
 @router.get("/me", response_model=ProfileResponse, responses=PROTECTED)

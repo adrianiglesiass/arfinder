@@ -43,5 +43,6 @@ export class MobileNav {
       link: '/mensajes',
       badge: () => this.unreadBadge(),
     },
+    { label: 'Favoritos', icon: 'pi pi-heart', link: '/favoritos' },
   ];
 }

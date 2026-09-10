@@ -43,6 +43,7 @@ export class SidebarNav {
       badge: () => this.unreadBadge(),
       requiresAuth: true,
     },
+    { label: 'Favoritos', icon: 'pi pi-heart', link: '/favoritos', requiresAuth: true },
   ];
 
   readonly visibleItems = computed(() => this.items);
