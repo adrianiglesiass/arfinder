@@ -1,4 +1,5 @@
 import pytest
+from datetime import date
 from app.services.profile_service import create_profile
 from app.schemas.profile import ProfileCreate, TypeEnum, ScheduleEnum
 
@@ -112,6 +113,76 @@ def test_search_by_gender(client, auth_headers, profile_madrid, profile_barcelon
     assert res.status_code == 200
     assert len(res.json()) == 1
     assert res.json()[0]["gender"] == "Mujer"
+
+
+def test_search_available_from_filters_by_date(
+    db, client, auth_headers, profile_madrid, create_test_user
+):
+    base = dict(
+        age=28,
+        city="Valencia",
+        max_budget=800,
+        has_pets=False,
+        is_smoker=False,
+        schedule=ScheduleEnum.afternoon,
+        type=TypeEnum.looking_for_flat,
+        gender="Mujer",
+    )
+    past_user = create_test_user(email="past@test.com").id
+    past = create_profile(
+        db,
+        past_user,
+        ProfileCreate(**base, name="Past", available_from=date(2026, 9, 1)),
+    )
+    future_user = create_test_user(email="future@test.com").id
+    future = create_profile(
+        db,
+        future_user,
+        ProfileCreate(**base, name="Future", available_from=date(2026, 12, 1)),
+    )
+
+    res = client.get("/profiles?available_from=2026-10-01", headers=auth_headers)
+
+    assert res.status_code == 200
+    returned_ids = {p["id"] for p in res.json()}
+    assert past.id in returned_ids
+    assert profile_madrid.id in returned_ids
+    assert future.id not in returned_ids
+
+
+def test_search_available_from_includes_exact_date(
+    db, client, auth_headers, create_test_user
+):
+    user = create_test_user(email="exact@test.com").id
+    exact = create_profile(
+        db,
+        user,
+        ProfileCreate(
+            name="Exact",
+            age=24,
+            city="Valencia",
+            max_budget=800,
+            has_pets=False,
+            is_smoker=False,
+            schedule=ScheduleEnum.afternoon,
+            type=TypeEnum.looking_for_flat,
+            gender="Mujer",
+            available_from=date(2026, 10, 1),
+        ),
+    )
+
+    res = client.get("/profiles?available_from=2026-10-01", headers=auth_headers)
+
+    assert res.status_code == 200
+    assert [p["id"] for p in res.json()] == [exact.id]
+
+
+def test_search_without_available_from_returns_all(
+    client, auth_headers, profile_madrid, profile_barcelona
+):
+    res = client.get("/profiles", headers=auth_headers)
+    assert res.status_code == 200
+    assert len(res.json()) == 2
 
 
 def test_search_combined_filters(

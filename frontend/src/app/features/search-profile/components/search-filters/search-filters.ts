@@ -10,6 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 
 import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
 import { Slider } from 'primeng/slider';
 
 import type { ProfileSearchFilters, ScheduleEnum, TypeEnum } from '@core/api/api.models';
@@ -56,7 +57,14 @@ const AGE_MAX_LIMIT = 99;
 
 @Component({
   selector: 'app-search-filters',
-  imports: [FormsModule, InputNumberModule, FilterChipGroup, CityAutocomplete, Slider],
+  imports: [
+    FormsModule,
+    InputNumberModule,
+    InputTextModule,
+    FilterChipGroup,
+    CityAutocomplete,
+    Slider,
+  ],
   templateUrl: './search-filters.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -83,6 +91,7 @@ export class SearchFilters {
   readonly isSmoker = computed(() => this.boolToTriState(this.filters().is_smoker));
   readonly ageMin = computed(() => this.toNumber(this.filters().age_min));
   readonly ageMax = computed(() => this.toNumber(this.filters().age_max));
+  readonly availableFrom = computed(() => this.filters().available_from ?? '');
   readonly gender = computed(() => this.filters().gender ?? null);
   readonly budgetMax = computed(() => this.filters().budget_max ?? null);
   readonly budgetSliderValue = signal<number>(this.filters().budget_max ?? BUDGET_MAX);
@@ -136,6 +145,10 @@ export class SearchFilters {
 
   setAgeMax(value: number | null) {
     this.searchService.updateFilter('age_max', value);
+  }
+
+  setAvailableFrom(value: string) {
+    this.searchService.updateFilter('available_from', value || null);
   }
 
   onBudgetSlide(value: number | null) {

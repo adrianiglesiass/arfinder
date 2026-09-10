@@ -1,4 +1,5 @@
 from typing import List, Optional
+from datetime import date
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
 from app.core.file_validation import validate_image_header
 from app.core.rate_limit import rate_limiter
@@ -52,6 +53,7 @@ def search(
     gender: Optional[str] = Query(None),
     age_min: Optional[int | str] = Query(None),
     age_max: Optional[int | str] = Query(None),
+    available_from: Optional[date] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
@@ -73,6 +75,7 @@ def search(
         gender,
         clean_age_min,
         clean_age_max,
+        available_from,
         skip,
         limit,
         exclude_user_id=current_user.id if current_user else None,

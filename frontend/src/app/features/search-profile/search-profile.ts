@@ -52,6 +52,17 @@ const toAgeNumber = (v: number | string | null | undefined): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
+const availableLabel = (v: string): string | null => {
+  const date = new Date(`${v}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+  const formatted = date.toLocaleDateString('es-ES', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  return `Disponible desde ${formatted}`;
+};
+
 @Component({
   selector: 'app-search-profile',
   imports: [SearchFilters, ProfileDeck, ProfileGrid, Button, IconButton],
@@ -103,6 +114,8 @@ export default class SearchProfile implements AfterViewInit, OnDestroy {
     if (f.is_smoker === true) chips.push({ key: 'is_smoker', label: 'Fumador/a' });
     else if (f.is_smoker === false) chips.push({ key: 'is_smoker', label: 'No fumador/a' });
     if (f.gender) chips.push({ key: 'gender', label: f.gender });
+    const availability = f.available_from ? availableLabel(f.available_from) : null;
+    if (availability) chips.push({ key: 'available_from', label: availability });
     const ageMin = toAgeNumber(f.age_min);
     const ageMax = toAgeNumber(f.age_max);
     const age = ageLabel(ageMin, ageMax);
