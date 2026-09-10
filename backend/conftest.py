@@ -10,7 +10,9 @@ _TEST_DB_URL = "postgresql+psycopg2://root:root1234@localhost:5433/arfinder_test
 load_dotenv(".env.test", override=False)
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing-only-32chars")
 os.environ.setdefault("ALGORITHM", "HS256")
-os.environ["DATABASE_URL"] = _TEST_DB_URL
+# Only fall back to the local test DB when no DATABASE_URL is provided (e.g. CI
+# already injects the Postgres service URL on port 5432 and must win).
+os.environ.setdefault("DATABASE_URL", _TEST_DB_URL)
 os.environ.setdefault("INSFORGE_URL", "https://placeholder.insforge.app")
 os.environ.setdefault("INSFORGE_API_KEY", "placeholder_key")
 os.environ.setdefault("OSS_HOST", "https://placeholder.insforge.app")
@@ -41,7 +43,7 @@ from app.repositories import user_repository  # noqa: E402
 
 settings.ENVIRONMENT = "testing"
 
-engine = create_engine(_TEST_DB_URL)
+engine = create_engine(settings.DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
