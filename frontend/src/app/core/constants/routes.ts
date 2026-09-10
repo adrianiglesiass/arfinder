@@ -10,4 +10,5 @@ export const ROUTES = {
   PROFILE_DETAIL: '/perfil',
   MESSAGES: '/mensajes',
   FAVORITES: '/favoritos',
+  BLOCKED: '/bloqueados',
 } as const;

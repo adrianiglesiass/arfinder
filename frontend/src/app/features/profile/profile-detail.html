@@ -20,26 +20,39 @@
           (touchEnd)="onTouchEnd($event)"
         />
 
-        <app-profile-info-block
-          [profile]="p"
-          [showSendMessageButton]="showSendMessageButton()"
-          [sendingMessage]="sendingMessage()"
-          (sendMessage)="sendMessage()"
-        />
+        <div class="flex flex-col gap-4">
+          <app-profile-info-block
+            [profile]="p"
+            [showSendMessageButton]="showSendMessageButton()"
+            [sendingMessage]="sendingMessage()"
+            (sendMessage)="sendMessage()"
+          />
+
+          @if (showBlockButton()) {
+            <div class="hidden md:block">
+              <app-block-button [profileId]="p.id" />
+            </div>
+          }
+        </div>
       </div>
     </div>
 
     @if (showSendMessageButton()) {
       <app-mobile-action-bar [label]="'¿Te encaja ' + p.name + '?'">
-        <app-button
-          size="sm"
-          (click)="sendMessage()"
-          [loading]="sendingMessage()"
-          [disabled]="sendingMessage()"
-        >
-          <i class="pi pi-send text-xs"></i>
-          Mensaje
-        </app-button>
+        <div class="flex items-center gap-2">
+          @if (showBlockButton()) {
+            <app-block-button [profileId]="p.id" [compact]="true" />
+          }
+          <app-button
+            size="sm"
+            (click)="sendMessage()"
+            [loading]="sendingMessage()"
+            [disabled]="sendingMessage()"
+          >
+            <i class="pi pi-send text-xs"></i>
+            Mensaje
+          </app-button>
+        </div>
       </app-mobile-action-bar>
     }
   } @else if (error()) {
