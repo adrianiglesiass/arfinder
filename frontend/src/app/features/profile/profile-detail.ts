@@ -11,6 +11,9 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+
 import type { ProfileResponse } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
 import { ROUTES } from '@core/constants/routes';
@@ -20,6 +23,7 @@ import { BackLink } from '@shared/components/back-link/back-link';
 import { BlockButton } from '@shared/components/block-button/block-button';
 import { Button } from '@shared/components/button/button';
 import { MobileActionBar } from '@shared/components/mobile-action-bar/mobile-action-bar';
+import { ReportButton } from '@shared/components/report-button/report-button';
 import { Skeleton } from '@shared/components/skeleton/skeleton';
 
 import { PhotoGallery } from '@features/profile/components/photo-gallery/photo-gallery';
@@ -28,14 +32,17 @@ import { ProfileInfoBlock } from '@features/profile/components/profile-info-bloc
 @Component({
   selector: 'app-profile-detail',
   imports: [
+    ToastModule,
     BackLink,
     BlockButton,
+    ReportButton,
     Button,
     MobileActionBar,
     Skeleton,
     PhotoGallery,
     ProfileInfoBlock,
   ],
+  providers: [MessageService],
   templateUrl: './profile-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {

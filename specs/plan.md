@@ -45,7 +45,7 @@ fecha: 2026-09-10
 | F2 | Filtro "disponible desde" | frontend+backend | feature | ✅ done → PR #293 (mergeado) |
 | F3 | Favoritos | frontend+backend | feature | ✅ done → PR #294 (mergeado) |
 | F4 | Bloqueo de usuarios | frontend+backend | feature | ✅ done → PR #295 (mergeado) |
-| F5 | Reportes de usuarios | frontend+backend | feature | 🔄 en curso (RAMA ACTUAL) |
+| F5 | Reportes de usuarios | frontend+backend | feature | ✅ done → PR #296 (mergeado) |
 
 ## Fases (orden de ejecución)
 1. ✅ **fix/critical-issues** → PR #288 (mergeado).
@@ -56,12 +56,16 @@ fecha: 2026-09-10
 6. ✅ **feat/available-from-filter** → PR #293 (mergeado).
 7. ✅ **feat/favorites** → PR #294 (mergeado).
 8. ✅ **feat/user-block** → PR #295 (mergeado).
-9. ⏳ **feat/reports** — RAMA ACTUAL. Última fase del backlog.
+9. ✅ **feat/reports** → PR #296 (mergeado). Última fase del backlog.
 
-## Estado de la rama actual (feat/reports)
-- Base: `develop` (incluye #288–#295).
-- F5 es la última fase del backlog: reportar un perfil con motivo, que además lo bloquea
-  automáticamente reutilizando `block_service`. Sin panel de moderación (decisión de alcance).
+## Estado del backlog
+- **Backlog completo**: los 15 hallazgos de auditoría, el saneamiento de arquitectura y las 5
+  features (F1–F5) están mergeados en `develop` (#288–#296). No queda trabajo planificado.
+- `develop` está por delante de `main`. La release se hace por PR `develop` → `main` + tag, según
+  el flujo de ramas del proyecto; queda pendiente de decisión del equipo, no es parte de F5.
+- Siguientes candidatos naturales (sin spec, no comprometidos): panel de moderación para los
+  reportes de F5 (hoy solo consultables por SQL, requiere concepto de admin en `User`) y gating de
+  mensajería para bloqueados, que F4 dejó explícitamente como no-goal.
 
 ## Entorno local (LEER antes de verificar)
 - Postgres de dev en 5432 y de test en 5433 (`docker compose up -d db-test` desde `backend/`).
@@ -83,3 +87,5 @@ fecha: 2026-09-10
 - `#289 incluyó`: fixes #6-#14 (4 commits + specs done).
 - `#295 incluyó`: F4 bloqueo de usuarios (backend + frontend) y las 6 correcciones de revisión
   registradas en el Resultado de `specs/feat-user-block.md`.
+- `#296 incluyó`: F5 reportes de usuarios, que reutiliza `block_service` para bloquear al
+  reportado. Ojo con `MessageService` de PrimeNG: es **por componente**, no global.

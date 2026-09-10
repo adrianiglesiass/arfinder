@@ -20,6 +20,9 @@ export type PhotoUpdate = components['schemas']['_PhotoUpdate'];
 export type UploadProfilePhoto =
   components['schemas']['Body_upload_profile_photo_profiles_me_photos_post'];
 
+export type ReportCreate = components['schemas']['ReportCreate'];
+export type ReportReasonEnum = components['schemas']['ReportReasonEnum'];
+
 export type ScheduleEnum = components['schemas']['ScheduleEnum'];
 export type TypeEnum = components['schemas']['TypeEnum'];
 
