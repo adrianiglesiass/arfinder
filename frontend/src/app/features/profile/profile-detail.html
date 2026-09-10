@@ -29,8 +29,9 @@
           />
 
           @if (showBlockButton()) {
-            <div class="hidden md:block">
-              <app-block-button [profileId]="p.id" />
+            <div class="hidden md:flex md:gap-2">
+              <app-block-button class="flex-1" [profileId]="p.id" />
+              <app-report-button class="flex-1" [profileId]="p.id" />
             </div>
           }
         </div>
@@ -42,6 +43,7 @@
         <div class="flex items-center gap-2">
           @if (showBlockButton()) {
             <app-block-button [profileId]="p.id" [compact]="true" />
+            <app-report-button [profileId]="p.id" [compact]="true" />
           }
           <app-button
             size="sm"
@@ -97,3 +99,5 @@
     </div>
   }
 </div>
+
+<p-toast position="top-right" />
