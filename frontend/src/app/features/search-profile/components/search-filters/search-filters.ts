@@ -1,7 +1,16 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextModule } from 'primeng/inputtext';
 import { Slider } from 'primeng/slider';
 
 import type { ProfileSearchFilters, ScheduleEnum, TypeEnum } from '@core/api/api.models';
@@ -33,14 +42,31 @@ const SCHEDULE_OPTIONS: FilterChipOption<ScheduleEnum>[] = [
   { label: 'Flexible', value: 'flexible' },
 ];
 
+const GENDER_OPTIONS: FilterChipOption<string>[] = [
+  { label: 'Mujer', value: 'Mujer' },
+  { label: 'Hombre', value: 'Hombre' },
+  { label: 'Prefiero no decirlo', value: 'Prefiero no decirlo' },
+];
+
 const BUDGET_MIN = 200;
 const BUDGET_MAX = 1500;
 const BUDGET_STEP = 50;
 
+const AGE_MIN_LIMIT = 18;
+const AGE_MAX_LIMIT = 99;
+
 @Component({
   selector: 'app-search-filters',
-  imports: [FormsModule, InputNumberModule, FilterChipGroup, CityAutocomplete, Slider],
+  imports: [
+    FormsModule,
+    InputNumberModule,
+    InputTextModule,
+    FilterChipGroup,
+    CityAutocomplete,
+    Slider,
+  ],
   templateUrl: './search-filters.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchFilters {
   private readonly searchService = inject(ProfileSearchService);
@@ -48,10 +74,14 @@ export class SearchFilters {
   readonly typeOptions = TYPE_OPTIONS;
   readonly scheduleOptions = SCHEDULE_OPTIONS;
   readonly triStateOptions = TRI_STATE_OPTIONS;
+  readonly genderOptions = GENDER_OPTIONS;
 
   readonly budgetMin = BUDGET_MIN;
   readonly budgetMaxLimit = BUDGET_MAX;
   readonly budgetStep = BUDGET_STEP;
+
+  readonly ageMinLimit = AGE_MIN_LIMIT;
+  readonly ageMaxLimit = AGE_MAX_LIMIT;
 
   private readonly filters = this.searchService.filters;
 
@@ -61,6 +91,8 @@ export class SearchFilters {
   readonly isSmoker = computed(() => this.boolToTriState(this.filters().is_smoker));
   readonly ageMin = computed(() => this.toNumber(this.filters().age_min));
   readonly ageMax = computed(() => this.toNumber(this.filters().age_max));
+  readonly availableFrom = computed(() => this.filters().available_from ?? '');
+  readonly gender = computed(() => this.filters().gender ?? null);
   readonly budgetMax = computed(() => this.filters().budget_max ?? null);
   readonly budgetSliderValue = signal<number>(this.filters().budget_max ?? BUDGET_MAX);
   readonly budgetDisplay = computed(() => {
@@ -103,12 +135,20 @@ export class SearchFilters {
     this.searchService.updateFilter('city', value || null);
   }
 
+  setGender(value: string | null) {
+    this.searchService.updateFilter('gender', value);
+  }
+
   setAgeMin(value: number | null) {
     this.searchService.updateFilter('age_min', value);
   }
 
   setAgeMax(value: number | null) {
     this.searchService.updateFilter('age_max', value);
+  }
+
+  setAvailableFrom(value: string) {
+    this.searchService.updateFilter('available_from', value || null);
   }
 
   onBudgetSlide(value: number | null) {

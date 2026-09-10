@@ -70,6 +70,8 @@ export class OnboardingPersistenceService {
       sessionStorage.removeItem(PENDING_PHOTOS_KEY);
       sessionStorage.removeItem(PHOTO_ORDER_KEY);
       sessionStorage.removeItem(LAST_USER_KEY);
+      localStorage.removeItem(PENDING_PHOTOS_KEY);
+      localStorage.removeItem(PHOTO_ORDER_KEY);
     } catch (error) {
       console.error('Error clearing onboarding storage:', error);
     }

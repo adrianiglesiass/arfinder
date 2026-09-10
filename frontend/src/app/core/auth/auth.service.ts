@@ -41,6 +41,7 @@ export class AuthService {
   ];
   private readonly REFRESH_TOKEN_KEY = STORAGE_KEYS.auth.refreshToken;
   private readonly ACCESS_TOKEN_KEY = STORAGE_KEYS.auth.accessToken;
+  private memoryAccessToken: string | null = null;
 
   init(): Promise<void> {
     if (this.sdkReadyPromise) return this.sdkReadyPromise;
@@ -49,6 +50,7 @@ export class AuthService {
   }
 
   private async bootstrapSession(): Promise<void> {
+    this.clearLegacyAccessTokenStorage();
     try {
       if (!this.getPersistedRefreshToken()) {
         this.currentUser.set(null);
@@ -98,16 +100,19 @@ export class AuthService {
   }
 
   private persistAccessToken(token: string): void {
-    if (typeof localStorage === 'undefined') return;
-    localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
+    this.memoryAccessToken = token;
   }
 
   private getPersistedAccessToken(): string | null {
-    if (typeof localStorage === 'undefined') return null;
-    return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+    return this.memoryAccessToken;
   }
 
   private clearPersistedAccessToken(): void {
+    this.memoryAccessToken = null;
+    this.clearLegacyAccessTokenStorage();
+  }
+
+  private clearLegacyAccessTokenStorage(): void {
     if (typeof localStorage === 'undefined') return;
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
   }

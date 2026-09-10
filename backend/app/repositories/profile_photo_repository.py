@@ -75,6 +75,9 @@ def clear_main_profile_photo(db: Session, profile_id: int):
 def reorder_photos(
     db: Session, profile_id: int, ordered_ids: list[int]
 ) -> list[ProfilePhoto]:
+    # Advisory lock compartido con create (misma key profile_id) para que un
+    # reorder concurrente no rompa la unique constraint (profile_id, order).
+    db.execute(text("SELECT pg_advisory_xact_lock(:lock_id)"), {"lock_id": profile_id})
     photos = db.query(ProfilePhoto).filter(ProfilePhoto.profile_id == profile_id).all()
     offset = len(photos) + 1000
     for p in photos:

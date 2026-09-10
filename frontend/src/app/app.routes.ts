@@ -63,6 +63,16 @@ export const routes: Routes = [
         loadComponent: () => import('@features/messages/messages'),
         canActivate: [authGuard],
       },
+      {
+        path: 'favoritos',
+        loadComponent: () => import('@features/favorites/favorites'),
+        canActivate: [authGuard],
+      },
+      {
+        path: 'bloqueados',
+        loadComponent: () => import('@features/blocked/blocked'),
+        canActivate: [authGuard],
+      },
     ],
   },
 

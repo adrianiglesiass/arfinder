@@ -1,4 +1,5 @@
 from typing import List, Optional
+from datetime import date
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
 from app.core.file_validation import validate_image_header
 from app.core.rate_limit import rate_limiter
@@ -11,6 +12,7 @@ from app.db.database import get_db
 from app.core.route_utils import parse_age_param, parse_bool_param
 from app.models.profile import ScheduleEnum, TypeEnum
 from app.models.user import User
+from app.schemas.report import ReportCreate
 from app.schemas.profile import (
     ProfileCreate,
     ProfilePhotoResponse,
@@ -18,7 +20,13 @@ from app.schemas.profile import (
     ProfileSummary,
     ProfileUpdate,
 )
-from app.services import profile_photo_service, profile_service
+from app.services import (
+    block_service,
+    favorite_service,
+    profile_photo_service,
+    profile_service,
+    report_service,
+)
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
@@ -27,7 +35,7 @@ _MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 class _PhotoUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    order: Optional[int] = None
+    order: Optional[int] = Field(default=None, ge=0)
     is_main: Optional[bool] = None
 
 
@@ -52,6 +60,7 @@ def search(
     gender: Optional[str] = Query(None),
     age_min: Optional[int | str] = Query(None),
     age_max: Optional[int | str] = Query(None),
+    available_from: Optional[date] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
@@ -62,6 +71,9 @@ def search(
     clean_has_pets = parse_bool_param(has_pets, "has_pets")
     clean_is_smoker = parse_bool_param(is_smoker, "is_smoker")
 
+    excluded = (
+        block_service.excluded_user_ids(db, current_user.id) if current_user else []
+    )
     return profile_service.search_profiles(
         db,
         city,
@@ -73,14 +85,117 @@ def search(
         gender,
         clean_age_min,
         clean_age_max,
+        available_from,
         skip,
         limit,
         exclude_user_id=current_user.id if current_user else None,
+        exclude_user_ids=excluded,
     )
 
 
+@router.get("/me/favorites", response_model=List[ProfileSummary], responses=PROTECTED)
+def get_my_favorites(
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    response.headers["Cache-Control"] = "no-store"
+    return favorite_service.list_favorites(db, current_user.id)
+
+
+@router.post(
+    "/{profile_id}/favorite",
+    status_code=204,
+    responses={
+        **PROTECTED,
+        **NOT_FOUND,
+        400: {"description": "Self favorite"},
+        409: {"description": "Already a favorite"},
+    },
+)
+def favorite_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    favorite_service.favorite_profile(db, current_user.id, profile_id)
+
+
+@router.delete(
+    "/{profile_id}/favorite",
+    status_code=204,
+    responses={**PROTECTED, **NOT_FOUND},
+)
+def unfavorite_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    favorite_service.unfavorite_profile(db, current_user.id, profile_id)
+
+
+@router.get("/me/blocked", response_model=List[ProfileSummary], responses=PROTECTED)
+def get_my_blocked(
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    response.headers["Cache-Control"] = "no-store"
+    return block_service.list_blocked(db, current_user.id)
+
+
+@router.post(
+    "/{profile_id}/block",
+    status_code=204,
+    responses={
+        **PROTECTED,
+        **NOT_FOUND,
+        400: {"description": "Self block"},
+        409: {"description": "Already blocked"},
+    },
+)
+def block_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    block_service.block_profile(db, current_user.id, profile_id)
+
+
+@router.delete(
+    "/{profile_id}/block",
+    status_code=204,
+    responses={**PROTECTED, **NOT_FOUND},
+)
+def unblock_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    block_service.unblock_profile(db, current_user.id, profile_id)
+
+
+@router.post(
+    "/{profile_id}/report",
+    status_code=204,
+    responses={
+        **PROTECTED,
+        **NOT_FOUND,
+        400: {"description": "Self report"},
+        409: {"description": "Already reported"},
+    },
+)
+def report_profile(
+    profile_id: int,
+    payload: ReportCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    report_service.report_profile(db, current_user.id, profile_id, payload)
+
+
 @router.get("/me", response_model=ProfileResponse, responses=PROTECTED)
-async def get_my_profile(
+def get_my_profile(
     response: Response,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -90,7 +205,7 @@ async def get_my_profile(
 
 
 @router.post("/me", response_model=ProfileResponse, responses=UNAUTH)
-async def create_my_profile(
+def create_my_profile(
     data: ProfileCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -99,7 +214,7 @@ async def create_my_profile(
 
 
 @router.patch("/me", response_model=ProfileResponse, responses=PROTECTED)
-async def update_my_profile(
+def update_my_profile(
     data: ProfileUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -191,7 +306,7 @@ def get_public_profile(
 
 
 @router.delete("/me", status_code=204, responses=PROTECTED)
-async def delete_my_profile(
+def delete_my_profile(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     profile_service.delete_profile(db, current_user.id)

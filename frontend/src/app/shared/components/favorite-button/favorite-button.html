@@ -1,0 +1,12 @@
+<button
+  type="button"
+  (click)="toggle($event)"
+  [attr.aria-label]="isFavorite() ? 'Quitar de favoritos' : 'Guardar en favoritos'"
+  [attr.aria-pressed]="isFavorite()"
+  class="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-transform duration-200 active:scale-90 cursor-pointer hover:scale-105"
+>
+  <i
+    class="text-[18px]"
+    [class]="isFavorite() ? 'pi pi-heart-fill text-red-500' : 'pi pi-heart text-gray-500'"
+  ></i>
+</button>

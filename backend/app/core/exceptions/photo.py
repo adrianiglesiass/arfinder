@@ -27,3 +27,24 @@ class ImageUploadFailedError(PhotoError):
             detail=f"Image upload failed: {reason}" if reason else None,
             reason=reason,
         )
+
+
+class PhotoReorderValidationError(PhotoError):
+    status_code = 400
+    default_detail = "La lista de fotos no coincide con las fotos del perfil"
+
+    def __init__(self):
+        super().__init__()
+
+
+class PhotoOrderConflictError(PhotoError):
+    status_code = 409
+    default_detail = "Ya existe una foto en esa posición"
+
+    def __init__(self, order: int = None):
+        super().__init__(
+            detail=f"Ya existe una foto con el orden {order}"
+            if order is not None
+            else None,
+            order=order,
+        )

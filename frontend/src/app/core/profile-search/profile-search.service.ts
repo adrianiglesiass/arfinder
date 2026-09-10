@@ -187,6 +187,9 @@ export class ProfileSearchService {
       out.age_max = Number(age_max);
     }
 
+    const available_from = params.get('available_from');
+    if (available_from) out.available_from = available_from;
+
     return out;
   }
 
@@ -208,6 +211,7 @@ export class ProfileSearchService {
     append('gender', filters.gender);
     append('age_min', filters.age_min);
     append('age_max', filters.age_max);
+    append('available_from', filters.available_from);
 
     const newQuery = search.toString();
     if (newQuery === existingQuery) return;

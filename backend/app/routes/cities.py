@@ -10,7 +10,7 @@ router = APIRouter(
 
 
 @router.get("/search", responses={**BAD_REQUEST})
-async def search(q: str = Query(min_length=2)) -> list[str]:
+def search(q: str = Query(min_length=2)) -> list[str]:
     return search_cities_local(q)
 
 

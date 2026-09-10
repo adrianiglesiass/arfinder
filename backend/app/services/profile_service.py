@@ -1,10 +1,12 @@
 from operator import attrgetter
+from datetime import date
 
 from sqlalchemy.orm import Session
 
+from app.clients.storage_client import delete_image
 from app.core.exceptions.profile import ProfileAlreadyExistsError, ProfileNotFoundError
 from app.models.profile import Profile, ScheduleEnum, TypeEnum
-from app.repositories import profile_repository
+from app.repositories import profile_photo_repository, profile_repository
 from app.schemas.profile import ProfileCreate, ProfileSummary, ProfileUpdate
 
 
@@ -60,7 +62,13 @@ def delete_profile(db: Session, user_id: int):
     profile = profile_repository.get_profile_by_user_id(db, user_id)
     if not profile:
         raise ProfileNotFoundError(user_id)
+    photo_urls = [
+        photo.photo_url
+        for photo in profile_photo_repository.get_photos_by_profile(db, profile.id)
+    ]
     profile_repository.delete_profile(db, profile)
+    for photo_url in photo_urls:
+        delete_image(photo_url)
 
 
 def get_public_profile(db: Session, profile_id: int):
@@ -81,9 +89,11 @@ def search_profiles(
     gender: str | None = None,
     age_min: int | None = None,
     age_max: int | None = None,
+    available_from: date | None = None,
     skip: int = 0,
     limit: int = 20,
     exclude_user_id: int | None = None,
+    exclude_user_ids: list[int] | None = None,
 ) -> list[ProfileSummary]:
     profiles = profile_repository.search_profiles(
         db,
@@ -96,14 +106,15 @@ def search_profiles(
         gender,
         age_min,
         age_max,
+        available_from,
         skip,
         limit,
         exclude_user_id=exclude_user_id,
+        exclude_user_ids=exclude_user_ids,
     )
 
-    profile_summaries = []
-    for profile in profiles:
-        summary = _profile_to_summary(profile)
-        profile_summaries.append(summary)
+    return build_profile_summaries(profiles)
 
-    return profile_summaries
+
+def build_profile_summaries(profiles: list[Profile]) -> list[ProfileSummary]:
+    return [_profile_to_summary(profile) for profile in profiles]

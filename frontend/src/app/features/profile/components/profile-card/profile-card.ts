@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import type { ProfileSummary } from '@core/api/api.models';
 import { ProfileService } from '@core/profile/profile.service';
 
+import { FavoriteButton } from '@shared/components/favorite-button/favorite-button';
 import { ProfileBadge } from '@shared/components/profile-badge/profile-badge';
 import { ProfilePhoto } from '@shared/components/profile-photo/profile-photo';
 
@@ -11,13 +12,14 @@ import { SCHEDULE_LABELS, TYPE_LABELS } from '@features/profile/profile-labels';
 
 @Component({
   selector: 'app-profile-card',
-  imports: [RouterLink, ProfileBadge, ProfilePhoto],
+  imports: [RouterLink, ProfileBadge, ProfilePhoto, FavoriteButton],
   templateUrl: './profile-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileCard {
   readonly profile = input.required<ProfileSummary>();
   readonly priority = input(false);
+  readonly showFavorite = input(true);
 
   private readonly profileService = inject(ProfileService);
 

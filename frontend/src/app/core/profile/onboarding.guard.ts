@@ -14,13 +14,8 @@ export const onboardingGuard: CanActivateFn = async () => {
   const authService = inject(AuthService);
 
   try {
-    if (persistence.loadForm()) return true;
-  } catch {
-    /* empty */
-  }
-
-  try {
     await profileApi.getMyProfile();
+    persistence.clearAll();
     return router.createUrlTree(['/']);
   } catch (error) {
     if (error instanceof HttpErrorResponse) {

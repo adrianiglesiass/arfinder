@@ -10,6 +10,10 @@ export const ERROR_MESSAGES: Record<string, string> = {
   NETWORK_ERROR: 'Error de conexión. Intenta de nuevo.',
 
   IMAGE_UPLOAD_FAILED: 'No pudimos subir la foto. Inténtalo de nuevo.',
+
+  USER_REPORT_ALREADY_EXISTS: 'Ya habías reportado a esta persona.',
+
+  CANNOT_REPORT_SELF: 'No puedes reportar tu propio perfil.',
 };
 
 export const DEFAULT_ERROR_MESSAGE = 'Ocurrió un error inesperado.';
