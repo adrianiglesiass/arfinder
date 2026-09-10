@@ -43,3 +43,15 @@ class User(Base):
         back_populates="target_user",
         passive_deletes=True,
     )
+    blocks_given = relationship(
+        "UserBlock",
+        foreign_keys="UserBlock.blocker_user_id",
+        back_populates="blocker",
+        passive_deletes=True,
+    )
+    blocks_received = relationship(
+        "UserBlock",
+        foreign_keys="UserBlock.blocked_user_id",
+        back_populates="blocked",
+        passive_deletes=True,
+    )

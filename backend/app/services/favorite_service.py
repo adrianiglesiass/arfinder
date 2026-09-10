@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.exceptions.favorite import FavoriteSelfError
 from app.repositories import favorite_repository, profile_repository
 from app.schemas.profile import ProfileSummary
-from app.services import profile_service
+from app.services import block_service, profile_service
 
 
 def favorite_profile(db: Session, current_user_id: int, profile_id: int) -> None:
@@ -20,9 +20,13 @@ def unfavorite_profile(db: Session, current_user_id: int, profile_id: int) -> No
 
 def list_favorites(db: Session, current_user_id: int) -> list[ProfileSummary]:
     ids = favorite_repository.list_target_user_ids(db, current_user_id)
-    profiles = profile_repository.get_profiles_by_user_ids(
-        db, [user_id for user_id in ids if user_id != current_user_id]
-    )
+    excluded = set(block_service.excluded_user_ids(db, current_user_id))
+    target_ids = [
+        user_id
+        for user_id in ids
+        if user_id != current_user_id and user_id not in excluded
+    ]
+    profiles = profile_repository.get_profiles_by_user_ids(db, target_ids)
     return profile_service.build_profile_summaries(profiles)
 
 

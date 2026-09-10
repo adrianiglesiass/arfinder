@@ -37,4 +37,16 @@
     <i class="pi pi-heart text-[13px]"></i>
     Favoritos
   </a>
+
+  <a
+    routerLink="/bloqueados"
+    routerLinkActive
+    #rlaBlocked="routerLinkActive"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="px-3 py-2 rounded-full text-sm font-medium transition-colors no-underline flex items-center gap-1.5"
+    [class]="rlaBlocked.isActive ? 'text-primary font-bold' : 'text-gray-500 hover:text-primary'"
+  >
+    <i class="pi pi-ban text-[13px]"></i>
+    Bloqueados
+  </a>
 </div>
