@@ -1,0 +1,13 @@
+<button
+  type="button"
+  (click)="toggle($event)"
+  [attr.aria-label]="isBlocked() ? 'Desbloquear usuario' : 'Bloquear usuario'"
+  [attr.aria-pressed]="isBlocked()"
+  class="inline-flex items-center justify-center gap-2 rounded-full border text-[13px] font-semibold transition-colors cursor-pointer"
+  [class]="[sizeClasses(), colorClasses()]"
+>
+  <i class="text-sm" [class]="isBlocked() ? 'pi pi-ban' : 'pi pi-user-minus'"></i>
+  @if (!compact()) {
+    {{ isBlocked() ? 'Desbloquear' : 'Bloquear' }}
+  }
+</button>

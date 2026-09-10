@@ -42,10 +42,10 @@ fecha: 2026-09-10
 | 15 | Pendientes de auditoría frontend (re-auditar) | frontend | frontend-bugs | ✅ done (#290) |
 | T | Arquitectura: router de conversaciones inflado, duplicación, capas | backend | architecture-cleanup | ✅ done (#291) |
 | F1 | Filtro de edad + género en búsqueda | frontend+backend | feature | ✅ done → PR #292 (mergeado) |
-| F2 | Filtro "disponible desde" | frontend+backend | feature | ✅ done (PR siguiente) |
-| F3 | Favoritos | frontend+backend | feature | ✅ done (PR siguiente) |
-| F4 | Bloqueo de usuarios | frontend+backend | feature | ⏳ pendiente |
-| F5 | Reportes de usuarios | frontend+backend | feature | ⏳ pendiente |
+| F2 | Filtro "disponible desde" | frontend+backend | feature | ✅ done → PR #293 (mergeado) |
+| F3 | Favoritos | frontend+backend | feature | ✅ done → PR #294 (mergeado) |
+| F4 | Bloqueo de usuarios | frontend+backend | feature | ✅ done → PR #295 (mergeado) |
+| F5 | Reportes de usuarios | frontend+backend | feature | 🔄 en curso (RAMA ACTUAL) |
 
 ## Fases (orden de ejecución)
 1. ✅ **fix/critical-issues** → PR #288 (mergeado).
@@ -54,21 +54,32 @@ fecha: 2026-09-10
 4. ✅ **refactor/architecture-cleanup** → PR #291 (mergeado).
 5. ✅ **feat/age-gender-filters** → PR #292 (mergeado).
 6. ✅ **feat/available-from-filter** → PR #293 (mergeado).
-7. ⏳ **feat/favorites** — RAMA ACTUAL (PR pendiente), luego **feat/user-block**, **feat/reports**.
+7. ✅ **feat/favorites** → PR #294 (mergeado).
+8. ✅ **feat/user-block** → PR #295 (mergeado).
+9. ⏳ **feat/reports** — RAMA ACTUAL. Última fase del backlog.
 
-## Estado de la rama actual (feat/favorites)
-- Base: `develop` (incluye #288–#293).
-- Implementación completa: modelo `Favorite` + migración; endpoints POST/DELETE `/profiles/{id}/favorite`
-  y `GET /profiles/me/favorites`; `FavoriteService` con toggle optimista; `FavoriteButton` compartido en
-  grid y deck; página `/favoritos` + nav. Spec `specs/feat-favorites.md` en `done`.
-- Verificación local: backend `ruff check`/`format --check` ✓ y pytest **61 passed**; frontend
-  `format:check` ✓, `lint` ✓, `test:ci` **20 passed** (4 files), build producción ✓;
-  migración `8e5f4c3a2b1d_create_favorites` validada en Postgres limpio (temp DB).
-- Ambiente local: Postgres de dev en 5432; test en 5433 vía `docker compose up -d db-test`
-  (credenciales de conftest y compose difieren → override `DATABASE_URL` al correr pytest;
-  `.env` dev apunta a MySQL → no usar para alembic; validar migraciones en DB limpia de postgres).
-- Realtime/CI: `gh` CLI en `C:\Program Files\GitHub CLI\gh.exe`; en Windows usar `--body-file <archivo>` para el body de PR.
+## Estado de la rama actual (feat/reports)
+- Base: `develop` (incluye #288–#295).
+- F5 es la última fase del backlog: reportar un perfil con motivo, que además lo bloquea
+  automáticamente reutilizando `block_service`. Sin panel de moderación (decisión de alcance).
+
+## Entorno local (LEER antes de verificar)
+- Postgres de dev en 5432 y de test en 5433 (`docker compose up -d db-test` desde `backend/`).
+- **Las credenciales de `conftest.py` y de `docker-compose.yml` NO coinciden**: hay que sobrescribir
+  `DATABASE_URL` al correr pytest, o todos los tests fallan con `password authentication failed`:
+  ```bash
+  DATABASE_URL="postgresql+psycopg2://arfinder_test_user:<POSTGRES_PASSWORD de db-test>@localhost:5433/arfinder_test_db"     PYTHONPATH=. .venv/Scripts/python.exe -m pytest tests/ -q
+  ```
+- El `.env` de dev apunta a MySQL → **no usarlo para alembic**. Para validar migraciones, crear una
+  DB temporal en el Postgres de test y pasarle `DATABASE_URL` + el resto de vars obligatorias
+  (`SECRET_KEY`, `ALGORITHM`, `INSFORGE_URL`, `INSFORGE_API_KEY`, `OSS_HOST`, `CLOUDINARY_*`,
+  `NOMINATIM_USER_AGENT`) por entorno.
+- `gh` CLI en `C:\Program Files\GitHub CLI\gh.exe`; en Windows usar `--body-file <archivo>` para
+  el body de la PR.
+- Commits **sin trailer `Co-Authored-By`**.
 
 ## Commits de referencia
 - `#288 incluyó`: conftest fix de CI + fixes críticos #1-#5.
 - `#289 incluyó`: fixes #6-#14 (4 commits + specs done).
+- `#295 incluyó`: F4 bloqueo de usuarios (backend + frontend) y las 6 correcciones de revisión
+  registradas en el Resultado de `specs/feat-user-block.md`.

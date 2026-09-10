@@ -17,6 +17,7 @@ import { ROUTES } from '@core/constants/routes';
 import { ProfileService } from '@core/profile/profile.service';
 
 import { BackLink } from '@shared/components/back-link/back-link';
+import { BlockButton } from '@shared/components/block-button/block-button';
 import { Button } from '@shared/components/button/button';
 import { MobileActionBar } from '@shared/components/mobile-action-bar/mobile-action-bar';
 import { Skeleton } from '@shared/components/skeleton/skeleton';
@@ -26,7 +27,15 @@ import { ProfileInfoBlock } from '@features/profile/components/profile-info-bloc
 
 @Component({
   selector: 'app-profile-detail',
-  imports: [BackLink, Button, MobileActionBar, Skeleton, PhotoGallery, ProfileInfoBlock],
+  imports: [
+    BackLink,
+    BlockButton,
+    Button,
+    MobileActionBar,
+    Skeleton,
+    PhotoGallery,
+    ProfileInfoBlock,
+  ],
   templateUrl: './profile-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -159,6 +168,10 @@ export default class ProfileDetail {
 
   readonly showSendMessageButton = computed(() => {
     return !this.isOwnProfile();
+  });
+
+  readonly showBlockButton = computed(() => {
+    return this.authService.currentUser() !== null && !this.isOwnProfile();
   });
 
   readonly photos = computed(() => this.profile()?.photos ?? []);

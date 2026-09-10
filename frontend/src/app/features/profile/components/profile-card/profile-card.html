@@ -55,5 +55,7 @@
     </div>
   </a>
 
-  <app-favorite-button class="absolute top-4 right-4 z-20" [profileId]="profile().id" />
+  @if (showFavorite()) {
+    <app-favorite-button class="absolute top-4 right-4 z-20" [profileId]="profile().id" />
+  }
 </div>

@@ -19,7 +19,12 @@ from app.schemas.profile import (
     ProfileSummary,
     ProfileUpdate,
 )
-from app.services import favorite_service, profile_photo_service, profile_service
+from app.services import (
+    block_service,
+    favorite_service,
+    profile_photo_service,
+    profile_service,
+)
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
@@ -64,6 +69,9 @@ def search(
     clean_has_pets = parse_bool_param(has_pets, "has_pets")
     clean_is_smoker = parse_bool_param(is_smoker, "is_smoker")
 
+    excluded = (
+        block_service.excluded_user_ids(db, current_user.id) if current_user else []
+    )
     return profile_service.search_profiles(
         db,
         city,
@@ -79,6 +87,7 @@ def search(
         skip,
         limit,
         exclude_user_id=current_user.id if current_user else None,
+        exclude_user_ids=excluded,
     )
 
 
@@ -121,6 +130,47 @@ def unfavorite_profile(
     current_user: User = Depends(get_current_user),
 ):
     favorite_service.unfavorite_profile(db, current_user.id, profile_id)
+
+
+@router.get("/me/blocked", response_model=List[ProfileSummary], responses=PROTECTED)
+def get_my_blocked(
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    response.headers["Cache-Control"] = "no-store"
+    return block_service.list_blocked(db, current_user.id)
+
+
+@router.post(
+    "/{profile_id}/block",
+    status_code=204,
+    responses={
+        **PROTECTED,
+        **NOT_FOUND,
+        400: {"description": "Self block"},
+        409: {"description": "Already blocked"},
+    },
+)
+def block_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    block_service.block_profile(db, current_user.id, profile_id)
+
+
+@router.delete(
+    "/{profile_id}/block",
+    status_code=204,
+    responses={**PROTECTED, **NOT_FOUND},
+)
+def unblock_profile(
+    profile_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    block_service.unblock_profile(db, current_user.id, profile_id)
 
 
 @router.get("/me", response_model=ProfileResponse, responses=PROTECTED)
