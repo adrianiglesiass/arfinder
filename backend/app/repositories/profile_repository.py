@@ -54,12 +54,15 @@ def search_profiles(
     skip: int = 0,
     limit: int = 20,
     exclude_user_id: int | None = None,
+    exclude_user_ids: list[int] | None = None,
 ) -> list[Profile]:
 
     q = db.query(Profile).options(joinedload(Profile.photos))
 
     if exclude_user_id is not None:
         q = q.filter(Profile.user_id != exclude_user_id)
+    if exclude_user_ids:
+        q = q.filter(~Profile.user_id.in_(exclude_user_ids))
     if city:
         q = q.filter(Profile.city.ilike(f"%{city}%"))
     if budget_max is not None:
