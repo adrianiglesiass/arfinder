@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-plan
-estado: in-progress
+estado: done
 stack: ambos
 fecha: 2026-09-10
 ---
