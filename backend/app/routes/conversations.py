@@ -5,64 +5,21 @@ from starlette.concurrency import run_in_threadpool
 from app.core.dependencies import get_current_user
 from app.core.openapi import PROTECTED
 from app.core.rate_limit import message_rate_limiter
+from app.core.realtime import manager as realtime_manager
 from app.db.database import get_db
 from app.models.user import User
-from app.repositories import message_repository
-from app.schemas.conversation import (
-    ConversationCreate,
-    ConversationResponse,
-    ParticipantSummary,
-)
+from app.schemas.conversation import ConversationCreate, ConversationResponse
 from app.schemas.message import MessageCreate, MessageResponse
-from app.core.realtime import manager as realtime_manager
-from app.repositories.conversation_repository import get_conversation_between_users
 from app.services import message_service
 from app.services.conversation_service import (
+    build_conversation_response,
+    create_or_get_conversation_with_status,
     get_conversation_or_raise,
-    get_or_create_conversation,
-    list_my_conversations,
-    send_message_to_user,
+    list_my_conversation_responses,
+    send_message_with_status,
 )
-from app.services.message_service import mark_conversation_messages_as_read
 
 router = APIRouter(prefix="/conversations", tags=["conversations"], responses=PROTECTED)
-
-
-def _get_other_user_summary(
-    conv, current_user_id: int, db: Session
-) -> ParticipantSummary | None:
-    other_user = conv.user2 if conv.user1_id == current_user_id else conv.user1
-    if not other_user or not other_user.profile:
-        return None
-    photos = sorted(other_user.profile.photos, key=lambda p: (p.order or 0, p.id))
-    main_photo = next((p for p in photos if p.is_main), None) or (
-        photos[0] if photos else None
-    )
-    return ParticipantSummary(
-        user_id=other_user.id,
-        profile_id=other_user.profile.id,
-        name=other_user.profile.name,
-        photo_url=main_photo.photo_url if main_photo else None,
-    )
-
-
-def _build_conversation_response(
-    conv, current_user_id: int, db: Session
-) -> ConversationResponse:
-    last_messages = message_repository.get_last_messages_for_conversations(
-        db, [conv.id]
-    )
-    unread_counts = message_repository.get_unread_counts_for_conversations(
-        db, [conv.id], current_user_id
-    )
-    return ConversationResponse(
-        id=conv.id,
-        user1_id=conv.user1_id,
-        user2_id=conv.user2_id,
-        other_user=_get_other_user_summary(conv, current_user_id, db),
-        last_message=last_messages.get(conv.id),
-        unread_count=unread_counts.get(conv.id, 0),
-    )
 
 
 @router.post("", response_model=ConversationResponse, status_code=201)
@@ -72,12 +29,10 @@ async def create_or_get_conversation(
     current_user: User = Depends(get_current_user),
 ):
     def _persist():
-        was_new = (
-            get_conversation_between_users(db, current_user.id, body.other_user_id)
-            is None
+        conversation, was_new = create_or_get_conversation_with_status(
+            db, current_user.id, body.other_user_id
         )
-        conv = get_or_create_conversation(db, current_user.id, body.other_user_id)
-        response = _build_conversation_response(conv, current_user.id, db)
+        response = build_conversation_response(db, conversation, current_user.id)
         return was_new, response
 
     was_new, response = await run_in_threadpool(_persist)
@@ -97,30 +52,7 @@ def list_conversations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    conversations = list_my_conversations(db, current_user.id)
-    conv_ids = [c.id for c in conversations]
-    last_messages = message_repository.get_last_messages_for_conversations(db, conv_ids)
-    unread_counts = message_repository.get_unread_counts_for_conversations(
-        db, conv_ids, current_user.id
-    )
-
-    def _last_activity(conv):
-        last = last_messages.get(conv.id)
-        return last.sent_at if last else conv.created_at
-
-    conversations.sort(key=_last_activity, reverse=True)
-
-    return [
-        ConversationResponse(
-            id=conv.id,
-            user1_id=conv.user1_id,
-            user2_id=conv.user2_id,
-            other_user=_get_other_user_summary(conv, current_user.id, db),
-            last_message=last_messages.get(conv.id),
-            unread_count=unread_counts.get(conv.id, 0),
-        )
-        for conv in conversations
-    ]
+    return list_my_conversation_responses(db, current_user.id)
 
 
 @router.get("/{conversation_id}", response_model=ConversationResponse)
@@ -129,8 +61,8 @@ def get_conversation(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    conv = get_conversation_or_raise(db, conversation_id, current_user.id)
-    return _build_conversation_response(conv, current_user.id, db)
+    conversation = get_conversation_or_raise(db, conversation_id, current_user.id)
+    return build_conversation_response(db, conversation, current_user.id)
 
 
 @router.get("/{conversation_id}/messages", response_model=list[MessageResponse])
@@ -141,9 +73,8 @@ def get_conversation_messages(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    get_conversation_or_raise(db, conversation_id, current_user.id)
-    return message_repository.get_messages_by_conversation(
-        db, conversation_id, limit, before_id
+    return message_service.get_conversation_history(
+        db, conversation_id, current_user.id, limit, before_id
     )
 
 
@@ -153,7 +84,9 @@ def mark_as_read(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    mark_conversation_messages_as_read(db, conversation_id, current_user.id)
+    message_service.mark_conversation_messages_as_read(
+        db, conversation_id, current_user.id
+    )
 
 
 @router.post(
@@ -182,11 +115,7 @@ async def send_message_lazy(
     current_user: User = Depends(message_rate_limiter),
 ):
     def _persist():
-        was_new = (
-            get_conversation_between_users(db, current_user.id, recipient_user_id)
-            is None
-        )
-        message = send_message_to_user(
+        message, was_new = send_message_with_status(
             db, current_user.id, recipient_user_id, body.content
         )
         return was_new, message
