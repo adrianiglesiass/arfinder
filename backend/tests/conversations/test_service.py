@@ -1,4 +1,5 @@
 import pytest
+from app.core.exceptions.user import UserNotFoundError
 from app.services.conversation_service import get_or_create_conversation
 
 
@@ -16,3 +17,9 @@ def test_get_or_create_is_symmetric(db, two_users):
     conv2 = get_or_create_conversation(db, user2.id, user1.id)
 
     assert conv1.id == conv2.id
+
+
+def test_get_or_create_rejects_unknown_user(db, two_users):
+    user1, _ = two_users
+    with pytest.raises(UserNotFoundError):
+        get_or_create_conversation(db, user1.id, 999999)

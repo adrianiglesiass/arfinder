@@ -1,3 +1,4 @@
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions.conversation import (
@@ -5,10 +6,12 @@ from app.core.exceptions.conversation import (
     ConversationAccessDeniedError,
     ConversationNotFoundError,
 )
+from app.core.exceptions.user import UserNotFoundError
 
 
 from app.models.conversation import Conversation
 from app.models.message import Message
+from app.repositories import user_repository
 from app.repositories.conversation_repository import (
     create_conversation,
     get_conversation_between_users,
@@ -24,11 +27,26 @@ def get_or_create_conversation(
     if current_user_id == other_user_id:
         raise CannotMessageYourselfError()
 
+    if not user_repository.get_user_by_id(db, other_user_id):
+        raise UserNotFoundError(other_user_id)
+
     existing = get_conversation_between_users(db, current_user_id, other_user_id)
     if existing:
         return existing
 
-    return create_conversation(db, current_user_id, other_user_id)
+    try:
+        return create_conversation(db, current_user_id, other_user_id)
+    except IntegrityError:
+        # Dos requests concurrentes pueden insertar a la vez: el perdedor
+        # recibe un IntegrityError por la unique constraint y debe recuperar
+        # la conversación ya creada por el ganador.
+        db.rollback()
+        conversation = get_conversation_between_users(
+            db, current_user_id, other_user_id
+        )
+        if conversation is None:
+            raise
+        return conversation
 
 
 def send_message_to_user(
