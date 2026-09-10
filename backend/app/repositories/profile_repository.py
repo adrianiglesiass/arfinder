@@ -87,3 +87,16 @@ def search_profiles(
         )
 
     return q.order_by(Profile.id.desc()).offset(skip).limit(limit).all()
+
+
+def get_profiles_by_user_ids(db: Session, target_user_ids: list[int]) -> list[Profile]:
+    if not target_user_ids:
+        return []
+    rows = (
+        db.query(Profile)
+        .options(joinedload(Profile.photos))
+        .filter(Profile.user_id.in_(target_user_ids))
+        .all()
+    )
+    by_user = {row.user_id: row for row in rows}
+    return [by_user[user_id] for user_id in target_user_ids if user_id in by_user]

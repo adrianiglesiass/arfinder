@@ -73,6 +73,8 @@
   {{ typeLabel() }}
 </span>
 
+<app-favorite-button class="absolute top-7 right-5 z-30" [profileId]="profile().id" />
+
 <div class="absolute inset-x-0 bottom-0 p-6 md:p-7 z-10 pointer-events-none">
   <h2 class="text-white font-bold tracking-tight leading-[0.95] text-4xl md:text-5xl">
     {{ profile().name }}<span class="text-white/55">, {{ profile().age }}</span>

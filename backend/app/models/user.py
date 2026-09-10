@@ -31,3 +31,15 @@ class User(Base):
         back_populates="user2",
         passive_deletes=True,
     )
+    favorites_given = relationship(
+        "Favorite",
+        foreign_keys="Favorite.user_id",
+        back_populates="user",
+        passive_deletes=True,
+    )
+    favorites_received = relationship(
+        "Favorite",
+        foreign_keys="Favorite.target_user_id",
+        back_populates="target_user",
+        passive_deletes=True,
+    )

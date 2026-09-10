@@ -43,7 +43,7 @@ fecha: 2026-09-10
 | T | Arquitectura: router de conversaciones inflado, duplicación, capas | backend | architecture-cleanup | ✅ done (#291) |
 | F1 | Filtro de edad + género en búsqueda | frontend+backend | feature | ✅ done → PR #292 (mergeado) |
 | F2 | Filtro "disponible desde" | frontend+backend | feature | ✅ done (PR siguiente) |
-| F3 | Favoritos | frontend+backend | feature | ⏳ pendiente |
+| F3 | Favoritos | frontend+backend | feature | ✅ done (PR siguiente) |
 | F4 | Bloqueo de usuarios | frontend+backend | feature | ⏳ pendiente |
 | F5 | Reportes de usuarios | frontend+backend | feature | ⏳ pendiente |
 
@@ -53,20 +53,20 @@ fecha: 2026-09-10
 3. ✅ **fix/frontend-bugs** → PR #290 (mergeado).
 4. ✅ **refactor/architecture-cleanup** → PR #291 (mergeado).
 5. ✅ **feat/age-gender-filters** → PR #292 (mergeado).
-6. ⏳ **feat/available-from-filter** — RAMA ACTUAL (PR pendiente), luego **feat/favorites**, **feat/user-block**, **feat/reports**.
+6. ✅ **feat/available-from-filter** → PR #293 (mergeado).
+7. ⏳ **feat/favorites** — RAMA ACTUAL (PR pendiente), luego **feat/user-block**, **feat/reports**.
 
-## Estado de la rama actual (feat/available-from-filter)
-- Base: `develop` (incluye #288–#292).
-- Implementación completa: param `available_from` en `GET /profiles` (Router→Service→Repository,
-  semántica `NULL OR <= D`), campo de fecha "Disponible desde" en el panel de filtros, URL y chip activo.
-  Spec `specs/feat-available-from-filter.md` en `done`.
-- Contrato regenerado: `api.types.ts` (openapi-typescript 7.13.0 + Prettier) — `available_from` en search
-  y rutas que faltaban de cities/health.
-- Verificación local: backend `ruff check`/`format --check` ✓ y pytest **54 passed** (override `DATABASE_URL`
-  a `postgresql+psycopg2://arfinder_test_user:TVprI5Ipni4KNQzDOewAOHkKBI0965CJ@localhost:5433/arfinder_test_db`);
-  frontend `format:check` ✓, `lint` ✓, `test:ci` **17 passed** (3 files), build producción ✓.
+## Estado de la rama actual (feat/favorites)
+- Base: `develop` (incluye #288–#293).
+- Implementación completa: modelo `Favorite` + migración; endpoints POST/DELETE `/profiles/{id}/favorite`
+  y `GET /profiles/me/favorites`; `FavoriteService` con toggle optimista; `FavoriteButton` compartido en
+  grid y deck; página `/favoritos` + nav. Spec `specs/feat-favorites.md` en `done`.
+- Verificación local: backend `ruff check`/`format --check` ✓ y pytest **61 passed**; frontend
+  `format:check` ✓, `lint` ✓, `test:ci` **20 passed** (4 files), build producción ✓;
+  migración `8e5f4c3a2b1d_create_favorites` validada en Postgres limpio (temp DB).
 - Ambiente local: Postgres de dev en 5432; test en 5433 vía `docker compose up -d db-test`
-  (credenciales de conftest y compose difieren → override `DATABASE_URL` al correr pytest).
+  (credenciales de conftest y compose difieren → override `DATABASE_URL` al correr pytest;
+  `.env` dev apunta a MySQL → no usar para alembic; validar migraciones en DB limpia de postgres).
 - Realtime/CI: `gh` CLI en `C:\Program Files\GitHub CLI\gh.exe`; en Windows usar `--body-file <archivo>` para el body de PR.
 
 ## Commits de referencia

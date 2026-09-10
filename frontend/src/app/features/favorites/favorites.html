@@ -1,0 +1,50 @@
+<header class="flex items-center justify-between px-4 pt-4 pb-2 md:px-6">
+  <div>
+    <h1 class="text-xl font-bold text-primary">Favoritos</h1>
+    <p class="text-[11px] text-gray-400 font-medium mt-0.5">
+      @if (visibleProfiles().length) {
+        {{ visibleProfiles().length }}
+        {{ visibleProfiles().length === 1 ? 'perfil guardado' : 'perfiles guardados' }}
+      } @else {
+        Perfiles que guardas para revisar
+      }
+    </p>
+  </div>
+</header>
+
+<section class="px-4 pb-16 pt-3 md:px-6">
+  @if (isLoading()) {
+    <div
+      class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 animate-fade-in"
+    >
+      @for (s of [1, 2, 3, 4]; track s) {
+        <div class="bg-white border border-gray-border rounded-3xl overflow-hidden">
+          <div class="aspect-3/4 bg-gray-100 animate-pulse"></div>
+          <div class="flex gap-1.5 p-4">
+            <div class="h-7 w-16 bg-gray-100 rounded-full animate-pulse"></div>
+            <div class="h-7 w-20 bg-gray-100 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+      }
+      <span class="sr-only">Cargando favoritos...</span>
+    </div>
+  } @else if (visibleProfiles().length === 0) {
+    <app-empty-state
+      icon="favorite"
+      title="Aún no tienes favoritos"
+      message="Toca el corazón en cualquier perfil para guardarlo aquí y revisarlo cuando quieras."
+    >
+      <a [routerLink]="exploreLink" class="text-sm font-bold text-primary hover:text-primary-light">
+        Explorar perfiles
+      </a>
+    </app-empty-state>
+  } @else {
+    <div
+      class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 animate-fade-in"
+    >
+      @for (profile of visibleProfiles(); track profile.id) {
+        <app-profile-card class="block h-full" [profile]="profile" />
+      }
+    </div>
+  }
+</section>
