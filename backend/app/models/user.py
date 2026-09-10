@@ -55,3 +55,15 @@ class User(Base):
         back_populates="blocked",
         passive_deletes=True,
     )
+    reports_given = relationship(
+        "UserReport",
+        foreign_keys="UserReport.reporter_user_id",
+        back_populates="reporter",
+        passive_deletes=True,
+    )
+    reports_received = relationship(
+        "UserReport",
+        foreign_keys="UserReport.reported_user_id",
+        back_populates="reported",
+        passive_deletes=True,
+    )

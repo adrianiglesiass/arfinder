@@ -12,6 +12,7 @@ from app.db.database import get_db
 from app.core.route_utils import parse_age_param, parse_bool_param
 from app.models.profile import ScheduleEnum, TypeEnum
 from app.models.user import User
+from app.schemas.report import ReportCreate
 from app.schemas.profile import (
     ProfileCreate,
     ProfilePhotoResponse,
@@ -24,6 +25,7 @@ from app.services import (
     favorite_service,
     profile_photo_service,
     profile_service,
+    report_service,
 )
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
@@ -171,6 +173,25 @@ def unblock_profile(
     current_user: User = Depends(get_current_user),
 ):
     block_service.unblock_profile(db, current_user.id, profile_id)
+
+
+@router.post(
+    "/{profile_id}/report",
+    status_code=204,
+    responses={
+        **PROTECTED,
+        **NOT_FOUND,
+        400: {"description": "Self report"},
+        409: {"description": "Already reported"},
+    },
+)
+def report_profile(
+    profile_id: int,
+    payload: ReportCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    report_service.report_profile(db, current_user.id, profile_id, payload)
 
 
 @router.get("/me", response_model=ProfileResponse, responses=PROTECTED)
