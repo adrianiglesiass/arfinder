@@ -1,0 +1,86 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center px-4 animate-fade-in">
+  <button
+    type="button"
+    (click)="onCancel()"
+    (keyup.escape)="onCancel()"
+    aria-label="Cerrar"
+    class="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-default"
+  ></button>
+
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="report-dialog-title"
+    class="relative w-full max-w-md bg-white rounded-3xl shadow-(--shadow-glass) p-6 md:p-7"
+  >
+    <div
+      class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-4"
+    >
+      <i class="pi pi-flag text-lg"></i>
+    </div>
+    <h3 id="report-dialog-title" class="text-lg md:text-xl font-bold text-primary leading-tight">
+      ¿Reportar este perfil?
+    </h3>
+    <p class="text-xs md:text-sm text-gray-500 font-medium mt-2">
+      Cuéntanos qué ha pasado. Al enviar el reporte también bloquearemos a esta persona, así que
+      dejaréis de veros en las búsquedas.
+    </p>
+
+    <fieldset class="mt-5">
+      <legend class="text-xs font-bold text-primary mb-2">Motivo</legend>
+      <div class="flex flex-col gap-1.5">
+        @for (reason of reasons; track reason.value) {
+          <button
+            type="button"
+            (click)="selectReason(reason.value)"
+            [attr.aria-pressed]="selectedReason() === reason.value"
+            [disabled]="isSubmitting()"
+            class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border text-left text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-60"
+            [class]="
+              selectedReason() === reason.value
+                ? 'border-red-200 bg-red-50 text-red-600'
+                : 'border-gray-border bg-white text-gray-500 hover:border-red-200'
+            "
+          >
+            <i
+              class="text-sm"
+              [class]="
+                selectedReason() === reason.value ? 'pi pi-check-circle' : 'pi pi-circle-off'
+              "
+            ></i>
+            {{ reason.label }}
+          </button>
+        }
+      </div>
+    </fieldset>
+
+    <label class="block mt-4">
+      <span class="text-xs font-bold text-primary">Detalles (opcional)</span>
+      <textarea
+        rows="3"
+        maxlength="1000"
+        [value]="detail()"
+        (input)="onDetailInput($event)"
+        [disabled]="isSubmitting()"
+        placeholder="Añade cualquier detalle que nos ayude a entender lo ocurrido"
+        class="mt-1.5 w-full rounded-2xl border border-gray-border px-3.5 py-2.5 text-[13px] font-medium text-primary placeholder:text-gray-400 focus:outline-none focus:border-red-200 resize-none disabled:opacity-60"
+      ></textarea>
+    </label>
+
+    <div class="mt-6 flex items-center justify-end gap-2">
+      <app-button variant="ghost" size="sm" (click)="onCancel()" [disabled]="isSubmitting()">
+        Cancelar
+      </app-button>
+      <app-button
+        variant="danger"
+        size="sm"
+        (click)="onConfirm()"
+        [disabled]="!canSubmit()"
+        [loading]="isSubmitting()"
+      >
+        <i class="pi pi-flag text-xs"></i>
+        Reportar y bloquear
+      </app-button>
+    </div>
+  </div>
+</div>
