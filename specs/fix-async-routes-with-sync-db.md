@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-async-routes-with-sync-db
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-10
 ---
@@ -39,4 +39,4 @@ FastAPI ejecuta `def` routes en un threadpool → la DB síncrona no bloquea el 
 - [ ] Backend: `pytest --tb=short`
 
 ## Resultado
-Pendiente.
+Implementado: `get_conversation_messages`, `get_my_profile`, `create_my_profile`, `update_my_profile`, `delete_my_profile`, `mark_as_read` y `cities/search` ahora son `def`.

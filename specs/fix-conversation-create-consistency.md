@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-conversation-create-consistency
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-10
 ---
@@ -45,4 +45,4 @@ Doble clic en "escribir" dispara dos requests concurrentes sobre la misma pareja
 - [ ] Backend: `pytest --tb=short`
 
 ## Resultado
-Pendiente.
+Implementado: validación de `other_user_id` (404), recuperación de la carrera con `IntegrityError`, `last_message`/`unread_count` reales y evento `conversation_created` en `POST /conversations`, y `limit ge=1`. 48 tests backend pasan.

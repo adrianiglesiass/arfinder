@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-email-takeover-keeps-profile
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-10
 ---
@@ -37,4 +37,4 @@ El takeover de email destruye el perfil local, perdiendo fotos y datos del usuar
 - [ ] Backend: `pytest --tb=short`
 
 ## Resultado
-Pendiente.
+Implementado: `get_or_create_local_user` conserva el perfil y loguea warning al relinkear por email. Test `test_email_takeover_keeps_profile`.

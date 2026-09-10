@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-cloudinary-cleanup-on-delete
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-10
 ---
@@ -40,4 +40,4 @@ Los borrados de foto, perfil y usuario dejan huérfanos los assets en Cloudinary
 - [ ] Backend: `pytest --tb=short`
 
 ## Resultado
-Pendiente.
+Implementado: `delete_image`/`extract_public_id_from_url` en `storage_client` y destrucción de assets al borrar foto, perfil y cuenta. Test unitario de extracción de `public_id`.

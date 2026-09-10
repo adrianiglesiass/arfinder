@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-photo-reorder-and-conflict
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-10
 ---
@@ -43,4 +43,4 @@ Reorder concurrente con `create_profile_photo` (que ya usa `pg_advisory_xact_loc
 - [ ] Backend: `pytest --tb=short`
 
 ## Resultado
-Pendiente.
+Implementado: advisory lock en `reorder_photos`, validación de ids (400), `order ge=0` y 409 ante colisión. Tests añadidos en `tests/profiles/test_photo_order.py`.
