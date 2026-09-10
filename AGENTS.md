@@ -2,6 +2,9 @@
 
 Guía de trabajo para agentes de IA en este repositorio. **Léela antes de tocar cualquier cosa.**
 
+> **Punto de partida para agentes:** [`specs/plan.md`](specs/plan.md) contiene la hoja de ruta
+> completa (fases, backlog y estado de ramas) para retomar el trabajo sin agotar contexto.
+
 ---
 
 ## Norma vinculante: SDD

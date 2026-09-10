@@ -1,14 +1,23 @@
 import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 
-import { catchError, throwError } from 'rxjs';
-import { from, switchMap } from 'rxjs';
+import { environment } from '@env/environment';
+import { catchError, from, switchMap, throwError } from 'rxjs';
 
 import { AuthService } from '@core/auth/auth.service';
 
 const AUTH_RETRY = new HttpContextToken<boolean>(() => false);
 
+function isOwnApiRequest(url: string): boolean {
+  const base = environment.APIURL;
+  return Boolean(base) && url.startsWith(base);
+}
+
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
+  if (!isOwnApiRequest(req.url)) {
+    return next(req);
+  }
+
   const authService = inject(AuthService);
 
   return from(authService.getToken()).pipe(
@@ -32,8 +41,8 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err.status !== 401 || isRetry) {
-        if (err.status === 401 && isRetry) {
+      if (!isOwnApiRequest(req.url) || err.status !== 401 || isRetry) {
+        if (isOwnApiRequest(req.url) && err.status === 401 && isRetry) {
           void authService.invalidateSession();
         }
         return throwError(() => err);

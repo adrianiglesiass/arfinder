@@ -35,3 +35,12 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Generate environment.ts placeholder
+        run: node scripts/set-env.js
+
+      - name: Unit tests
+        run: npm run test:ci
+
+      - name: Production build
+        run: npx ng build --configuration production
