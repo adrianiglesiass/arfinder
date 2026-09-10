@@ -41,8 +41,8 @@ fecha: 2026-09-10
 | 14 | `POST /conversations` sin emitir `conversation_created` | backend | backend-bugs | ✅ done (#289) |
 | 15 | Pendientes de auditoría frontend (re-auditar) | frontend | frontend-bugs | ✅ done (#290) |
 | T | Arquitectura: router de conversaciones inflado, duplicación, capas | backend | architecture-cleanup | ✅ done (#291) |
-| F1 | Filtro de edad + género en búsqueda | frontend+backend | feature | ✅ done (PR siguiente) |
-| F2 | Filtro "disponible desde" | frontend+backend | feature | ⏳ pendiente |
+| F1 | Filtro de edad + género en búsqueda | frontend+backend | feature | ✅ done → PR #292 (mergeado) |
+| F2 | Filtro "disponible desde" | frontend+backend | feature | ✅ done (PR siguiente) |
 | F3 | Favoritos | frontend+backend | feature | ⏳ pendiente |
 | F4 | Bloqueo de usuarios | frontend+backend | feature | ⏳ pendiente |
 | F5 | Reportes de usuarios | frontend+backend | feature | ⏳ pendiente |
@@ -52,13 +52,19 @@ fecha: 2026-09-10
 2. ✅ **fix/backend-bugs** → PR #289 (mergeado).
 3. ✅ **fix/frontend-bugs** → PR #290 (mergeado).
 4. ✅ **refactor/architecture-cleanup** → PR #291 (mergeado).
-5. ⏳ **feat/age-gender-filters** — RAMA ACTUAL (PR pendiente), luego **feat/available-from-filter**, **feat/favorites**, **feat/user-block**, **feat/reports**.
+5. ✅ **feat/age-gender-filters** → PR #292 (mergeado).
+6. ⏳ **feat/available-from-filter** — RAMA ACTUAL (PR pendiente), luego **feat/favorites**, **feat/user-block**, **feat/reports**.
 
-## Estado de la rama actual (feat/age-gender-filters)
-- Base: `develop` (incluye #288–#291).
-- Implementación completa: controles de edad (Mín/Máx) y género en el panel de filtros de `/explorar`
-  reutilizando el estado/URL/chips ya existentes. Spec `specs/feat-age-gender-filters.md` en `done`.
-- Verificación local: `format:check` ✓, `lint` ✓, `test:ci` **15 passed** (3 files, incl. `search-filters.spec.ts`), build producción ✓.
+## Estado de la rama actual (feat/available-from-filter)
+- Base: `develop` (incluye #288–#292).
+- Implementación completa: param `available_from` en `GET /profiles` (Router→Service→Repository,
+  semántica `NULL OR <= D`), campo de fecha "Disponible desde" en el panel de filtros, URL y chip activo.
+  Spec `specs/feat-available-from-filter.md` en `done`.
+- Contrato regenerado: `api.types.ts` (openapi-typescript 7.13.0 + Prettier) — `available_from` en search
+  y rutas que faltaban de cities/health.
+- Verificación local: backend `ruff check`/`format --check` ✓ y pytest **54 passed** (override `DATABASE_URL`
+  a `postgresql+psycopg2://arfinder_test_user:TVprI5Ipni4KNQzDOewAOHkKBI0965CJ@localhost:5433/arfinder_test_db`);
+  frontend `format:check` ✓, `lint` ✓, `test:ci` **17 passed** (3 files), build producción ✓.
 - Ambiente local: Postgres de dev en 5432; test en 5433 vía `docker compose up -d db-test`
   (credenciales de conftest y compose difieren → override `DATABASE_URL` al correr pytest).
 - Realtime/CI: `gh` CLI en `C:\Program Files\GitHub CLI\gh.exe`; en Windows usar `--body-file <archivo>` para el body de PR.

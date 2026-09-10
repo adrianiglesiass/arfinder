@@ -96,6 +96,20 @@
     </div>
   </div>
 
+  <div class="flex flex-col gap-3">
+    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
+      Disponible desde
+    </span>
+    <input
+      pInputText
+      type="date"
+      inputId="availableFrom"
+      [ngModel]="availableFrom()"
+      (ngModelChange)="setAvailableFrom($event)"
+      class="w-full rounded-2xl py-3 px-4 border border-gray-border transition-colors duration-200 shadow-none bg-white font-medium"
+    />
+  </div>
+
   <app-filter-chip-group
     label="Género"
     [options]="genderOptions"

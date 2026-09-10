@@ -1,4 +1,5 @@
 from operator import attrgetter
+from datetime import date
 
 from sqlalchemy.orm import Session
 
@@ -88,6 +89,7 @@ def search_profiles(
     gender: str | None = None,
     age_min: int | None = None,
     age_max: int | None = None,
+    available_from: date | None = None,
     skip: int = 0,
     limit: int = 20,
     exclude_user_id: int | None = None,
@@ -103,6 +105,7 @@ def search_profiles(
         gender,
         age_min,
         age_max,
+        available_from,
         skip,
         limit,
         exclude_user_id=exclude_user_id,

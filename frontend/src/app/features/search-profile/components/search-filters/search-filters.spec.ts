@@ -9,7 +9,7 @@ import { ProfileSearchService } from '@core/profile-search/profile-search.servic
 
 import { SearchFilters } from './search-filters';
 
-describe('SearchFilters — filtros de edad y género', () => {
+describe('SearchFilters — controles del panel de filtros', () => {
   let fixture: ComponentFixture<SearchFilters>;
   let component: SearchFilters;
   let updateFilter: ReturnType<typeof vi.fn>;
@@ -66,5 +66,15 @@ describe('SearchFilters — filtros de edad y género', () => {
   it('expone los límites de edad para la UI', () => {
     expect(component.ageMinLimit).toBe(18);
     expect(component.ageMaxLimit).toBe(99);
+  });
+
+  it('establece la fecha de disponibilidad', () => {
+    component.setAvailableFrom('2026-10-01');
+    expect(updateFilter).toHaveBeenCalledWith('available_from', '2026-10-01');
+  });
+
+  it('borra la fecha de disponibilidad cuando se vacía el campo', () => {
+    component.setAvailableFrom('');
+    expect(updateFilter).toHaveBeenCalledWith('available_from', null);
   });
 });

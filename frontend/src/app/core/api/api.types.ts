@@ -250,6 +250,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/cities/search/extended': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Search Extended */
+    get: operations['search_extended_cities_search_extended_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/health/realtime': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Realtime Health */
+    get: operations['realtime_health_health_realtime_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/': {
     parameters: {
       query?: never;
@@ -630,6 +664,7 @@ export interface operations {
         gender?: string | null;
         age_min?: number | string | null;
         age_max?: number | string | null;
+        available_from?: string | null;
         skip?: number;
         limit?: number;
       };
@@ -1601,12 +1636,70 @@ export interface operations {
           'application/json': components['schemas']['HTTPValidationError'];
         };
       };
+    };
+  };
+  search_extended_cities_search_extended_get: {
+    parameters: {
+      query: {
+        q: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': string[];
+        };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
       /** @description External service unavailable */
       503: {
         headers: {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  realtime_health_health_realtime_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
       };
     };
   };
