@@ -28,6 +28,15 @@
       }
       <span class="sr-only">Cargando favoritos...</span>
     </div>
+  } @else if (hasError() && visibleProfiles().length === 0) {
+    <app-empty-state
+      icon="error"
+      [alert]="true"
+      title="No pudimos cargar tus favoritos"
+      message="Revisa tu conexión e inténtalo de nuevo."
+    >
+      <app-button (click)="retry()">Reintentar</app-button>
+    </app-empty-state>
   } @else if (visibleProfiles().length === 0) {
     <app-empty-state
       icon="favorite"

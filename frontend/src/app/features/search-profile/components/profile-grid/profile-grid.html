@@ -18,6 +18,7 @@
 } @else if (error() && profiles().length === 0) {
   <app-empty-state
     icon="error"
+    [alert]="true"
     title="No pudimos cargar los perfiles"
     message="Revisa tu conexión e inténtalo de nuevo."
   >
@@ -53,6 +54,14 @@
     <div class="flex items-center justify-center py-8">
       <app-spinner />
       <span class="sr-only">Cargando más perfiles...</span>
+    </div>
+  } @else if (loadMoreError()) {
+    <div class="flex flex-col items-center gap-3 py-8" role="alert">
+      <p class="text-center text-xs font-medium text-gray-500">No pudimos cargar más perfiles.</p>
+      <app-button variant="secondary" size="sm" (click)="retryLoadMore()">
+        <i class="pi pi-refresh text-xs"></i>
+        Reintentar
+      </app-button>
     </div>
   } @else if (!hasMore() && profiles().length > 8) {
     <p class="text-center text-xs font-medium text-gray-400 py-8">

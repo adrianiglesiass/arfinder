@@ -38,7 +38,18 @@
     </div>
   </header>
 
-  @if (isLoading() || !form()) {
+  @if (loadError() && !profile()) {
+    <div class="w-full max-w-5xl mx-auto px-4 md:px-6 py-8">
+      <app-empty-state
+        icon="error"
+        [alert]="true"
+        title="No pudimos cargar tu perfil"
+        message="Revisa tu conexión e inténtalo de nuevo."
+      >
+        <app-button (click)="retryLoad()">Reintentar</app-button>
+      </app-empty-state>
+    </div>
+  } @else if (isLoading() || !form()) {
     <div class="w-full max-w-5xl mx-auto px-4 md:px-6 py-8" aria-busy="true" aria-live="polite">
       <div class="grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] gap-6">
         <div class="hidden md:flex flex-col gap-2">

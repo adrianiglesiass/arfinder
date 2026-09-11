@@ -223,7 +223,19 @@ export class ProfileService {
   }
 
   async addPhoto(file: File): Promise<ProfilePhotoResponse> {
-    return await this.authApi.uploadPhoto(file);
+    const photo = await this.authApi.uploadPhoto(file);
+    const me = this.currentProfile();
+    if (me) {
+      const updated = {
+        ...me,
+        photos: [...me.photos.filter((p) => p.id !== photo.id), photo].sort(
+          (a, b) => a.order - b.order
+        ),
+      };
+      this.currentProfile.set(updated);
+      this.hydrateProfiles([updated]);
+    }
+    return photo;
   }
 
   async updateProfile(data: ProfileUpdate): Promise<ProfileResponse> {

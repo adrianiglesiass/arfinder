@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 
@@ -12,13 +12,16 @@ import type {
   ScheduleEnum,
   TypeEnum,
 } from '@core/api/api.models';
+import { AuthService } from '@core/auth/auth.service';
 import { BlockEvents } from '@core/block/block-events';
+import { ROUTES } from '@core/constants/routes';
 
 const SCHEDULE_VALUES: ReadonlySet<string> = new Set(['morning', 'afternoon', 'night', 'flexible']);
 const TYPE_VALUES: ReadonlySet<string> = new Set(['looking_for_flat', 'looking_for_roommate']);
 
 const PAGE_SIZE = 24;
 const STALE_AFTER_MS = 2 * 60 * 1000;
+const MAX_REFRESH_PAGES = 4;
 
 @Injectable({ providedIn: 'root' })
 export class ProfileSearchService {
@@ -38,12 +41,20 @@ export class ProfileSearchService {
   readonly isLoadingMore = signal(false);
   readonly hasMore = signal(true);
   readonly error = signal<unknown | null>(null);
+  readonly loadMoreError = signal(false);
 
   private currentPage = 0;
   private requestId = 0;
   private lastLoadedAt: number | null = null;
+  private lastUserId: number | null | undefined = undefined;
 
   constructor() {
+    const auth = inject(AuthService);
+    effect(() => {
+      const userId = auth.currentUser()?.id ?? null;
+      untracked(() => this.onUserChange(userId));
+    });
+
     inject(BlockEvents)
       .changes$.pipe(takeUntilDestroyed())
       .subscribe(({ profileId, blocked }) => {
@@ -57,10 +68,15 @@ export class ProfileSearchService {
         takeUntilDestroyed()
       )
       .subscribe(() => {
-        const next = this.readFromUrl();
-        if (!this.sameFilters(next, this.filters())) {
-          this.filters.set(next);
-          return;
+        if (!this.isOnExplore()) return;
+        const fromUrl = this.readFromUrl();
+        if (Object.keys(fromUrl).length > 0) {
+          if (!this.sameFilters(fromUrl, this.filters())) {
+            this.filters.set(fromUrl);
+            return;
+          }
+        } else if (this.hasActiveFilters()) {
+          this.writeToUrl(this.filters());
         }
         this.refreshIfStale();
       });
@@ -109,17 +125,49 @@ export class ProfileSearchService {
     void this.resetAndLoad();
   }
 
+  retryLoadMore(): void {
+    this.loadMoreError.set(false);
+    void this.loadMore();
+  }
+
   async loadMore(): Promise<void> {
-    if (!this.hasMore() || this.isLoading() || this.isLoadingMore()) return;
+    if (!this.hasMore() || this.isLoading() || this.isLoadingMore() || this.loadMoreError()) {
+      return;
+    }
     this.currentPage += 1;
     await this.loadPage(this.currentPage);
   }
 
+  private isOnExplore(): boolean {
+    return this.router.url.split('?')[0] === ROUTES.EXPLORE;
+  }
+
+  private onUserChange(userId: number | null): void {
+    if (this.lastUserId === undefined) {
+      this.lastUserId = userId;
+      return;
+    }
+    if (userId === this.lastUserId) return;
+    const previousUserId = this.lastUserId;
+    this.lastUserId = userId;
+    this.lastLoadedAt = null;
+    if (previousUserId !== null && this.hasActiveFilters()) {
+      this.filters.set({});
+      return;
+    }
+    if (this.isOnExplore()) void this.resetAndLoad();
+  }
+
   private refreshIfStale(): void {
-    if (this.router.url.split('?')[0] !== '/explorar') return;
+    if (!this.isOnExplore()) return;
     if (this.isLoading() || this.isLoadingMore()) return;
     if (this.lastLoadedAt !== null && Date.now() - this.lastLoadedAt < STALE_AFTER_MS) return;
-    void this.resetAndLoad();
+    if (this.currentPage + 1 > MAX_REFRESH_PAGES) {
+      this.lastLoadedAt = Date.now();
+      return;
+    }
+    if (this.profiles().length > 0 && this.lastLoadedAt !== null) void this.refreshInPlace();
+    else void this.resetAndLoad();
   }
 
   private async resetAndLoad(): Promise<void> {
@@ -128,7 +176,38 @@ export class ProfileSearchService {
     this.profiles.set([]);
     this.hasMore.set(true);
     this.error.set(null);
+    this.loadMoreError.set(false);
+    this.isLoadingMore.set(false);
     await this.loadPage(0);
+  }
+
+  private async refreshInPlace(): Promise<void> {
+    const pages = Math.min(this.currentPage + 1, MAX_REFRESH_PAGES);
+    const reqId = ++this.requestId;
+    try {
+      const data = await this.api.search({
+        ...this.filters(),
+        skip: 0,
+        limit: pages * PAGE_SIZE,
+      });
+      if (reqId !== this.requestId) return;
+      const previous = this.profiles();
+      const wasExhausted = this.deckIndex() >= previous.length;
+      const currentId = previous[this.deckIndex()]?.id;
+      this.profiles.set(data);
+      this.currentPage = pages - 1;
+      this.hasMore.set(data.length === pages * PAGE_SIZE);
+      this.error.set(null);
+      this.loadMoreError.set(false);
+      this.lastLoadedAt = Date.now();
+      const index = currentId === undefined ? -1 : data.findIndex((p) => p.id === currentId);
+      if (wasExhausted) this.deckIndex.set(data.length);
+      else if (index >= 0) this.deckIndex.set(index);
+      else this.deckIndex.set(Math.min(this.deckIndex(), Math.max(0, data.length - 1)));
+    } catch {
+      if (reqId !== this.requestId) return;
+      this.lastLoadedAt = Date.now();
+    }
   }
 
   private async loadPage(page: number): Promise<void> {
@@ -150,8 +229,13 @@ export class ProfileSearchService {
       if (isFirst) this.lastLoadedAt = Date.now();
     } catch (e) {
       if (reqId !== this.requestId) return;
-      this.error.set(e);
-      this.hasMore.set(false);
+      if (isFirst) {
+        this.error.set(e);
+        this.hasMore.set(false);
+      } else {
+        this.currentPage -= 1;
+        this.loadMoreError.set(true);
+      }
     } finally {
       if (reqId === this.requestId) {
         if (isFirst) this.isLoading.set(false);
@@ -210,6 +294,7 @@ export class ProfileSearchService {
   }
 
   private writeToUrl(filters: ProfileSearchFilters): void {
+    if (!this.isOnExplore()) return;
     const [path, existingQuery = ''] = this.location.path(true).split('?');
     const search = new URLSearchParams();
 
@@ -231,7 +316,11 @@ export class ProfileSearchService {
 
     const newQuery = search.toString();
     if (newQuery === existingQuery) return;
-    this.location.replaceState(newQuery ? `${path}?${newQuery}` : path);
+    this.location.replaceState(
+      newQuery ? `${path}?${newQuery}` : path,
+      '',
+      this.location.getState()
+    );
   }
 
   private sameFilters(a: ProfileSearchFilters, b: ProfileSearchFilters): boolean {

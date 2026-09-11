@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import type { ProfileSummary } from '@core/api/api.models';
@@ -40,6 +48,11 @@ export class ProfileDeck {
 
   protected readonly index = this.search.deckIndex;
   protected readonly photoIndex = signal(0);
+  private readonly activeProfileId = computed(() => this.profiles()[this.index()]?.id ?? null);
+  private readonly resetPhotoOnProfileChange = effect(() => {
+    this.activeProfileId();
+    untracked(() => this.photoIndex.set(0));
+  });
   protected readonly dragX = signal(0);
   protected readonly dragging = signal(false);
   protected readonly flying = signal<'left' | 'right' | null>(null);
@@ -49,6 +62,7 @@ export class ProfileDeck {
   }
 
   protected readonly total = computed(() => this.profiles().length);
+  protected readonly loadMoreError = this.search.loadMoreError;
   protected readonly position = computed(() => Math.min(this.index() + 1, this.total()));
   protected readonly remaining = computed(() => this.total() - this.index());
   protected readonly canGoBack = computed(() => this.index() > 0);
@@ -200,6 +214,10 @@ export class ProfileDeck {
 
   protected prefetch(p: ProfileSummary): void {
     this.profileService.prefetchProfileById(p.id);
+  }
+
+  protected retryLoadMore(): void {
+    this.search.retryLoadMore();
   }
 
   private maybeLoadMore(): void {
