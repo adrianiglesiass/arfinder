@@ -9,6 +9,8 @@ from fastapi import WebSocket
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from app.core.config import settings
+from app.db.database import SessionLocal
+from app.repositories import message_repository
 
 logger = logging.getLogger("app.realtime")
 logger.setLevel(logging.INFO)
@@ -103,6 +105,28 @@ def _parse_conversation_id(channel: str | None) -> int | None:
         return int(channel.split(":", 1)[1])
     except (ValueError, IndexError):
         return None
+
+
+def _load_message_content(message_id: object) -> str | None:
+    if not isinstance(message_id, int):
+        return None
+    with SessionLocal() as db:
+        message = message_repository.get_message(db, message_id)
+        return message.content if message else None
+
+
+async def _restore_omitted_content(event: str, data: object) -> object | None:
+    if event != "new_message" or not isinstance(data, dict):
+        return data
+    if not data.get("content_omitted"):
+        return data
+    content = await asyncio.to_thread(_load_message_content, data.get("id"))
+    if content is None:
+        logger.warning(f"[realtime] omitted message {data.get('id')!r} not found")
+        return None
+    restored = {key: value for key, value in data.items() if key != "content_omitted"}
+    restored["content"] = content
+    return restored
 
 
 class PostgresNotifyListener:
@@ -201,6 +225,10 @@ class PostgresNotifyListener:
         data = payload.get("payload")
         conversation_id = _parse_conversation_id(channel)
         if conversation_id is None or not event:
+            return
+
+        data = await _restore_omitted_content(event, data)
+        if data is None:
             return
 
         await manager.broadcast(
