@@ -15,6 +15,7 @@ export class ConfirmDestructiveDialog {
     'Tu perfil dejará de aparecer en las búsquedas y se borrarán tus fotos, conversaciones y mensajes. Esta acción no se puede deshacer.'
   );
   readonly confirmLabel = input<string>('Eliminar cuenta');
+  readonly confirmIcon = input<string>('pi pi-trash');
 
   readonly dismissed = output<void>();
   readonly confirmed = output<void>();

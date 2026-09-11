@@ -1,9 +1,11 @@
-<div class="relative h-full">
+<div
+  class="group relative h-full rounded-3xl transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-glass)"
+>
   <a
     [routerLink]="['/perfil', profile().id]"
     (mouseenter)="prefetch()"
     (focus)="prefetch()"
-    class="group flex flex-col h-full bg-white rounded-3xl border border-gray-border overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-(--shadow-glass) cursor-pointer text-decoration-none focus-visible:outline-none focus-visible:border-primary"
+    class="flex flex-col h-full bg-white rounded-3xl border border-gray-border overflow-hidden cursor-pointer text-decoration-none focus-visible:outline-none focus-visible:border-primary"
   >
     <div class="relative aspect-3/4 bg-gray-100 overflow-hidden">
       <app-profile-photo

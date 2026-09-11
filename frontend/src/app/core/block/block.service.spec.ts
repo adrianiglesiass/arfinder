@@ -50,7 +50,8 @@ describe('BlockService — toggle optimista', () => {
   });
 
   it('bloquea un usuario de forma optimista', async () => {
-    await service.toggle(42);
+    const ok = await service.toggle(42);
+    expect(ok).toBe(true);
     expect(service.blockedIds().has(42)).toBe(true);
     expect(api.block).toHaveBeenCalledWith(42);
   });
@@ -64,7 +65,8 @@ describe('BlockService — toggle optimista', () => {
 
   it('revierte el cambio si la API falla', async () => {
     api.block = vi.fn(() => Promise.reject(new Error('boom')));
-    await service.toggle(42);
+    const ok = await service.toggle(42);
+    expect(ok).toBe(false);
     expect(service.blockedIds().has(42)).toBe(false);
     expect(api.block).toHaveBeenCalledWith(42);
   });

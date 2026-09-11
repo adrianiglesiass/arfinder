@@ -20,30 +20,38 @@
           (touchEnd)="onTouchEnd($event)"
         />
 
-        <div class="flex flex-col gap-4">
-          <app-profile-info-block
-            [profile]="p"
-            [showSendMessageButton]="showSendMessageButton()"
-            [sendingMessage]="sendingMessage()"
-            (sendMessage)="sendMessage()"
-          />
-
-          @if (showBlockButton()) {
-            <div class="hidden md:flex md:gap-2">
-              <app-block-button class="flex-1" [profileId]="p.id" />
-              <app-report-button class="flex-1" [profileId]="p.id" />
-            </div>
-          }
-        </div>
+        <app-profile-info-block
+          [profile]="p"
+          [showSendMessageButton]="showSendMessageButton()"
+          [sendingMessage]="sendingMessage()"
+          (sendMessage)="sendMessage()"
+        >
+          <div profileActions class="flex items-center gap-2">
+            <app-favorite-button [profileId]="p.id" appearance="outline" />
+            @if (showSafetyActions()) {
+              <app-profile-actions-menu
+                [profileId]="p.id"
+                (blockRequested)="openDialog('block')"
+                (unblockRequested)="unblock()"
+                (reportRequested)="openDialog('report')"
+              />
+            }
+          </div>
+        </app-profile-info-block>
       </div>
     </div>
 
     @if (showSendMessageButton()) {
       <app-mobile-action-bar [label]="'¿Te encaja ' + p.name + '?'">
         <div class="flex items-center gap-2">
-          @if (showBlockButton()) {
-            <app-block-button [profileId]="p.id" [compact]="true" />
-            <app-report-button [profileId]="p.id" [compact]="true" />
+          <app-favorite-button [profileId]="p.id" appearance="outline" />
+          @if (showSafetyActions()) {
+            <app-profile-actions-menu
+              [profileId]="p.id"
+              (blockRequested)="openDialog('block')"
+              (unblockRequested)="unblock()"
+              (reportRequested)="openDialog('report')"
+            />
           }
           <app-button
             size="sm"
@@ -56,6 +64,26 @@
           </app-button>
         </div>
       </app-mobile-action-bar>
+    }
+
+    @if (activeDialog() === 'block') {
+      <app-confirm-destructive-dialog
+        [isDeleting]="safetyBusy()"
+        [title]="'¿Bloquear a ' + p.name + '?'"
+        description="Dejaréis de veros en las búsquedas y en favoritos. Podrás desbloquear cuando quieras desde este perfil o desde Bloqueados."
+        confirmLabel="Bloquear"
+        confirmIcon="pi pi-ban"
+        (dismissed)="closeDialog()"
+        (confirmed)="confirmBlock()"
+      />
+    }
+
+    @if (activeDialog() === 'report') {
+      <app-report-dialog
+        [isSubmitting]="safetyBusy()"
+        (dismissed)="closeDialog()"
+        (submitted)="submitReport($event)"
+      />
     }
   } @else if (error()) {
     <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-4 text-center">

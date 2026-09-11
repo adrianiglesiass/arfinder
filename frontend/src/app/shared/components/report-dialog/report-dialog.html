@@ -1,4 +1,4 @@
-<div class="fixed inset-0 z-50 flex items-center justify-center px-4 animate-fade-in">
+<div class="fixed inset-0 z-[60] flex items-center justify-center px-4 animate-fade-in">
   <button
     type="button"
     (click)="onCancel()"
@@ -11,7 +11,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="report-dialog-title"
-    class="relative w-full max-w-md bg-white rounded-3xl shadow-(--shadow-glass) p-6 md:p-7"
+    class="relative w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain bg-white rounded-3xl shadow-(--shadow-glass) p-6 md:p-7"
   >
     <div
       class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-4"

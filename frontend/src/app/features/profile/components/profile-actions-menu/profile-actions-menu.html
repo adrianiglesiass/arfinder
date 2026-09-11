@@ -1,0 +1,10 @@
+<p-menu #menu [model]="items()" [popup]="true" appendTo="body" styleClass="w-48" />
+<button
+  type="button"
+  (click)="menu.toggle($event)"
+  aria-label="Más acciones"
+  aria-haspopup="menu"
+  class="w-10 h-10 inline-flex items-center justify-center rounded-full border border-gray-border bg-white text-gray-500 transition-colors cursor-pointer hover:text-primary hover:border-primary"
+>
+  <i class="pi pi-ellipsis-h text-sm"></i>
+</button>

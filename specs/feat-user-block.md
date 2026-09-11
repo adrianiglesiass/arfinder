@@ -161,3 +161,9 @@ el revert de un desbloqueo fallido restaura el perfil removido de la lista.
 - [x] Frontend: `npm run lint` — All files pass linting
 - [x] Frontend: `npm run test:ci` — **24 passed** (5 files)
 - [x] Frontend: `npm run build` — bundle generado sin errores
+
+## Errata (2026-09-11)
+El punto 5 del Resultado afirma que "Bloqueados" se mantiene en `sidebar-nav`, `navbar-links` y menú
+de usuario. Solo era cierto para `sidebar-nav`: la entrada nunca se añadió al menú de usuario, y
+`navbar-links` vive dentro de `<app-navbar>`, que no se renderiza en ningún sitio. En móvil la página
+quedó inalcanzable. Corregido en `specs/fix-blocked-page-mobile-access.md`.
