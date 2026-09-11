@@ -19,6 +19,15 @@ interface InsForgeInternal {
   };
 }
 
+export type RefreshOutcome = { token: string } | { token: null; transient: boolean };
+
+const REJECTED_REFRESH_STATUSES = new Set([400, 401, 403]);
+
+function isTransientRefreshError(error: unknown): boolean {
+  const status = (error as { statusCode?: unknown } | null)?.statusCode;
+  return typeof status !== 'number' || !REJECTED_REFRESH_STATUSES.has(status);
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -32,7 +41,7 @@ export class AuthService {
   currentUser = signal<UserResponse | null>(null);
   private sdkReadyPromise: Promise<void> | null = null;
   private invalidatePromise: Promise<void> | null = null;
-  private refreshPromise: Promise<string | null> | null = null;
+  private refreshPromise: Promise<RefreshOutcome> | null = null;
   private readonly PUBLIC_PATHS = [
     ROUTES.LOGIN,
     ROUTES.REGISTER,
@@ -57,9 +66,10 @@ export class AuthService {
         return;
       }
 
-      const accessToken = await this.forceRefreshToken();
-      if (!accessToken) {
+      const outcome = await this.refreshSessionToken();
+      if (outcome.token === null) {
         this.currentUser.set(null);
+        if (outcome.transient) this.retryBootstrapWhenOnline();
         return;
       }
 
@@ -67,6 +77,18 @@ export class AuthService {
     } catch {
       this.currentUser.set(null);
     }
+  }
+
+  private retryBootstrapWhenOnline(): void {
+    if (typeof window === 'undefined') return;
+    window.addEventListener(
+      'online',
+      () => {
+        this.sdkReadyPromise = null;
+        void this.init();
+      },
+      { once: true }
+    );
   }
 
   async handleOAuthCallback(code: string): Promise<void> {
@@ -160,19 +182,24 @@ export class AuthService {
   }
 
   async forceRefreshToken(): Promise<string | null> {
+    return (await this.refreshSessionToken()).token;
+  }
+
+  refreshSessionToken(): Promise<RefreshOutcome> {
     if (this.refreshPromise) return this.refreshPromise;
 
-    this.refreshPromise = (async () => {
+    this.refreshPromise = (async (): Promise<RefreshOutcome> => {
       try {
         const persisted = this.getPersistedRefreshToken();
-        if (!persisted) return null;
+        if (!persisted) return { token: null, transient: false };
         const { data, error } = await this.insforge.auth.refreshSession({
           refreshToken: persisted,
         });
         if (error) {
+          if (isTransientRefreshError(error)) return { token: null, transient: true };
           this.clearPersistedRefreshToken();
           this.clearPersistedAccessToken();
-          return null;
+          return { token: null, transient: false };
         }
         if (data?.accessToken) {
           this.persistAccessToken(data.accessToken);
@@ -180,9 +207,9 @@ export class AuthService {
         if (data?.refreshToken) {
           this.persistRefreshToken(data.refreshToken);
         }
-        return data?.accessToken ?? null;
+        return data?.accessToken ? { token: data.accessToken } : { token: null, transient: false };
       } catch {
-        return null;
+        return { token: null, transient: true };
       } finally {
         this.refreshPromise = null;
       }
