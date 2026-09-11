@@ -4,7 +4,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.core.dependencies import get_current_user
 from app.core.openapi import PROTECTED
-from app.core.rate_limit import message_rate_limiter
+from app.core.rate_limit import action_rate_limiter, message_rate_limiter
 from app.core.realtime import manager as realtime_manager
 from app.db.database import get_db
 from app.models.user import User
@@ -22,7 +22,12 @@ from app.services.conversation_service import (
 router = APIRouter(prefix="/conversations", tags=["conversations"], responses=PROTECTED)
 
 
-@router.post("", response_model=ConversationResponse, status_code=201)
+@router.post(
+    "",
+    response_model=ConversationResponse,
+    status_code=201,
+    dependencies=[Depends(action_rate_limiter)],
+)
 async def create_or_get_conversation(
     body: ConversationCreate,
     db: Session = Depends(get_db),

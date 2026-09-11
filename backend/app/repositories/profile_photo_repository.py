@@ -1,5 +1,7 @@
 from sqlalchemy import func, text
 from sqlalchemy.orm import Session
+
+from app.core.exceptions.photo import PhotoLimitReachedError
 from app.models.profile_photo import ProfilePhoto
 
 
@@ -14,13 +16,29 @@ def _get_next_photo_order_locked(db: Session, profile_id: int) -> int:
     return (max_order if max_order is not None else -1) + 1
 
 
+def count_photos(db: Session, profile_id: int) -> int:
+    return (
+        db.query(func.count(ProfilePhoto.id))
+        .filter(ProfilePhoto.profile_id == profile_id)
+        .scalar()
+    )
+
+
 def create_profile_photo(
     db: Session,
     profile_id: int,
     photo_url: str,
     order: int | None = None,
     is_main: bool = False,
+    max_photos: int | None = None,
 ) -> ProfilePhoto:
+    if max_photos is not None:
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(:lock_id)"), {"lock_id": profile_id}
+        )
+        if count_photos(db, profile_id) >= max_photos:
+            db.rollback()
+            raise PhotoLimitReachedError()
     if order is None:
         order = _get_next_photo_order_locked(db, profile_id)
     photo = ProfilePhoto(

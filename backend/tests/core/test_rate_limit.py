@@ -1,3 +1,4 @@
+import pytest
 from types import SimpleNamespace
 
 from app.core.rate_limit import SlidingWindowLimiter, client_key
@@ -95,3 +96,60 @@ def test_client_key_groups_ipv6_by_64_prefix(monkeypatch):
 def test_client_key_falls_back_to_socket_host():
     assert client_key(_request()) == "ip:10.0.0.1"
     assert client_key(_request(host=None)) == "ip:unknown"
+
+
+ACTION_ROUTES = [
+    ("POST", "/conversations", {"other_user_id": 999999}),
+    ("POST", "/profiles/999999/block", None),
+    ("DELETE", "/profiles/999999/block", None),
+    ("POST", "/profiles/999999/report", {"reason": "spam"}),
+    ("POST", "/profiles/999999/favorite", None),
+    ("DELETE", "/profiles/999999/favorite", None),
+]
+
+
+@pytest.fixture
+def strict_actions(monkeypatch):
+    from app.core import rate_limit
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "ENVIRONMENT", "production")
+    monkeypatch.setattr(rate_limit, "action_limiter", SlidingWindowLimiter(2))
+    monkeypatch.setattr(rate_limit, "safety_limiter", SlidingWindowLimiter(2))
+
+
+@pytest.mark.parametrize("method,path,body", ACTION_ROUTES)
+def test_action_routes_are_rate_limited(
+    client, auth_headers, strict_actions, method, path, body
+):
+    statuses = [
+        client.request(method, path, headers=auth_headers, json=body).status_code
+        for _ in range(3)
+    ]
+
+    assert 429 not in statuses[:2]
+    assert statuses[2] == 429
+
+
+def test_action_limit_is_per_user(
+    client, auth_headers, create_test_user, strict_actions
+):
+    create_test_user(email="other@test.com")
+    other_headers = {"Authorization": "Bearer token_other@test.com"}
+    for _ in range(3):
+        client.post("/profiles/999999/block", headers=auth_headers)
+
+    res = client.post("/profiles/999999/block", headers=other_headers)
+
+    assert res.status_code == 404
+
+
+def test_favorite_spam_does_not_block_safety_actions(
+    client, auth_headers, strict_actions
+):
+    for _ in range(3):
+        client.post("/profiles/999999/favorite", headers=auth_headers)
+
+    res = client.post("/profiles/999999/block", headers=auth_headers)
+
+    assert res.status_code == 404

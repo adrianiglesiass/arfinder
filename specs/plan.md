@@ -62,14 +62,14 @@ fecha: 2026-09-10
 | 29 | `profile-detail` sin tests de la orquestación de bloqueo y reporte (la spec afirmaba lo contrario) | frontend | release-blockers | ✅ done → PR #301 |
 | 30 | El detalle no reinicia su estado al cambiar de `:id` (diálogo abierto reporta al perfil nuevo) | frontend | release-blockers | ✅ done → PR #301 |
 | 31 | El banner de la PWA tapa la barra de acciones móvil (misma posición y z-index) | frontend | release-blockers | ✅ done → PR #301 |
-| 32 | `name`/`city` de 101–150 caracteres dan 500 (schema 150, columna 100) | backend | backend-integrity | ⏳ |
-| 33 | `PATCH /profiles/me` con `null` en campos obligatorios da 500 | backend | backend-integrity | ⏳ |
-| 34 | La exclusión por bloqueo en búsqueda y favoritos se corta en 200 usuarios | backend | backend-integrity | ⏳ |
-| 35 | Reportar no es atómico: si falla el bloqueo, el reintento da 409 y nunca se bloquea | backend | backend-integrity | ⏳ |
-| 36 | Tras borrar la cuenta, la caché de tokens (120 s) recrea el usuario local | backend | backend-integrity | ⏳ |
-| 37 | Subida de fotos sin tope de tamaño previo al buffer ni de número de fotos | backend | backend-integrity | ⏳ |
-| 38 | Crear conversación, bloquear, reportar y favorito sin rate limit | backend | backend-integrity | ⏳ |
-| 39 | `GET /profiles/me/photos` captura `HTTPException` en vez de `ProfileNotFoundError` | backend | backend-integrity | ⏳ |
+| 32 | `name`/`city` de 101–150 caracteres dan 500 (schema 150, columna 100) | backend | backend-integrity | ✅ done → PR #302 |
+| 33 | `PATCH /profiles/me` con `null` en campos obligatorios da 500 | backend | backend-integrity | ✅ done → PR #302 |
+| 34 | La exclusión por bloqueo en búsqueda y favoritos se corta en 200 usuarios | backend | backend-integrity | ✅ done → PR #302 |
+| 35 | Reportar no es atómico: si falla el bloqueo, el reintento da 409 y nunca se bloquea | backend | backend-integrity | ✅ done → PR #302 |
+| 36 | Tras borrar la cuenta, la caché de tokens (120 s) recrea el usuario local | backend | backend-integrity | ✅ done → PR #302 |
+| 37 | Subida de fotos sin tope de tamaño previo al buffer ni de número de fotos | backend | backend-integrity | ✅ done → PR #302 |
+| 38 | Crear conversación, bloquear, reportar y favorito sin rate limit | backend | backend-integrity | ✅ done → PR #302 |
+| 39 | `GET /profiles/me/photos` captura `HTTPException` en vez de `ProfileNotFoundError` | backend | backend-integrity | ✅ done → PR #302 |
 | 40 | Los filtros de Explorar se pierden al abrir un perfil; el deck vuelve a la tarjeta 1 | frontend | frontend-state | ⏳ |
 | 41 | La búsqueda cacheada no reacciona al login/logout (tu propio perfil aparece) | frontend | frontend-state | ⏳ |
 | 42 | Las fotos subidas en `/perfil` no aparecen hasta recargar | frontend | frontend-state | ⏳ |
@@ -79,7 +79,7 @@ fecha: 2026-09-10
 | 46 | Diálogos sin gestión de foco ni Escape; diálogo de reporte sin pie fijo | frontend | ux-a11y | ⏳ |
 | 47 | El código OTP desborda a 360px | frontend | ux-a11y | ⏳ |
 | 48 | Doble envío en el último paso del onboarding | frontend | ux-a11y | ⏳ |
-| 49 | Editar perfil: errores de validación invisibles, cambios perdidos sin aviso, borrar foto sin confirmar | frontend | ux-a11y | ⏳ |
+| 49 | Editar perfil: errores de validación invisibles, cambios perdidos sin aviso, borrar foto sin confirmar; `maxlength` de nombre y ciudad | frontend | ux-a11y | ⏳ |
 | 50 | Accesibilidad: botón de enviar sin nombre, filtros sin label, foco visible eliminado, deck anidado | frontend | ux-a11y | ⏳ |
 | 51 | Textos y consistencia visual (mayúsculas, clases de tema inexistentes, color fijo) | frontend | ux-a11y | ⏳ |
 | F6 | El bloqueo corta el chat y el acceso al perfil (hoy el bloqueado puede seguir escribiendo) | frontend+backend | feature | ⏳ |
@@ -98,8 +98,8 @@ fecha: 2026-09-10
 10. ✅ **fix/profile-actions-ux** → PR #299. Bugs visuales reportados tras la release v1.4.0.
 11. ✅ **fix/prod-critical** → PR #300. #22–#25.
 12. ✅ **fix/release-blockers** → PR #301. #26–#31.
-13. ⏳ **fix/backend-integrity** — #32–#39. RAMA SIGUIENTE.
-14. ⏳ **fix/frontend-state** — #40–#45.
+13. ✅ **fix/backend-integrity** → PR #302. #32–#39.
+14. ⏳ **fix/frontend-state** — #40–#45. RAMA SIGUIENTE.
 15. ⏳ **fix/ux-a11y** — #46–#51.
 16. ⏳ **feat/block-cuts-messaging** — F6.
 17. ⏳ **fix/budget-filter-direction** — #52.

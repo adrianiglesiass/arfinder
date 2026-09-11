@@ -595,25 +595,25 @@ export interface components {
     /** ProfileUpdate */
     ProfileUpdate: {
       /** Name */
-      name?: string | null;
+      name?: string;
       /** Age */
-      age?: number | null;
+      age?: number;
       /** City */
-      city?: string | null;
+      city?: string;
       /** Bio */
       bio?: string | null;
       /** Max Budget */
       max_budget?: number | null;
       /** Has Pets */
-      has_pets?: boolean | null;
+      has_pets?: boolean;
       /** Is Smoker */
-      is_smoker?: boolean | null;
+      is_smoker?: boolean;
       schedule?: components['schemas']['ScheduleEnum'] | null;
       /** Gender */
       gender?: string | null;
       /** Available From */
       available_from?: string | null;
-      type?: components['schemas']['TypeEnum'] | null;
+      type?: components['schemas']['TypeEnum'];
       /** Room Description */
       room_description?: string | null;
     };
@@ -1409,6 +1409,13 @@ export interface operations {
       };
       /** @description Not found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Conflict — resource already exists */
+      409: {
         headers: {
           [name: string]: unknown;
         };

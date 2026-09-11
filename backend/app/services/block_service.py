@@ -27,8 +27,8 @@ def list_blocked(db: Session, current_user_id: int) -> list[ProfileSummary]:
 
 
 def excluded_user_ids(db: Session, user_id: int) -> list[int]:
-    blocked = block_repository.list_blocked_user_ids(db, user_id)
-    blockers = block_repository.list_blocker_user_ids(db, user_id)
+    blocked = block_repository.list_blocked_user_ids(db, user_id, limit=None)
+    blockers = block_repository.list_blocker_user_ids(db, user_id, limit=None)
     return list(dict.fromkeys(blocked + blockers))
 
 

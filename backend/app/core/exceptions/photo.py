@@ -37,6 +37,12 @@ class PhotoReorderValidationError(PhotoError):
         super().__init__()
 
 
+class PhotoLimitReachedError(PhotoError):
+    status_code = 409
+    code = "PHOTO_LIMIT_REACHED"
+    default_detail = "Has alcanzado el máximo de fotos del perfil"
+
+
 class PhotoOrderConflictError(PhotoError):
     status_code = 409
     default_detail = "Ya existe una foto en esa posición"

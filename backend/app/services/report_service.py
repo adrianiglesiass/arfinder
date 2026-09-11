@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.exceptions.block import BlockAlreadyExistsError
-from app.core.exceptions.report import ReportSelfError
+from app.core.exceptions.report import ReportAlreadyExistsError, ReportSelfError
 from app.repositories import report_repository
 from app.schemas.report import ReportCreate
 from app.services import block_service, profile_service
@@ -15,6 +15,14 @@ def report_profile(
     if reported_user_id == current_user_id:
         raise ReportSelfError()
 
+    if report_repository.exists(db, current_user_id, reported_user_id):
+        raise ReportAlreadyExistsError()
+
+    try:
+        block_service.block_profile(db, current_user_id, profile_id)
+    except BlockAlreadyExistsError:
+        pass
+
     report_repository.add(
         db,
         current_user_id,
@@ -22,8 +30,3 @@ def report_profile(
         payload.reason.value,
         payload.detail,
     )
-
-    try:
-        block_service.block_profile(db, current_user_id, profile_id)
-    except BlockAlreadyExistsError:
-        pass

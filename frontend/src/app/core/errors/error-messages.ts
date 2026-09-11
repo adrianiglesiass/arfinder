@@ -14,6 +14,10 @@ export const ERROR_MESSAGES: Record<string, string> = {
   USER_REPORT_ALREADY_EXISTS: 'Ya habías reportado a esta persona.',
 
   CANNOT_REPORT_SELF: 'No puedes reportar tu propio perfil.',
+
+  PHOTO_LIMIT_REACHED: 'Ya tienes el máximo de 6 fotos en tu perfil.',
+
+  PAYLOAD_TOO_LARGE: 'La foto es demasiado grande. El máximo es 10 MB.',
 };
 
 export const DEFAULT_ERROR_MESSAGE = 'Ocurrió un error inesperado.';

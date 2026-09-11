@@ -14,6 +14,8 @@ from app.models.user import User
 WINDOW_SECONDS = 60.0
 REQUESTS_PER_WINDOW = 60
 MESSAGES_PER_WINDOW = 120
+ACTIONS_PER_WINDOW = 30
+SAFETY_ACTIONS_PER_WINDOW = 20
 MAX_TRACKED_KEYS = 10_000
 IPV6_PREFIX = 64
 
@@ -59,6 +61,8 @@ class SlidingWindowLimiter:
 
 limiter = SlidingWindowLimiter(REQUESTS_PER_WINDOW)
 message_limiter = SlidingWindowLimiter(MESSAGES_PER_WINDOW)
+action_limiter = SlidingWindowLimiter(ACTIONS_PER_WINDOW)
+safety_limiter = SlidingWindowLimiter(SAFETY_ACTIONS_PER_WINDOW)
 
 
 def _normalize_ip(raw: str) -> str:
@@ -98,5 +102,23 @@ async def message_rate_limiter(current_user: User = Depends(get_current_user)) -
         return current_user
 
     if not message_limiter.try_acquire(f"user:{current_user.id}"):
+        raise _too_many()
+    return current_user
+
+
+async def action_rate_limiter(current_user: User = Depends(get_current_user)) -> User:
+    if settings.ENVIRONMENT == "testing":
+        return current_user
+
+    if not action_limiter.try_acquire(f"user:{current_user.id}"):
+        raise _too_many()
+    return current_user
+
+
+async def safety_rate_limiter(current_user: User = Depends(get_current_user)) -> User:
+    if settings.ENVIRONMENT == "testing":
+        return current_user
+
+    if not safety_limiter.try_acquire(f"user:{current_user.id}"):
         raise _too_many()
     return current_user
