@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-report-dialog-stuck
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -46,9 +46,18 @@ y no hay forma de cerrarlo; el menú "⋯" deja de funcionar hasta salir de la r
   `false` si el servicio rechaza.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes, con las instrucciones de `.opencode/agent/code-reviewer.md` y `ui-ux-reviewer.md` → los dos **APROBADO CON CAMBIOS MENORES / OBSERVACIONES**, sin bloqueantes. Cambio aplicado tras ella: tras un reporte con
+éxito se llama a `BlockService.markBlocked()` **antes** de recargar. Si la recarga falla, el perfil ya
+figura como bloqueado y el menú "⋯" ofrece "Desbloquear", coherente con el toast "También hemos bloqueado
+a X" (lo señalaron los dos revisores).
+
+- `ReportService.report()`: el fallo de `refresh()` se ignora y devuelve `{ ok: true }`.
+- `ProfileDetail`: las tres acciones pasan por `runExclusive`, con `safetyBusy` restaurado en `finally`.
+- Tests: `report.service.spec.ts` (éxito aunque falle la recarga; marca el bloqueo; un error no marca
+  nada) y `profile-detail.spec.ts` (el diálogo se puede cerrar aunque el servicio rechace).

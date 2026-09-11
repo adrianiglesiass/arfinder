@@ -5,8 +5,7 @@ import { vi } from 'vitest';
 
 import type { ProfileSummary } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
-import { FavoritesService } from '@core/favorites/favorites.service';
-import { ProfileSearchService } from '@core/profile-search/profile-search.service';
+import { type BlockChange, BlockEvents } from '@core/block/block-events';
 
 import { BlockService } from './block.service';
 
@@ -29,8 +28,7 @@ describe('BlockService — toggle optimista', () => {
     unblock: ReturnType<typeof vi.fn>;
     getMyBlocked: ReturnType<typeof vi.fn>;
   };
-  let favorites: { refresh: ReturnType<typeof vi.fn> };
-  let search: { removeProfile: ReturnType<typeof vi.fn> };
+  let changes: BlockChange[];
 
   beforeEach(async () => {
     api = {
@@ -38,15 +36,12 @@ describe('BlockService — toggle optimista', () => {
       unblock: vi.fn(() => Promise.resolve()),
       getMyBlocked: vi.fn(() => Promise.resolve([])),
     };
-    favorites = { refresh: vi.fn(() => Promise.resolve()) };
-    search = { removeProfile: vi.fn() };
+    changes = [];
 
     await TestBed.configureTestingModule({
       providers: [
         BlockService,
         { provide: BlockApiService, useValue: api },
-        { provide: FavoritesService, useValue: favorites as unknown as FavoritesService },
-        { provide: ProfileSearchService, useValue: search as unknown as ProfileSearchService },
         {
           provide: AuthService,
           useValue: { currentUser: vi.fn(() => null) } as unknown as AuthService,
@@ -55,6 +50,7 @@ describe('BlockService — toggle optimista', () => {
     }).compileComponents();
 
     service = TestBed.runInInjectionContext(() => TestBed.inject(BlockService));
+    TestBed.inject(BlockEvents).changes$.subscribe((change) => changes.push(change));
   });
 
   it('bloquea un usuario de forma optimista', async () => {
@@ -90,24 +86,26 @@ describe('BlockService — toggle optimista', () => {
     expect(service.profiles().map((p) => p.id)).toEqual([42]);
   });
 
-  it('al bloquear, quita el perfil de la búsqueda y refresca favoritos', async () => {
+  it('al bloquear con éxito avisa del cambio a los demás stores', async () => {
     await service.toggle(42);
-    await vi.waitFor(() => expect(favorites.refresh).toHaveBeenCalled());
-    expect(search.removeProfile).toHaveBeenCalledWith(42);
+    expect(changes).toEqual([{ profileId: 42, blocked: true }]);
   });
 
-  it('al desbloquear, solo refresca favoritos', async () => {
+  it('al desbloquear con éxito avisa del cambio', async () => {
     service.blockedIds.set(new Set([42]));
     await service.toggle(42);
-    await vi.waitFor(() => expect(favorites.refresh).toHaveBeenCalled());
-    expect(search.removeProfile).not.toHaveBeenCalled();
+    expect(changes).toEqual([{ profileId: 42, blocked: false }]);
   });
 
-  it('si la API falla, no sincroniza nada', async () => {
+  it('si la API falla, no avisa de nada', async () => {
     api.block = vi.fn(() => Promise.reject(new Error('boom')));
     await service.toggle(42);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(favorites.refresh).not.toHaveBeenCalled();
-    expect(search.removeProfile).not.toHaveBeenCalled();
+    expect(changes).toEqual([]);
+  });
+
+  it('markBlocked marca el bloqueo al instante y avisa', () => {
+    service.markBlocked(42);
+    expect(service.blockedIds().has(42)).toBe(true);
+    expect(changes).toEqual([{ profileId: 42, blocked: true }]);
   });
 });

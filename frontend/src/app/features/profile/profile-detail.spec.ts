@@ -217,6 +217,52 @@ describe('ProfileDetail', () => {
       await fixture.whenStable();
 
       expect(component.profile()?.id).toBe(11);
+      expect(component.isLoading()).toBe(false);
+    });
+  });
+
+  describe('estado intermedio y coherencia', () => {
+    it('sin caché, muestra la carga y no el perfil anterior mientras llega el nuevo', async () => {
+      const pending = deferred<ProfileResponse>();
+      profiles.fetchProfileById.mockReturnValueOnce(pending.promise);
+
+      fixture.componentRef.setInput('id', '12');
+      fixture.detectChanges();
+
+      expect(component.profile()).toBeNull();
+      expect(component.isLoading()).toBe(true);
+
+      pending.resolve(makeProfile(12, 'Perfil 12'));
+      await fixture.whenStable();
+      expect(component.profile()?.id).toBe(12);
+      expect(component.isLoading()).toBe(false);
+    });
+
+    it('oculta el corazón mientras el perfil está bloqueado', async () => {
+      const heart = () => fixture.nativeElement.querySelector('app-favorite-button');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(heart()).not.toBeNull();
+
+      blocks.blockedIds.set(new Set([8]));
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(heart()).toBeNull();
+    });
+
+    it('una acción lenta del perfil anterior no cierra el diálogo del perfil nuevo', async () => {
+      const slow = deferred<boolean>();
+      blocks.toggle.mockReturnValueOnce(slow.promise);
+      component.openDialog('block');
+      const pendingBlock = component.confirmBlock();
+
+      await open('9');
+      component.openDialog('report');
+      slow.resolve(true);
+      await pendingBlock;
+
+      expect(component.activeDialog()).toBe('report');
     });
   });
 });

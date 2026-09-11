@@ -11,13 +11,13 @@ import { ReportService } from './report.service';
 describe('ReportService', () => {
   let service: ReportService;
   let api: { report: ReturnType<typeof vi.fn> };
-  let blocks: { refresh: ReturnType<typeof vi.fn>; syncAfterBlockChange: ReturnType<typeof vi.fn> };
+  let blocks: { refresh: ReturnType<typeof vi.fn>; markBlocked: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     api = { report: vi.fn(() => Promise.resolve()) };
     blocks = {
       refresh: vi.fn(() => Promise.resolve()),
-      syncAfterBlockChange: vi.fn(() => Promise.resolve()),
+      markBlocked: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -37,7 +37,7 @@ describe('ReportService', () => {
     expect(result).toEqual({ ok: true });
     expect(api.report).toHaveBeenCalledWith(42, { reason: 'spam', detail: null });
     expect(blocks.refresh).toHaveBeenCalled();
-    expect(blocks.syncAfterBlockChange).toHaveBeenCalledWith(42, true);
+    expect(blocks.markBlocked).toHaveBeenCalledWith(42);
   });
 
   it('devuelve éxito aunque falle la recarga de bloqueados, porque el reporte ya se guardó', async () => {
@@ -62,5 +62,6 @@ describe('ReportService', () => {
 
     expect(result).toEqual({ ok: false, message: 'Ya habías reportado a esta persona.' });
     expect(blocks.refresh).not.toHaveBeenCalled();
+    expect(blocks.markBlocked).not.toHaveBeenCalled();
   });
 });

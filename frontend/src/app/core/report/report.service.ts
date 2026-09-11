@@ -23,8 +23,8 @@ export class ReportService {
     } catch (err) {
       return { ok: false, message: this.errors.getErrorMessage(err as HttpErrorResponse) };
     }
+    this.blocks.markBlocked(profileId);
     await this.blocks.refresh().catch(() => undefined);
-    void this.blocks.syncAfterBlockChange(profileId, true);
     return { ok: true };
   }
 }

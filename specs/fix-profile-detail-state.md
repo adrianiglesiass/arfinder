@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-profile-detail-state
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -57,9 +57,21 @@ perfil, y la lógica de bloqueo y reporte no tiene tests que la protejan.
 - `profile-actions-menu.spec.ts`: `aria-expanded` cambia con `onShow`/`onHide`.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes, con las instrucciones de `.opencode/agent/code-reviewer.md` y `ui-ux-reviewer.md` → los dos **APROBADO CON CAMBIOS MENORES / OBSERVACIONES**, sin bloqueantes. Cambios aplicados tras ella: una acción lenta del
+perfil anterior ya no cierra el diálogo que el usuario haya abierto en el perfil nuevo (solo cierra si el
+perfil sigue siendo el mismo), y se añaden tests del estado intermedio de carga.
+
+- `features/profile/profile-detail.ts`: el `effect` de `id()` reinicia diálogo, foto, error y perfil;
+  `loadProfile` descarta respuestas de un id que ya no es el vigente (`isCurrentProfile`); `runExclusive`
+  con `try/finally`.
+- `ProfileActionsMenu`: `aria-expanded` sincronizado con `onShow`/`onHide`.
+- `features/profile/profile-detail.spec.ts` (nuevo): **14 tests**. La primera tanda (11 tests),
+  ejecutada contra el componente anterior, **falla exactamente en los 5 que apuntan a los bugs** (dos de
+  `safetyBusy` colgado y tres del cambio de perfil) y pasa en los 6 de comportamiento que ya funcionaba.
+  Los 3 restantes se añadieron tras la revisión.

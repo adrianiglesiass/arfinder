@@ -202,6 +202,11 @@ export default class ProfileDetail {
     return !this.isOwnProfile();
   });
 
+  readonly isProfileBlocked = computed(() => {
+    const p = this.profile();
+    return p !== null && this.blocks.blockedIds().has(p.id);
+  });
+
   readonly showSafetyActions = computed(() => {
     return this.authService.currentUser() !== null && !this.isOwnProfile();
   });
@@ -224,7 +229,7 @@ export default class ProfileDetail {
     }
 
     const ok = await this.runExclusive(() => this.blocks.toggle(p.id));
-    this.activeDialog.set(null);
+    if (this.isCurrentProfile(p.id)) this.activeDialog.set(null);
     if (ok === null) return;
 
     this.messageService.add(
@@ -293,7 +298,7 @@ export default class ProfileDetail {
     if (result === null) return;
 
     if (result.ok) {
-      this.activeDialog.set(null);
+      if (this.isCurrentProfile(p.id)) this.activeDialog.set(null);
       this.messageService.add({
         severity: 'success',
         summary: 'Reporte enviado',

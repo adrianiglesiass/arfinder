@@ -102,7 +102,9 @@
   .premium-card {
     @apply bg-white border border-gray-border rounded-3xl p-8;
   }
+}
 
+@layer components {
   @media (max-width: 639.98px) {
     .p-toast.p-toast-top-right {
       left: 1rem !important;

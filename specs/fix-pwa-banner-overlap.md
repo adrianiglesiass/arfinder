@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-pwa-banner-overlap
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -45,9 +45,17 @@ Cuando aparece el aviso de instalar o actualizar la app, el usuario no puede pul
   la clase de desplazamiento.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes, con las instrucciones de `.opencode/agent/code-reviewer.md` y `ui-ux-reviewer.md` → los dos **APROBADO CON CAMBIOS MENORES / OBSERVACIONES**, sin bloqueantes. Cambios aplicados tras ella: se añade el test del
+banner (lo pedía el plan y faltaba), una transición de `bottom` para que el banner no salte de golpe al
+aparecer la barra (en editar perfil aparece al escribir el primer carácter), y `bottom-39` en vez de
+`bottom-40` para dejar la misma separación de 8px entre navegación, barra y banner.
+
+- `core/layout/mobile-action-bar.state.ts`, `MobileActionBar` (registro en el constructor y baja en
+  `DestroyRef`) y `PwaBanner`.
+- Tests: `mobile-action-bar.state.spec.ts` (2) y `pwa-banner.spec.ts` (2).

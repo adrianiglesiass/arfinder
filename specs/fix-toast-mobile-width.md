@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-toast-mobile-width
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -15,8 +15,10 @@ fecha: 2026-09-11
   texto no se ven.
 - Hay tres `<p-toast position="top-right">`: `profile-detail.html` (feedback de bloquear y reportar,
   desde la PR #299), `profile-edit.html` y `onboarding.html`.
-- `src/styles.css` declara `@layer theme, base, primeng, components, utilities;`: una regla en
-  `components` gana a la de PrimeNG sin `!important`.
+- `src/styles.css` declara `@layer theme, base, primeng, components, utilities;`.
+- **Corrección hecha al implementar:** PrimeNG 21 aplica `top: 20px` y `right: 20px` como **estilo
+  inline** en el host del toast (`primeng-toast.mjs`, `sx('root')`), así que una regla normal no bastaría:
+  hace falta `!important`, que en la cascada gana a un estilo inline normal.
 
 ## Problema
 En móvil los toasts salen cortados, justo cuando confirman acciones importantes como bloquear o
@@ -43,8 +45,15 @@ reportar.
   compila en el bundle de producción y que el selector coincide con las clases que genera PrimeNG 21.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes, con las instrucciones de `.opencode/agent/code-reviewer.md` y `ui-ux-reviewer.md` → los dos **APROBADO CON CAMBIOS MENORES / OBSERVACIONES**, sin bloqueantes. Cambio aplicado tras ella: la regla estaba por error en la capa `base`;
+se mueve a su propio bloque `@layer components`, como decía la intención.
+
+- Regla `.p-toast.p-toast-top-right` con `left`/`right: 1rem` y `width: auto`, todo `!important`, por
+  debajo de 640px. Verificado que sale en el CSS del bundle de producción. Según el ui-ux-reviewer, a
+  360px el toast ocupa 328px y no choca con la barra de estado de iOS (`index.html` no usa
+  `viewport-fit=cover`); entre 640 y 768px conserva sus 25rem.

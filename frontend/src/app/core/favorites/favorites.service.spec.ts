@@ -4,6 +4,7 @@ import { FavoritesApiService } from '@infrastructure/api/favorites/favorites.api
 import { vi } from 'vitest';
 
 import { AuthService } from '@core/auth/auth.service';
+import { BlockEvents } from '@core/block/block-events';
 
 import { FavoritesService } from './favorites.service';
 
@@ -54,5 +55,21 @@ describe('FavoritesService — toggle optimista', () => {
     await service.toggle(42);
     expect(service.favoriteIds().has(42)).toBe(false);
     expect(api.favorite).toHaveBeenCalledWith(42);
+  });
+
+  it('al bloquear un perfil, lo quita de favoritos al instante', () => {
+    service.favoriteIds.set(new Set([42, 7]));
+
+    TestBed.inject(BlockEvents).emit({ profileId: 42, blocked: true });
+
+    expect([...service.favoriteIds()]).toEqual([7]);
+  });
+
+  it('al desbloquear, no quita nada localmente', () => {
+    service.favoriteIds.set(new Set([7]));
+
+    TestBed.inject(BlockEvents).emit({ profileId: 42, blocked: false });
+
+    expect([...service.favoriteIds()]).toEqual([7]);
   });
 });

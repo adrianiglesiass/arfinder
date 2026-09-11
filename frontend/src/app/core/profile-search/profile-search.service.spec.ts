@@ -6,6 +6,7 @@ import { ProfileSearchApiService } from '@infrastructure/api/profile-search/prof
 import { vi } from 'vitest';
 
 import type { ProfileSummary } from '@core/api/api.models';
+import { BlockEvents } from '@core/block/block-events';
 
 import { ProfileSearchService } from './profile-search.service';
 
@@ -66,5 +67,26 @@ describe('ProfileSearchService.removeProfile', () => {
     service.removeProfile(99);
     expect(service.profiles()).toHaveLength(4);
     expect(service.deckIndex()).toBe(2);
+  });
+
+  it('al bloquear un perfil, lo quita de la búsqueda cargada', () => {
+    TestBed.inject(BlockEvents).emit({ profileId: 2, blocked: true });
+    expect(service.profiles().map((p) => p.id)).toEqual([1, 3, 4]);
+  });
+
+  it('al desbloquear, marca la búsqueda como caducada para recargarla en la próxima visita', () => {
+    TestBed.inject(BlockEvents).emit({ profileId: 2, blocked: false });
+    expect((service as unknown as { lastLoadedAt: number | null }).lastLoadedAt).toBeNull();
+    expect(service.profiles()).toHaveLength(4);
+  });
+
+  it('pide más perfiles si se quita el último cargado y quedan más', () => {
+    const loadMore = vi.spyOn(service, 'loadMore').mockResolvedValue();
+    service.hasMore.set(true);
+    service.deckIndex.set(3);
+
+    service.removeProfile(4);
+
+    expect(loadMore).toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-block-state-consistency
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -60,9 +60,31 @@ aparecería; y después de desbloquear no se puede volver a marcar como favorito
 - `core/report/report.service.spec.ts`: tras un reporte con éxito se sincroniza.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes, con las instrucciones de `.opencode/agent/code-reviewer.md` y `ui-ux-reviewer.md` → los dos **APROBADO CON CAMBIOS MENORES / OBSERVACIONES**, sin bloqueantes.
+
+**Cambio de diseño tras la revisión.** La primera versión hacía que `BlockService` inyectara
+`FavoritesService` y `ProfileSearchService`. El code-reviewer detectó que así, al abrir un perfil desde
+un enlace compartido, se creaba `ProfileSearchService` y su constructor lanzaba una búsqueda que nadie
+había pedido. Ahora hay un bus mínimo, `BlockEvents` (`core/block/block-events.ts`):
+- `BlockService` emite `{ profileId, blocked }` tras un bloqueo o desbloqueo con éxito, y en
+  `markBlocked()`.
+- `FavoritesService` y `ProfileSearchService` se suscriben en su constructor. Solo reaccionan si ya
+  existen, y ninguno crea a otro.
+
+Resultado final:
+- **Al bloquear:** el favorito se quita de `favoriteIds` **al instante** (el ui-ux-reviewer vio que
+  esperar al GET dejaba el corazón rojo tras el toast), luego se refresca desde el servidor y se vuelve a
+  quitar por si la respuesta era de una petición anterior. El perfil sale de la búsqueda cargada
+  (`removeProfile`, que retrocede `deckIndex` si hace falta y pide más perfiles si era el último cargado).
+- **Al desbloquear:** se refrescan favoritos y la búsqueda se marca como caducada, así que el perfil
+  vuelve en la próxima visita a Explorar, como promete el toast.
+- **Detalle:** el corazón se oculta mientras el perfil está bloqueado (antes se podía pulsar y el `POST`
+  daba 409 en silencio).
+- Tests: `block.service.spec.ts` (emite solo con éxito; `markBlocked`), `favorites.service.spec.ts`
+  (quita al instante al bloquear), `profile-search.service.spec.ts` (7 tests, incluidos los eventos).
