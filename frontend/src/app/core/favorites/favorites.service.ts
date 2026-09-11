@@ -1,9 +1,11 @@
 import { effect, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FavoritesApiService } from '@infrastructure/api/favorites/favorites.api.service';
 
 import type { ProfileSummary } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { BlockEvents } from '@core/block/block-events';
 
 @Injectable({
   providedIn: 'root',
@@ -20,6 +22,10 @@ export class FavoritesService {
   private currentUserId: number | null = null;
 
   constructor() {
+    inject(BlockEvents)
+      .changes$.pipe(takeUntilDestroyed())
+      .subscribe(({ profileId, blocked }) => void this.syncWithBlock(profileId, blocked));
+
     effect(() => {
       const user = this.auth.currentUser();
       const id = user?.id ?? null;
@@ -65,6 +71,22 @@ export class FavoritesService {
         );
       }
     }
+  }
+
+  private async syncWithBlock(profileId: number, blocked: boolean): Promise<void> {
+    if (blocked) this.forget(profileId);
+    await this.refresh().catch(() => undefined);
+    if (blocked) this.forget(profileId);
+  }
+
+  private forget(profileId: number): void {
+    this.favoriteIds.update((set) => {
+      if (!set.has(profileId)) return set;
+      const next = new Set(set);
+      next.delete(profileId);
+      return next;
+    });
+    this.profiles.update((list) => list.filter((p) => p.id !== profileId));
   }
 
   private bootstrap(): Promise<void> {

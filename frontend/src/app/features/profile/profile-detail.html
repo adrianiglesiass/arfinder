@@ -27,7 +27,9 @@
           (sendMessage)="sendMessage()"
         >
           <div profileActions class="flex items-center gap-2">
-            <app-favorite-button [profileId]="p.id" appearance="outline" />
+            @if (!isProfileBlocked()) {
+              <app-favorite-button [profileId]="p.id" appearance="outline" />
+            }
             @if (showSafetyActions()) {
               <app-profile-actions-menu
                 [profileId]="p.id"
@@ -44,7 +46,9 @@
     @if (showSendMessageButton()) {
       <app-mobile-action-bar [label]="'¿Te encaja ' + p.name + '?'">
         <div class="flex items-center gap-2">
-          <app-favorite-button [profileId]="p.id" appearance="outline" />
+          @if (!isProfileBlocked()) {
+            <app-favorite-button [profileId]="p.id" appearance="outline" />
+          }
           @if (showSafetyActions()) {
             <app-profile-actions-menu
               [profileId]="p.id"

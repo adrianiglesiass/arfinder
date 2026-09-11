@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import type { ProfileSummary } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { type BlockChange, BlockEvents } from '@core/block/block-events';
 
 import { BlockService } from './block.service';
 
@@ -27,6 +28,7 @@ describe('BlockService — toggle optimista', () => {
     unblock: ReturnType<typeof vi.fn>;
     getMyBlocked: ReturnType<typeof vi.fn>;
   };
+  let changes: BlockChange[];
 
   beforeEach(async () => {
     api = {
@@ -34,6 +36,7 @@ describe('BlockService — toggle optimista', () => {
       unblock: vi.fn(() => Promise.resolve()),
       getMyBlocked: vi.fn(() => Promise.resolve([])),
     };
+    changes = [];
 
     await TestBed.configureTestingModule({
       providers: [
@@ -47,6 +50,7 @@ describe('BlockService — toggle optimista', () => {
     }).compileComponents();
 
     service = TestBed.runInInjectionContext(() => TestBed.inject(BlockService));
+    TestBed.inject(BlockEvents).changes$.subscribe((change) => changes.push(change));
   });
 
   it('bloquea un usuario de forma optimista', async () => {
@@ -80,5 +84,28 @@ describe('BlockService — toggle optimista', () => {
 
     expect(service.blockedIds().has(42)).toBe(true);
     expect(service.profiles().map((p) => p.id)).toEqual([42]);
+  });
+
+  it('al bloquear con éxito avisa del cambio a los demás stores', async () => {
+    await service.toggle(42);
+    expect(changes).toEqual([{ profileId: 42, blocked: true }]);
+  });
+
+  it('al desbloquear con éxito avisa del cambio', async () => {
+    service.blockedIds.set(new Set([42]));
+    await service.toggle(42);
+    expect(changes).toEqual([{ profileId: 42, blocked: false }]);
+  });
+
+  it('si la API falla, no avisa de nada', async () => {
+    api.block = vi.fn(() => Promise.reject(new Error('boom')));
+    await service.toggle(42);
+    expect(changes).toEqual([]);
+  });
+
+  it('markBlocked marca el bloqueo al instante y avisa', () => {
+    service.markBlocked(42);
+    expect(service.blockedIds().has(42)).toBe(true);
+    expect(changes).toEqual([{ profileId: 42, blocked: true }]);
   });
 });

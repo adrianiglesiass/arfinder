@@ -104,6 +104,16 @@
   }
 }
 
+@layer components {
+  @media (max-width: 639.98px) {
+    .p-toast.p-toast-top-right {
+      left: 1rem !important;
+      right: 1rem !important;
+      width: auto !important;
+    }
+  }
+}
+
 @layer utilities {
   .animating-step {
     position: absolute;

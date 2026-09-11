@@ -56,12 +56,12 @@ fecha: 2026-09-10
 | 23 | Mensajes que superan 8000 bytes en `pg_notify` (emojis, comillas) se pierden con un 500 | backend | prod-critical | ✅ done → PR #300 |
 | 24 | El WebSocket retiene una conexión del pool toda su vida; `get_current_user` bloquea el event loop | backend | prod-critical | ✅ done → PR #300 |
 | 25 | Un fallo transitorio al refrescar el token (red, 5xx) cierra la sesión para siempre | frontend | prod-critical | ✅ done → PR #300 |
-| 26 | Diálogo de reporte colgado si falla la recarga de bloqueados tras reportar (regresión de #299) | frontend | release-blockers | ⏳ |
-| 27 | Toast de 400px cortado en móviles de 360px | frontend | release-blockers | ⏳ |
-| 28 | Tras bloquear, el corazón sigue marcado y el perfil sigue en la búsqueda ya cargada | frontend | release-blockers | ⏳ |
-| 29 | `profile-detail` sin tests de la orquestación de bloqueo y reporte (la spec afirmaba lo contrario) | frontend | release-blockers | ⏳ |
-| 30 | El detalle no reinicia su estado al cambiar de `:id` (diálogo abierto reporta al perfil nuevo) | frontend | release-blockers | ⏳ |
-| 31 | El banner de la PWA tapa la barra de acciones móvil (misma posición y z-index) | frontend | release-blockers | ⏳ |
+| 26 | Diálogo de reporte colgado si falla la recarga de bloqueados tras reportar (regresión de #299) | frontend | release-blockers | ✅ done → PR #301 |
+| 27 | Toast de 400px cortado en móviles de 360px | frontend | release-blockers | ✅ done → PR #301 |
+| 28 | Tras bloquear, el corazón sigue marcado y el perfil sigue en la búsqueda ya cargada | frontend | release-blockers | ✅ done → PR #301 |
+| 29 | `profile-detail` sin tests de la orquestación de bloqueo y reporte (la spec afirmaba lo contrario) | frontend | release-blockers | ✅ done → PR #301 |
+| 30 | El detalle no reinicia su estado al cambiar de `:id` (diálogo abierto reporta al perfil nuevo) | frontend | release-blockers | ✅ done → PR #301 |
+| 31 | El banner de la PWA tapa la barra de acciones móvil (misma posición y z-index) | frontend | release-blockers | ✅ done → PR #301 |
 | 32 | `name`/`city` de 101–150 caracteres dan 500 (schema 150, columna 100) | backend | backend-integrity | ⏳ |
 | 33 | `PATCH /profiles/me` con `null` en campos obligatorios da 500 | backend | backend-integrity | ⏳ |
 | 34 | La exclusión por bloqueo en búsqueda y favoritos se corta en 200 usuarios | backend | backend-integrity | ⏳ |
@@ -97,8 +97,8 @@ fecha: 2026-09-10
 9. ✅ **feat/reports** → PR #296 (mergeado).
 10. ✅ **fix/profile-actions-ux** → PR #299. Bugs visuales reportados tras la release v1.4.0.
 11. ✅ **fix/prod-critical** → PR #300. #22–#25.
-12. ⏳ **fix/release-blockers** — #26–#31. RAMA SIGUIENTE.
-13. ⏳ **fix/backend-integrity** — #32–#39.
+12. ✅ **fix/release-blockers** → PR #301. #26–#31.
+13. ⏳ **fix/backend-integrity** — #32–#39. RAMA SIGUIENTE.
 14. ⏳ **fix/frontend-state** — #40–#45.
 15. ⏳ **fix/ux-a11y** — #46–#51.
 16. ⏳ **feat/block-cuts-messaging** — F6.
@@ -112,6 +112,8 @@ fecha: 2026-09-10
   arreglar **todos los bugs confirmados** antes de subir a `main`.
 - Cada hallazgo marcado "reportado" se verifica al escribir su spec; si no se reproduce leyendo el
   código, se descarta y se deja constancia en la spec de su fase.
+- Lección de la fase 12: coordinar stores inyectándolos directamente puede crear servicios con efectos
+  en su constructor (una búsqueda no pedida). Para avisar de cambios entre stores se usa `BlockEvents`.
 - **Revisión obligatoria antes de cada PR** (SDD fase 6): agente con las instrucciones de
   `.opencode/agent/code-reviewer.md`, y `ui-ux-reviewer.md` si toca UI. La PR #299 se saltó este paso.
 - Features fuera de esta tanda, por orden: pausar perfil, notificaciones push de mensajes, deck con

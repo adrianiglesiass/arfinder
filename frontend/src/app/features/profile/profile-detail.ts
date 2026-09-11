@@ -85,8 +85,21 @@ export default class ProfileDetail {
         this.router.navigate([ROUTES.EXPLORE]);
         return;
       }
-      untracked(() => this.loadProfile(profileId));
+      untracked(() => {
+        this.activeDialog.set(null);
+        this.activePhotoIndex.set(0);
+        this.error.set(null);
+        if (this.profile()?.id !== profileId) {
+          this.profile.set(null);
+          this.isLoading.set(true);
+        }
+        void this.loadProfile(profileId);
+      });
     });
+  }
+
+  private isCurrentProfile(id: number): boolean {
+    return Number(this.id()) === id;
   }
 
   async loadProfile(id: number): Promise<void> {
@@ -98,16 +111,17 @@ export default class ProfileDetail {
 
     try {
       const data = await this.profileService.fetchProfileById(id);
+      if (!this.isCurrentProfile(id)) return;
       this.profile.set(data);
     } catch (err) {
-      if (cached) return;
+      if (cached || !this.isCurrentProfile(id)) return;
       if (err instanceof HttpErrorResponse && err.status === 404) {
         this.error.set('Perfil no encontrado');
       } else {
         this.error.set('Error al cargar el perfil');
       }
     } finally {
-      this.isLoading.set(false);
+      if (this.isCurrentProfile(id)) this.isLoading.set(false);
     }
   }
 
@@ -188,6 +202,11 @@ export default class ProfileDetail {
     return !this.isOwnProfile();
   });
 
+  readonly isProfileBlocked = computed(() => {
+    const p = this.profile();
+    return p !== null && this.blocks.blockedIds().has(p.id);
+  });
+
   readonly showSafetyActions = computed(() => {
     return this.authService.currentUser() !== null && !this.isOwnProfile();
   });
@@ -209,10 +228,9 @@ export default class ProfileDetail {
       return;
     }
 
-    this.safetyBusy.set(true);
-    const ok = await this.blocks.toggle(p.id);
-    this.safetyBusy.set(false);
-    this.activeDialog.set(null);
+    const ok = await this.runExclusive(() => this.blocks.toggle(p.id));
+    if (this.isCurrentProfile(p.id)) this.activeDialog.set(null);
+    if (ok === null) return;
 
     this.messageService.add(
       ok
@@ -235,9 +253,8 @@ export default class ProfileDetail {
     const p = this.profile();
     if (!p || this.safetyBusy() || !this.blocks.blockedIds().has(p.id)) return;
 
-    this.safetyBusy.set(true);
-    const ok = await this.blocks.toggle(p.id);
-    this.safetyBusy.set(false);
+    const ok = await this.runExclusive(() => this.blocks.toggle(p.id));
+    if (ok === null) return;
 
     this.messageService.add(
       ok
@@ -256,16 +273,32 @@ export default class ProfileDetail {
     );
   }
 
+  private async runExclusive<T>(action: () => Promise<T>): Promise<T | null> {
+    this.safetyBusy.set(true);
+    try {
+      return await action();
+    } catch {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Algo ha fallado',
+        detail: 'Inténtalo de nuevo en unos minutos.',
+        life: 5000,
+      });
+      return null;
+    } finally {
+      this.safetyBusy.set(false);
+    }
+  }
+
   async submitReport(payload: ReportCreate): Promise<void> {
     const p = this.profile();
     if (!p || this.safetyBusy()) return;
 
-    this.safetyBusy.set(true);
-    const result = await this.reports.report(p.id, payload);
-    this.safetyBusy.set(false);
+    const result = await this.runExclusive(() => this.reports.report(p.id, payload));
+    if (result === null) return;
 
     if (result.ok) {
-      this.activeDialog.set(null);
+      if (this.isCurrentProfile(p.id)) this.activeDialog.set(null);
       this.messageService.add({
         severity: 'success',
         summary: 'Reporte enviado',

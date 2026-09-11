@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
@@ -25,6 +33,8 @@ export class ProfileActionsMenu {
   readonly blockRequested = output<void>();
   readonly unblockRequested = output<void>();
   readonly reportRequested = output<void>();
+
+  protected readonly expanded = signal(false);
 
   protected readonly isBlocked = computed(() => this.blocks.blockedIds().has(this.profileId()));
 

@@ -4,6 +4,7 @@ import { BlockApiService } from '@infrastructure/api/block/block.api.service';
 
 import type { ProfileSummary } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { BlockEvents } from '@core/block/block-events';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +12,7 @@ import { AuthService } from '@core/auth/auth.service';
 export class BlockService {
   private readonly api = inject(BlockApiService);
   private readonly auth = inject(AuthService);
+  private readonly events = inject(BlockEvents);
 
   readonly blockedIds = signal<ReadonlySet<number>>(new Set());
   readonly profiles = signal<ProfileSummary[]>([]);
@@ -57,6 +59,7 @@ export class BlockService {
     try {
       if (wasBlocked) await this.api.unblock(profileId);
       else await this.api.block(profileId);
+      this.events.emit({ profileId, blocked: !wasBlocked });
       return true;
     } catch {
       this.applyBlock(profileId, wasBlocked);
@@ -67,6 +70,11 @@ export class BlockService {
       }
       return false;
     }
+  }
+
+  markBlocked(profileId: number): void {
+    this.applyBlock(profileId, true);
+    this.events.emit({ profileId, blocked: true });
   }
 
   private bootstrap(): Promise<void> {

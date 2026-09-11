@@ -12,6 +12,7 @@ import type {
   ScheduleEnum,
   TypeEnum,
 } from '@core/api/api.models';
+import { BlockEvents } from '@core/block/block-events';
 
 const SCHEDULE_VALUES: ReadonlySet<string> = new Set(['morning', 'afternoon', 'night', 'flexible']);
 const TYPE_VALUES: ReadonlySet<string> = new Set(['looking_for_flat', 'looking_for_roommate']);
@@ -43,6 +44,13 @@ export class ProfileSearchService {
   private lastLoadedAt: number | null = null;
 
   constructor() {
+    inject(BlockEvents)
+      .changes$.pipe(takeUntilDestroyed())
+      .subscribe(({ profileId, blocked }) => {
+        if (blocked) this.removeProfile(profileId);
+        else this.lastLoadedAt = null;
+      });
+
     this.router.events
       .pipe(
         filter((e) => e instanceof NavigationEnd),
@@ -87,6 +95,14 @@ export class ProfileSearchService {
 
   reset(): void {
     this.filters.set({});
+  }
+
+  removeProfile(profileId: number): void {
+    const index = this.profiles().findIndex((p) => p.id === profileId);
+    if (index === -1) return;
+    this.profiles.update((list) => list.filter((p) => p.id !== profileId));
+    if (index < this.deckIndex()) this.deckIndex.update((i) => i - 1);
+    if (this.deckIndex() >= this.profiles().length && this.hasMore()) void this.loadMore();
   }
 
   retry(): void {
