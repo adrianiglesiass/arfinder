@@ -1,6 +1,8 @@
 @if (showUpdate()) {
   <div
-    class="fixed inset-x-4 bottom-24 md:inset-x-auto md:right-6 md:bottom-6 md:max-w-sm z-40 bg-white/90 backdrop-blur-xl border border-gray-border rounded-3xl shadow-(--shadow-glass) p-4 flex items-center gap-3 animate-fade-in"
+    [class.bottom-24]="!aboveActionBar()"
+    [class.bottom-40]="aboveActionBar()"
+    class="fixed inset-x-4 md:inset-x-auto md:right-6 md:bottom-6 md:max-w-sm z-40 bg-white/90 backdrop-blur-xl border border-gray-border rounded-3xl shadow-(--shadow-glass) p-4 flex items-center gap-3 animate-fade-in"
   >
     <i class="pi pi-refresh text-primary"></i>
     <div class="flex-1 min-w-0">
@@ -19,7 +21,9 @@
   </div>
 } @else if (showInstall()) {
   <div
-    class="fixed inset-x-4 bottom-24 md:inset-x-auto md:right-6 md:bottom-6 md:max-w-sm z-40 bg-white/90 backdrop-blur-xl border border-gray-border rounded-3xl shadow-(--shadow-glass) p-4 flex items-center gap-3 animate-fade-in"
+    [class.bottom-24]="!aboveActionBar()"
+    [class.bottom-40]="aboveActionBar()"
+    class="fixed inset-x-4 md:inset-x-auto md:right-6 md:bottom-6 md:max-w-sm z-40 bg-white/90 backdrop-blur-xl border border-gray-border rounded-3xl shadow-(--shadow-glass) p-4 flex items-center gap-3 animate-fade-in"
   >
     <span class="material-symbols-rounded text-primary text-[22px]">ios_share</span>
     <div class="flex-1 min-w-0">
