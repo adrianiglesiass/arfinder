@@ -27,16 +27,21 @@
 
       <div class="flex-1 overflow-y-auto">
         @if (conversationsError() && conversations().length === 0) {
-          <div class="flex flex-col items-center justify-center p-8 text-center" role="alert">
-            <span class="material-symbols-rounded text-4xl text-gray-200 mb-2">cloud_off</span>
-            <p class="text-sm text-gray-500">No pudimos cargar tus conversaciones</p>
-            <button
-              type="button"
+          <div class="flex flex-col items-center justify-center gap-3 p-8 text-center" role="alert">
+            <span class="material-symbols-rounded text-4xl text-gray-200">error</span>
+            <div>
+              <p class="text-sm font-medium text-gray-600">No pudimos cargar tus conversaciones.</p>
+              <p class="text-xs text-gray-400 mt-1">Revisa tu conexión e inténtalo de nuevo.</p>
+            </div>
+            <app-button
+              variant="secondary"
+              size="sm"
               (click)="retryConversations()"
-              class="text-sm text-primary font-medium mt-2 hover:underline cursor-pointer"
+              [loading]="retryingConversations()"
             >
+              <i class="pi pi-refresh text-xs"></i>
               Reintentar
-            </button>
+            </app-button>
           </div>
         } @else if (conversations().length === 0) {
           <div class="flex flex-col items-center justify-center p-8 text-center">
@@ -83,15 +88,21 @@
           #messagesContainer
         >
           @if (chatError()) {
-            <div class="flex flex-col items-center justify-center py-10 text-center" role="alert">
-              <p class="text-sm text-gray-500">No pudimos cargar esta conversación</p>
-              <button
-                type="button"
-                (click)="retryChat()"
-                class="text-sm text-primary font-medium mt-2 hover:underline cursor-pointer"
-              >
+            <div
+              class="flex flex-col items-center justify-center gap-3 py-10 text-center"
+              role="alert"
+            >
+              <span class="material-symbols-rounded text-4xl text-gray-200">error</span>
+              <div>
+                <p class="text-sm font-medium text-gray-600">
+                  No pudimos cargar esta conversación.
+                </p>
+                <p class="text-xs text-gray-400 mt-1">Revisa tu conexión e inténtalo de nuevo.</p>
+              </div>
+              <app-button variant="secondary" size="sm" (click)="retryChat()">
+                <i class="pi pi-refresh text-xs"></i>
                 Reintentar
-              </button>
+              </app-button>
             </div>
           }
           @if (hasMoreMessages()) {
@@ -115,7 +126,7 @@
 
         @if (sendError()) {
           <p class="px-4 pt-2 text-xs font-medium text-red-600" role="alert">
-            No se pudo enviar el mensaje. Inténtalo de nuevo.
+            No pudimos enviar el mensaje. Inténtalo de nuevo.
           </p>
         }
         <app-message-composer [(value)]="newMessage" (send)="sendMessage()" />

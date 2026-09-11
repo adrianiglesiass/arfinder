@@ -10,6 +10,7 @@ import {
   inject,
   OnInit,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -22,6 +23,7 @@ import { ROUTES } from '@core/constants/routes';
 import { ConversationStore } from '@core/conversations/conversation.store';
 import { RealtimeService } from '@core/realtime/realtime.service';
 
+import { Button } from '@shared/components/button/button';
 import { Spinner } from '@shared/components/spinner/spinner';
 
 import { ChatHeader as ChatHeaderComponent } from '@features/messages/components/chat-header/chat-header';
@@ -41,6 +43,7 @@ const PAGE_SIZE = 50;
     ChatHeaderComponent,
     MessageBubble,
     MessageComposer,
+    Button,
   ],
   templateUrl: './messages.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,7 +56,16 @@ export default class Messages implements OnInit {
   protected readonly exploreRoute = ROUTES.EXPLORE;
   protected readonly chatError = signal(false);
   protected readonly sendError = signal(false);
+  protected readonly retryingConversations = signal(false);
+  private failedContent: string | null = null;
   private destroyed = false;
+
+  private readonly clearSendErrorOnEdit = effect(() => {
+    const draft = this.newMessage();
+    untracked(() => {
+      if (this.sendError() && draft !== this.failedContent) this.sendError.set(false);
+    });
+  });
 
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
@@ -342,8 +354,13 @@ export default class Messages implements OnInit {
     }
   }
 
-  protected retryConversations(): void {
-    void this.store.refresh();
+  protected async retryConversations(): Promise<void> {
+    this.retryingConversations.set(true);
+    try {
+      await this.store.refresh();
+    } finally {
+      this.retryingConversations.set(false);
+    }
   }
 
   protected retryChat(): void {
@@ -434,13 +451,15 @@ export default class Messages implements OnInit {
       if (conv) {
         this.store.upsertConversationPreview(conv.id, real);
       } else {
-        await this.adoptNewConversation(real, draft!);
+        await this.adoptNewConversation(real, draft!, epoch);
       }
     } catch {
       if (epoch !== this.selectionEpoch || this.destroyed) return;
       this.removeOptimistic(tempId);
+      this.failedContent = content;
       this.newMessage.set(content);
       this.sendError.set(true);
+      setTimeout(() => this.composer()?.fitHeight());
     }
   }
 
@@ -489,8 +508,13 @@ export default class Messages implements OnInit {
     return this.formatTime(conv.last_message.sent_at);
   }
 
-  private async adoptNewConversation(real: MessageResponse, draft: DraftRecipient): Promise<void> {
+  private async adoptNewConversation(
+    real: MessageResponse,
+    draft: DraftRecipient,
+    epoch: number
+  ): Promise<void> {
     await this.store.refresh();
+    if (epoch !== this.selectionEpoch || this.destroyed) return;
     const created = this.conversations().find((c) => c.id === real.conversation_id);
     if (created) {
       this.draftRecipient.set(null);

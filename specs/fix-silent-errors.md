@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-silent-errors
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -53,9 +53,21 @@ Un fallo de red se ve como "no hay nada" o como una carga infinita, sin forma de
   `loadMoreError` y deja `hasMore` intacto.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes. **code-reviewer → BLOQUEADO** (un bloqueante y varios menores) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES**. Todo lo bloqueante y lo menor se ha aplicado. Cambios aplicados tras ella:
+- el aviso del deck ocupa el mismo hueco fijo que el contador `n / total`, así que la carta no cambia de
+  tamaño; el botón es `secondary` con icono, igual que en la cuadrícula;
+- `EmptyState` acepta `alert` y los estados de error lo usan (`role="alert"`, para lectores de pantalla);
+- el error de editar perfil solo se muestra si **no** hay perfil (antes podía taparlo cuando
+  `ensureProfile` respondía después) y va dentro del mismo contenedor con márgenes que el esqueleto;
+- textos unificados en "No pudimos…".
+
+- Signals `loadMoreError` (búsqueda), `error` (favoritos, bloqueados y conversaciones), `chatError` y
+  `sendError` (mensajes) y `loadError` (editar perfil), con "Reintentar" en cada caso.
+- `conversation.store.spec.ts` (nuevo) y tests de servicio para cada `refresh` fallido.
+- Frontend: **102 tests** (16 archivos), lint, formato y build.

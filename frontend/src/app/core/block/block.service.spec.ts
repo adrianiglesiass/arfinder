@@ -29,6 +29,7 @@ describe('BlockService — toggle optimista', () => {
     getMyBlocked: ReturnType<typeof vi.fn>;
   };
   let changes: BlockChange[];
+  let currentUserFn: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     api = {
@@ -37,6 +38,7 @@ describe('BlockService — toggle optimista', () => {
       getMyBlocked: vi.fn(() => Promise.resolve([])),
     };
     changes = [];
+    currentUserFn = vi.fn(() => null);
 
     await TestBed.configureTestingModule({
       providers: [
@@ -44,7 +46,7 @@ describe('BlockService — toggle optimista', () => {
         { provide: BlockApiService, useValue: api },
         {
           provide: AuthService,
-          useValue: { currentUser: vi.fn(() => null) } as unknown as AuthService,
+          useValue: { currentUser: currentUserFn } as unknown as AuthService,
         },
       ],
     }).compileComponents();
@@ -121,5 +123,29 @@ describe('BlockService — toggle optimista', () => {
     expect(await first).toBe(true);
     expect(api.block).toHaveBeenCalledTimes(1);
     expect(api.unblock).not.toHaveBeenCalled();
+  });
+
+  it('un refresh que empezó antes de un toggle no lo deshace', async () => {
+    currentUserFn.mockReturnValue({ id: 1 });
+    let finishStale!: (list: ProfileSummary[]) => void;
+    api.getMyBlocked = vi
+      .fn()
+      .mockReturnValueOnce(new Promise((resolve) => (finishStale = resolve)))
+      .mockResolvedValueOnce([blockedProfile]);
+
+    const refreshing = service.refresh();
+    await service.toggle(42);
+    finishStale([]);
+    await refreshing;
+
+    expect(service.blockedIds().has(42)).toBe(true);
+  });
+
+  it('un refresh fallido marca el error sin rechazar', async () => {
+    currentUserFn.mockReturnValue({ id: 1 });
+    api.getMyBlocked = vi.fn(() => Promise.reject(new Error('red')));
+
+    await expect(service.refresh()).resolves.toBeUndefined();
+    expect(service.error()).toBe(true);
   });
 });

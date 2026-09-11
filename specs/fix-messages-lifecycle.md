@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-messages-lifecycle
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -51,9 +51,25 @@ un envío mezcla mensajes y textos entre conversaciones.
   termina tras cambiar de conversación no toca la lista nueva; un envío fallido muestra el aviso.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes. **code-reviewer → BLOQUEADO** (un bloqueante y varios menores) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES**. Todo lo bloqueante y lo menor se ha aplicado. **Bloqueante corregido:** al enviar desde un
+borrador, `adoptNewConversation` hacía `await store.refresh()` y después seleccionaba la conversación nueva
+sin volver a comprobar la época. Si el usuario cambiaba de conversación durante ese `refresh`, se le devolvía
+a la nueva con los mensajes de la otra debajo; y si salía de mensajes, el store se quedaba con una
+conversación activa y el contador de no leídos se rompía. Ahora recibe la época y comprueba
+`epoch`/`destroyed` tras el `await`.
+
+Otros cambios tras la revisión:
+- el aviso de envío fallido desaparece en cuanto el usuario edita el texto;
+- al recuperar un texto de varias líneas, el composer recalcula su altura (`fitHeight`);
+- los errores de mensajes usan el `Button` compartido (`secondary`, con icono, tamaño táctil correcto), el
+  mismo texto de apoyo que el resto y un estado de carga al reintentar.
+
+- Tests en `messages.spec.ts` (6 nuevos). Los 4 primeros, **ejecutados contra el componente anterior,
+  fallan todos** y pasan los 7 que ya existían; los 2 restantes (borrador y aviso al editar) se añadieron
+  tras la revisión.

@@ -53,8 +53,7 @@ export class FavoritesService {
           const startedAt = this.version;
           const list = await this.api.getMyFavorites();
           if (this.version !== startedAt && attempt < MAX_REFRESH_ATTEMPTS) continue;
-          this.profiles.set(list);
-          this.favoriteIds.set(new Set(list.map((p) => p.id)));
+          this.applyServerList(list);
           break;
         }
         this.error.set(false);
@@ -92,6 +91,23 @@ export class FavoritesService {
       this.pending.delete(profileId);
       this.version++;
     }
+  }
+
+  private applyServerList(list: ProfileSummary[]): void {
+    const current = this.favoriteIds();
+    const ids = new Set(list.map((p) => p.id));
+    const profiles = list.filter((p) => !this.pending.has(p.id) || current.has(p.id));
+    for (const id of this.pending) {
+      if (!current.has(id)) {
+        ids.delete(id);
+        continue;
+      }
+      ids.add(id);
+      const existing = this.profiles().find((p) => p.id === id);
+      if (existing && !profiles.some((p) => p.id === id)) profiles.unshift(existing);
+    }
+    this.profiles.set(profiles);
+    this.favoriteIds.set(ids);
   }
 
   private async syncWithBlock(profileId: number, blocked: boolean): Promise<void> {

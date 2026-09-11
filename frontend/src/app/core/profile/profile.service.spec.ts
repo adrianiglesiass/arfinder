@@ -34,5 +34,6 @@ describe('ProfileService.addPhoto', () => {
     await service.addPhoto(new File(['x'], 'foto.png', { type: 'image/png' }));
 
     expect(service.currentProfile()?.photos.map((p) => p.id)).toEqual([1, 2, 3]);
+    expect(service.peekProfileById(10)?.photos.map((p) => p.id)).toEqual([1, 2, 3]);
   });
 });

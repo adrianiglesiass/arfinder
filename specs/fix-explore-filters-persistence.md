@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-explore-filters-persistence
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -48,9 +48,25 @@ pestaña tras dos minutos también reinicia el deck.
   recarga por caducidad conserva el perfil actual del deck.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes. **code-reviewer → BLOQUEADO** (un bloqueante y varios menores) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES**. Todo lo bloqueante y lo menor se ha aplicado.
+
+- `NavigationEnd` solo actúa en `/explorar`: aplica los filtros de la query si los hay; si no, reescribe en
+  la URL los que haya en memoria. `writeToUrl` pasa el `state` actual a `replaceState` para no borrar el
+  `navigationId` del router (sin eso, el botón atrás perdía el scroll de la cuadrícula).
+- Recarga por caducidad **en el sitio** (`refreshInPlace`): recarga en una petición las páginas vistas, sin
+  vaciar la lista. Cambios tras la revisión:
+  - el perfil de referencia se toma **al llegar la respuesta**, no al lanzarla, porque si el usuario
+    deslizaba durante la petición el deck volvía atrás;
+  - con más de 4 páginas cargadas no se recarga en el sitio, para no recortar la lista;
+  - desde "has visto todo" se mantiene esa pantalla;
+  - el deck vuelve a la primera foto cuando cambia el perfil activo (antes podía quedar una carta en negro).
+- `resetAndLoad` pone `isLoadingMore` a `false`: con una página en vuelo, cambiar de filtros dejaba el
+  spinner "Cargando más" para siempre (defecto previo, destapado por la revisión).
+- Tests en `profile-search.service.spec.ts`: navegación a otra ruta, vuelta sin query, enlace con filtros,
+  recarga que conserva el perfil y spinner que no se atasca.

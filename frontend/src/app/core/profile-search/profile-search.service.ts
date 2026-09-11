@@ -148,8 +148,13 @@ export class ProfileSearchService {
       return;
     }
     if (userId === this.lastUserId) return;
+    const previousUserId = this.lastUserId;
     this.lastUserId = userId;
     this.lastLoadedAt = null;
+    if (previousUserId !== null && this.hasActiveFilters()) {
+      this.filters.set({});
+      return;
+    }
     if (this.isOnExplore()) void this.resetAndLoad();
   }
 
@@ -157,6 +162,10 @@ export class ProfileSearchService {
     if (!this.isOnExplore()) return;
     if (this.isLoading() || this.isLoadingMore()) return;
     if (this.lastLoadedAt !== null && Date.now() - this.lastLoadedAt < STALE_AFTER_MS) return;
+    if (this.currentPage + 1 > MAX_REFRESH_PAGES) {
+      this.lastLoadedAt = Date.now();
+      return;
+    }
     if (this.profiles().length > 0 && this.lastLoadedAt !== null) void this.refreshInPlace();
     else void this.resetAndLoad();
   }
@@ -168,11 +177,11 @@ export class ProfileSearchService {
     this.hasMore.set(true);
     this.error.set(null);
     this.loadMoreError.set(false);
+    this.isLoadingMore.set(false);
     await this.loadPage(0);
   }
 
   private async refreshInPlace(): Promise<void> {
-    const currentId = this.profiles()[this.deckIndex()]?.id;
     const pages = Math.min(this.currentPage + 1, MAX_REFRESH_PAGES);
     const reqId = ++this.requestId;
     try {
@@ -182,6 +191,9 @@ export class ProfileSearchService {
         limit: pages * PAGE_SIZE,
       });
       if (reqId !== this.requestId) return;
+      const previous = this.profiles();
+      const wasExhausted = this.deckIndex() >= previous.length;
+      const currentId = previous[this.deckIndex()]?.id;
       this.profiles.set(data);
       this.currentPage = pages - 1;
       this.hasMore.set(data.length === pages * PAGE_SIZE);
@@ -189,9 +201,9 @@ export class ProfileSearchService {
       this.loadMoreError.set(false);
       this.lastLoadedAt = Date.now();
       const index = currentId === undefined ? -1 : data.findIndex((p) => p.id === currentId);
-      this.deckIndex.set(
-        index >= 0 ? index : Math.min(this.deckIndex(), Math.max(0, data.length - 1))
-      );
+      if (wasExhausted) this.deckIndex.set(data.length);
+      else if (index >= 0) this.deckIndex.set(index);
+      else this.deckIndex.set(Math.min(this.deckIndex(), Math.max(0, data.length - 1)));
     } catch {
       if (reqId !== this.requestId) return;
       this.lastLoadedAt = Date.now();
@@ -304,7 +316,11 @@ export class ProfileSearchService {
 
     const newQuery = search.toString();
     if (newQuery === existingQuery) return;
-    this.location.replaceState(newQuery ? `${path}?${newQuery}` : path);
+    this.location.replaceState(
+      newQuery ? `${path}?${newQuery}` : path,
+      '',
+      this.location.getState()
+    );
   }
 
   private sameFilters(a: ProfileSearchFilters, b: ProfileSearchFilters): boolean {

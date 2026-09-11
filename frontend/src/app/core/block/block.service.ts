@@ -48,8 +48,7 @@ export class BlockService {
           const startedAt = this.version;
           const list = await this.api.getMyBlocked();
           if (this.version !== startedAt && attempt < MAX_REFRESH_ATTEMPTS) continue;
-          this.profiles.set(list);
-          this.blockedIds.set(new Set(list.map((p) => p.id)));
+          this.applyServerList(list);
           break;
         }
         this.error.set(false);
@@ -95,6 +94,23 @@ export class BlockService {
     this.version++;
     this.applyBlock(profileId, true);
     this.events.emit({ profileId, blocked: true });
+  }
+
+  private applyServerList(list: ProfileSummary[]): void {
+    const current = this.blockedIds();
+    const ids = new Set(list.map((p) => p.id));
+    const profiles = list.filter((p) => !this.pending.has(p.id) || current.has(p.id));
+    for (const id of this.pending) {
+      if (!current.has(id)) {
+        ids.delete(id);
+        continue;
+      }
+      ids.add(id);
+      const existing = this.profiles().find((p) => p.id === id);
+      if (existing && !profiles.some((p) => p.id === id)) profiles.unshift(existing);
+    }
+    this.profiles.set(profiles);
+    this.blockedIds.set(ids);
   }
 
   private bootstrap(): Promise<void> {

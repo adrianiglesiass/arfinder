@@ -136,4 +136,19 @@ describe('FavoritesService — toggle optimista', () => {
 
     expect(service.error()).toBe(true);
   });
+
+  it('un toggle en vuelo sobrevive a un refresh que responde antes', async () => {
+    currentUserFn.mockReturnValue({ id: 1 });
+    let finishPost!: () => void;
+    api.favorite = vi.fn(() => new Promise<void>((resolve) => (finishPost = resolve)));
+    api.getMyFavorites = vi.fn(() => Promise.resolve([]));
+
+    const toggling = service.toggle(42);
+    await service.refresh();
+
+    expect(service.favoriteIds().has(42)).toBe(true);
+    finishPost();
+    await toggling;
+    expect(service.favoriteIds().has(42)).toBe(true);
+  });
 });

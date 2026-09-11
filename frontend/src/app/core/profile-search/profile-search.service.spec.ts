@@ -172,6 +172,32 @@ describe('ProfileSearchService', () => {
       await vi.waitFor(() => expect(search.mock.calls.length).toBe(calls + 1));
     });
 
+    it('al cambiar de cuenta, los filtros de la anterior no pasan a la siguiente', async () => {
+      currentUser.set({ id: 7 });
+      TestBed.tick();
+      await settle();
+      service.updateFilter('city', 'Madrid');
+      await settle();
+
+      currentUser.set(null);
+      TestBed.tick();
+      await settle();
+
+      expect(service.filters()).toEqual({});
+    });
+
+    it('cambiar de filtros con una página en vuelo no deja el spinner atascado', async () => {
+      service.hasMore.set(true);
+      search.mockReturnValueOnce(new Promise(() => undefined));
+      void service.loadMore();
+      expect(service.isLoadingMore()).toBe(true);
+
+      service.updateFilter('city', 'Sevilla');
+      await settle();
+
+      expect(service.isLoadingMore()).toBe(false);
+    });
+
     it('el valor inicial del usuario no provoca una recarga extra', () => {
       expect(search).toHaveBeenCalledTimes(1);
     });

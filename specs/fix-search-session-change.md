@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-search-session-change
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -39,9 +39,17 @@ el perfil propio.
   `/explorar`; el valor inicial no provoca recarga.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes. **code-reviewer → BLOQUEADO** (un bloqueante y varios menores) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES**. Todo lo bloqueante y lo menor se ha aplicado. Cambio aplicado tras ella: **al cerrar sesión o
+cambiar de cuenta se borran los filtros**. Es una regresión que introducía `fix-explore-filters-persistence`:
+antes se borraban solos al pasar por `/login`, y al conservarlos, el siguiente usuario de la pestaña veía los
+filtros del anterior. Se borran cuando el usuario anterior no era un invitado; de invitado a usuario se
+conservan.
+
+- `ProfileSearchService` observa `AuthService.currentUser()?.id`; el primer valor no dispara recarga.
+- Tests: iniciar sesión recarga, el valor inicial no, y los filtros no pasan de una cuenta a otra.

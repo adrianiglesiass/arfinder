@@ -233,11 +233,7 @@ export class ProfileService {
         ),
       };
       this.currentProfile.set(updated);
-      this.profilesById.update((map) => {
-        const next = new Map(map);
-        next.set(updated.id, updated);
-        return next;
-      });
+      this.hydrateProfiles([updated]);
     }
     return photo;
   }

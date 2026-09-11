@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-photo-upload-refresh
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -38,9 +38,14 @@ Las fotos subidas desde `/perfil` no aparecen hasta recargar la página.
   `profilesById`.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes. **code-reviewer → BLOQUEADO** (un bloqueante y varios menores) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES**. Todo lo bloqueante y lo menor se ha aplicado.
+
+- `ProfileService.addPhoto` añade la foto a `currentProfile` ordenada por `order` y reutiliza
+  `hydrateProfiles` para la caché por id (la revisión señaló que la primera versión duplicaba esa lógica).
+- `core/profile/profile.service.spec.ts` (nuevo): la foto aparece en `currentProfile` y en la caché.

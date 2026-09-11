@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-optimistic-toggle-races
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -46,9 +46,22 @@ estado distinto del que hay en el servidor.
   un `refresh` antiguo no pisa un toggle posterior; 409 como éxito en favoritos.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): dos agentes. **code-reviewer → BLOQUEADO** (un bloqueante y varios menores) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES**. Todo lo bloqueante y lo menor se ha aplicado. Cambio aplicado tras ella: la versión solo
+detectaba toggles que empezaban o terminaban durante el `GET`. Si el usuario pulsaba el corazón con un `POST`
+lento y el `GET` respondía antes, el favorito desaparecía y nadie lo volvía a aplicar. Ahora, al aplicar la
+respuesta del servidor, **se conserva el estado optimista de los ids que siguen pendientes**
+(`applyServerList`), en favoritos y en bloqueos.
+
+- Ids pendientes (un segundo toggle sobre un id en vuelo se ignora), contador de versión con hasta 3
+  intentos del `refresh`, y 409 como éxito al marcar favorito.
+- Queda documentado: `BlockService.toggle` devuelve `false` si el id ya está pendiente, lo que el detalle
+  mostraría como "No se pudo bloquear". No ocurre en la práctica porque el detalle bloquea la acción con
+  `safetyBusy` mientras hay una en curso.
+- Tests: doble toque, refresh antiguo, toggle más lento que el refresh, 409 y error de refresh, en los dos
+  servicios.
