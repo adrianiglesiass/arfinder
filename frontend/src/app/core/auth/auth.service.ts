@@ -19,6 +19,17 @@ interface InsForgeInternal {
   };
 }
 
+export type RefreshOutcome = { token: string } | { token: null; transient: boolean };
+
+const TRANSIENT_REFRESH_STATUSES = new Set([0, 408, 429]);
+const BOOTSTRAP_RETRY_DELAYS_MS = [5_000, 30_000, 120_000];
+
+function isTransientRefreshError(error: unknown): boolean {
+  const status = (error as { statusCode?: unknown } | null)?.statusCode;
+  if (typeof status !== 'number') return true;
+  return TRANSIENT_REFRESH_STATUSES.has(status) || status >= 500;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -32,7 +43,7 @@ export class AuthService {
   currentUser = signal<UserResponse | null>(null);
   private sdkReadyPromise: Promise<void> | null = null;
   private invalidatePromise: Promise<void> | null = null;
-  private refreshPromise: Promise<string | null> | null = null;
+  private refreshPromise: Promise<RefreshOutcome> | null = null;
   private readonly PUBLIC_PATHS = [
     ROUTES.LOGIN,
     ROUTES.REGISTER,
@@ -42,6 +53,9 @@ export class AuthService {
   private readonly REFRESH_TOKEN_KEY = STORAGE_KEYS.auth.refreshToken;
   private readonly ACCESS_TOKEN_KEY = STORAGE_KEYS.auth.accessToken;
   private memoryAccessToken: string | null = null;
+  private bootstrapRetryAttempt = 0;
+  private bootstrapRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private onlineRetryListener: (() => void) | null = null;
 
   init(): Promise<void> {
     if (this.sdkReadyPromise) return this.sdkReadyPromise;
@@ -57,15 +71,48 @@ export class AuthService {
         return;
       }
 
-      const accessToken = await this.forceRefreshToken();
-      if (!accessToken) {
+      const outcome = await this.refreshSessionToken();
+      if (outcome.token === null) {
         this.currentUser.set(null);
+        if (outcome.transient) this.scheduleBootstrapRetry();
         return;
       }
 
       await this.syncUser();
     } catch {
       this.currentUser.set(null);
+    }
+  }
+
+  private scheduleBootstrapRetry(): void {
+    if (typeof window === 'undefined') return;
+    this.cancelBootstrapRetry();
+    const retry = () => void this.retryBootstrap();
+    this.onlineRetryListener = retry;
+    window.addEventListener('online', retry, { once: true });
+    const delay = BOOTSTRAP_RETRY_DELAYS_MS[this.bootstrapRetryAttempt];
+    if (delay !== undefined) this.bootstrapRetryTimer = setTimeout(retry, delay);
+  }
+
+  private cancelBootstrapRetry(): void {
+    if (this.bootstrapRetryTimer !== null) {
+      clearTimeout(this.bootstrapRetryTimer);
+      this.bootstrapRetryTimer = null;
+    }
+    if (this.onlineRetryListener !== null && typeof window !== 'undefined') {
+      window.removeEventListener('online', this.onlineRetryListener);
+      this.onlineRetryListener = null;
+    }
+  }
+
+  private async retryBootstrap(): Promise<void> {
+    this.cancelBootstrapRetry();
+    if (this.currentUser()) return;
+    this.bootstrapRetryAttempt++;
+    this.sdkReadyPromise = null;
+    await this.init();
+    if (this.currentUser() && this.router.url.startsWith(ROUTES.LOGIN)) {
+      await this.router.navigate([ROUTES.EXPLORE]);
     }
   }
 
@@ -160,19 +207,24 @@ export class AuthService {
   }
 
   async forceRefreshToken(): Promise<string | null> {
+    return (await this.refreshSessionToken()).token;
+  }
+
+  refreshSessionToken(): Promise<RefreshOutcome> {
     if (this.refreshPromise) return this.refreshPromise;
 
-    this.refreshPromise = (async () => {
+    this.refreshPromise = (async (): Promise<RefreshOutcome> => {
       try {
         const persisted = this.getPersistedRefreshToken();
-        if (!persisted) return null;
+        if (!persisted) return { token: null, transient: false };
         const { data, error } = await this.insforge.auth.refreshSession({
           refreshToken: persisted,
         });
         if (error) {
+          if (isTransientRefreshError(error)) return { token: null, transient: true };
           this.clearPersistedRefreshToken();
           this.clearPersistedAccessToken();
-          return null;
+          return { token: null, transient: false };
         }
         if (data?.accessToken) {
           this.persistAccessToken(data.accessToken);
@@ -180,9 +232,9 @@ export class AuthService {
         if (data?.refreshToken) {
           this.persistRefreshToken(data.refreshToken);
         }
-        return data?.accessToken ?? null;
+        return data?.accessToken ? { token: data.accessToken } : { token: null, transient: false };
       } catch {
-        return null;
+        return { token: null, transient: true };
       } finally {
         this.refreshPromise = null;
       }
@@ -328,6 +380,8 @@ export class AuthService {
     try {
       const user = await this.authApi.getMe();
       this.currentUser.set(user);
+      this.cancelBootstrapRetry();
+      this.bootstrapRetryAttempt = 0;
       this.onboardingPersistence.ensureUser(user.id);
     } catch {
       this.currentUser.set(null);
