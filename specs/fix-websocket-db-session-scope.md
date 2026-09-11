@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-websocket-db-session-scope
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-11
 ---
@@ -54,8 +54,18 @@ petición autenticada bloquea el event loop mientras consulta la BD.
   un token inválido cierra con 1008.
 
 ## Checklist de verificación
-- [ ] Backend: `ruff check .`
-- [ ] Backend: `ruff format --check .`
-- [ ] Backend: `pytest`
+- [x] Backend: `ruff check .`
+- [x] Backend: `ruff format --check .`
+- [x] Backend: `pytest`
 
 ## Resultado
+Revisión (SDD fase 6): agente con las instrucciones de `.opencode/agent/code-reviewer.md` → **APROBADO CON CAMBIOS MENORES**, sin bloqueantes. Cambio aplicado tras ella: se añade
+el test del `get_current_user` real, que faltaba porque `conftest.py` sobrescribe la dependencia.
+
+- `app/routes/realtime.py`: `_resolve_user_id` y `_is_participant` abren y cierran su propia sesión
+  en un hilo. `app/core/dependencies.py`: `get_or_create_local_user` con `run_in_threadpool`.
+- `tests/realtime/test_ws_session.py`: 3 tests. **`test_open_socket_does_not_hold_a_pool_connection`
+  falla con el código anterior** (`assert 1 == 0`: el socket abierto retenía una conexión del pool) y
+  pasa con el arreglo.
+- `tests/auth/test_dependencies.py`: 3 tests que comprueban que `get_current_user` y
+  `get_current_user_optional` resuelven el usuario en el threadpool y rechazan un token inválido.

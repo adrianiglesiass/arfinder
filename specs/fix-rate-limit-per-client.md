@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-rate-limit-per-client
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-11
 ---
@@ -62,8 +62,22 @@ recibe 429 en búsqueda, autocompletado, subida de fotos y envío de mensajes.
   expiración de la ventana con reloj falso, purga de claves, y `client_key` con y sin `Fly-Client-IP`.
 
 ## Checklist de verificación
-- [ ] Backend: `ruff check .`
-- [ ] Backend: `ruff format --check .`
-- [ ] Backend: `pytest`
+- [x] Backend: `ruff check .`
+- [x] Backend: `ruff format --check .`
+- [x] Backend: `pytest`
 
 ## Resultado
+Revisión (SDD fase 6): agente con las instrucciones de `.opencode/agent/code-reviewer.md` → **APROBADO CON CAMBIOS MENORES**, sin bloqueantes. Cambios aplicados tras ella:
+el diccionario de claves pasa a ser un LRU con tope duro (antes la purga solo borraba claves
+inactivas, así que con más de 10.000 claves activas la memoria seguía creciendo y cada clave nueva
+recorría todas bajo el lock); las IPv6 se agrupan por /64, porque un cliente controla todo su /64 y
+podía esquivar el límite; y `Fly-Client-IP` solo se usa si existe `FLY_APP_NAME`, es decir, cuando la
+app corre de verdad detrás del proxy de Fly.
+
+- `SlidingWindowLimiter` en `app/core/rate_limit.py`, con reloj inyectable. Las dependencias
+  `rate_limiter` y `message_rate_limiter` mantienen su firma.
+- `pyrate-limiter` eliminado de `requirements.txt`.
+- Verificado: con la librería anterior, `Rate(3, MINUTE)` rechaza la primera petición de `"b"` tras
+  tres de `"a"`; con el limitador nuevo, `test_limit_is_per_key` comprueba lo contrario.
+- `tests/core/test_rate_limit.py`: 8 tests (aislamiento por clave, ventana deslizante, expiración,
+  tope duro, desalojo LRU, `Fly-Client-IP` dentro y fuera de Fly, agrupación IPv6, fallback).

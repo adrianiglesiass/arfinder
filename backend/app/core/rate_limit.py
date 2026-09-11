@@ -1,6 +1,8 @@
+import ipaddress
+import os
 import threading
 import time
-from collections import deque
+from collections import OrderedDict, deque
 from collections.abc import Callable
 
 from fastapi import Depends, HTTPException, Request, status
@@ -13,6 +15,7 @@ WINDOW_SECONDS = 60.0
 REQUESTS_PER_WINDOW = 60
 MESSAGES_PER_WINDOW = 120
 MAX_TRACKED_KEYS = 10_000
+IPV6_PREFIX = 64
 
 
 class SlidingWindowLimiter:
@@ -27,7 +30,7 @@ class SlidingWindowLimiter:
         self._window = window_seconds
         self._max_keys = max_keys
         self._clock = clock
-        self._hits: dict[str, deque[float]] = {}
+        self._hits: OrderedDict[str, deque[float]] = OrderedDict()
         self._lock = threading.Lock()
 
     def try_acquire(self, key: str) -> bool:
@@ -36,10 +39,12 @@ class SlidingWindowLimiter:
         with self._lock:
             hits = self._hits.get(key)
             if hits is None:
-                if len(self._hits) >= self._max_keys:
-                    self._purge_idle(cutoff)
+                while len(self._hits) >= self._max_keys:
+                    self._hits.popitem(last=False)
                 hits = deque()
                 self._hits[key] = hits
+            else:
+                self._hits.move_to_end(key)
             while hits and hits[0] <= cutoff:
                 hits.popleft()
             if len(hits) >= self._limit:
@@ -51,23 +56,25 @@ class SlidingWindowLimiter:
         with self._lock:
             return len(self._hits)
 
-    def _purge_idle(self, cutoff: float) -> None:
-        idle = [
-            key for key, hits in self._hits.items() if not hits or hits[-1] <= cutoff
-        ]
-        for key in idle:
-            del self._hits[key]
-
 
 limiter = SlidingWindowLimiter(REQUESTS_PER_WINDOW)
 message_limiter = SlidingWindowLimiter(MESSAGES_PER_WINDOW)
 
 
+def _normalize_ip(raw: str) -> str:
+    try:
+        address = ipaddress.ip_address(raw.strip())
+    except ValueError:
+        return raw.strip()
+    if address.version == 6:
+        return str(ipaddress.ip_network(f"{address}/{IPV6_PREFIX}", strict=False))
+    return str(address)
+
+
 def client_key(request: Request) -> str:
-    fly_ip = request.headers.get("fly-client-ip")
-    if fly_ip:
-        return f"ip:{fly_ip.strip()}"
-    return f"ip:{request.client.host if request.client else 'unknown'}"
+    fly_ip = request.headers.get("fly-client-ip") if os.getenv("FLY_APP_NAME") else None
+    raw = fly_ip or (request.client.host if request.client else "unknown")
+    return f"ip:{_normalize_ip(raw)}"
 
 
 def _too_many() -> HTTPException:

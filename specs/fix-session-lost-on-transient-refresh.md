@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-session-lost-on-transient-refresh
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-09-11
 ---
@@ -56,9 +56,26 @@ para siempre aunque su refresh token siga siendo válido.
   `invalidateSession`; uno definitivo sí.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `npm run build`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `npm run build`
 
 ## Resultado
+Revisión (SDD fase 6): agente con las instrucciones de `.opencode/agent/code-reviewer.md` → **APROBADO CON CAMBIOS MENORES**, sin bloqueantes. Cambios aplicados tras ella:
+- **Lista explícita de estados transitorios** (sin `statusCode`, 0, 408, 429 y 5xx). El resto se trata
+  como definitivo: antes un 404 se habría tomado por transitorio y un token revocado no se borraría.
+- **Reintento con backoff** (5 s, 30 s y 120 s) además del evento `online`. Con un 5xx o 429 de
+  InsForge y el navegador en línea, `online` no llega nunca.
+- Al restaurarse la sesión en un reintento, si el usuario estaba en `/login` (adonde le mandó el
+  guard), se le lleva a `/explorar`.
+- El reintento se cancela en `syncUser()`, por donde pasan todos los logins (email, OAuth y
+  verificación), y no se relanza si ya hay usuario. Antes, un `online` posterior a un login manual
+  podía relanzar el arranque y vaciar la sesión en memoria.
+
+- `core/auth/auth.service.ts` (`refreshSessionToken`, `scheduleBootstrapRetry`) y
+  `core/interceptors/jwt-interceptor.ts`.
+- `core/auth/auth.service.spec.ts`: 8 tests (401 y 404 borran; 500, 429 y excepción del SDK
+  conservan; éxito guarda; reintento al volver la conexión y salida del login; sin relanzar tras un
+  login manual). `core/interceptors/jwt-interceptor.spec.ts`: 3 tests.
+- Frontend: **43 tests en verde** (10 archivos), formato, lint y build OK.

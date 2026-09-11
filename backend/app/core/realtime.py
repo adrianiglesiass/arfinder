@@ -120,7 +120,13 @@ async def _restore_omitted_content(event: str, data: object) -> object | None:
         return data
     if not data.get("content_omitted"):
         return data
-    content = await asyncio.to_thread(_load_message_content, data.get("id"))
+    try:
+        content = await asyncio.to_thread(_load_message_content, data.get("id"))
+    except Exception as e:
+        logger.error(
+            f"[realtime] could not load omitted message {data.get('id')!r}: {e}"
+        )
+        return None
     if content is None:
         logger.warning(f"[realtime] omitted message {data.get('id')!r} not found")
         return None

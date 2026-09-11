@@ -21,11 +21,13 @@ interface InsForgeInternal {
 
 export type RefreshOutcome = { token: string } | { token: null; transient: boolean };
 
-const REJECTED_REFRESH_STATUSES = new Set([400, 401, 403]);
+const TRANSIENT_REFRESH_STATUSES = new Set([0, 408, 429]);
+const BOOTSTRAP_RETRY_DELAYS_MS = [5_000, 30_000, 120_000];
 
 function isTransientRefreshError(error: unknown): boolean {
   const status = (error as { statusCode?: unknown } | null)?.statusCode;
-  return typeof status !== 'number' || !REJECTED_REFRESH_STATUSES.has(status);
+  if (typeof status !== 'number') return true;
+  return TRANSIENT_REFRESH_STATUSES.has(status) || status >= 500;
 }
 
 @Injectable({
@@ -51,6 +53,9 @@ export class AuthService {
   private readonly REFRESH_TOKEN_KEY = STORAGE_KEYS.auth.refreshToken;
   private readonly ACCESS_TOKEN_KEY = STORAGE_KEYS.auth.accessToken;
   private memoryAccessToken: string | null = null;
+  private bootstrapRetryAttempt = 0;
+  private bootstrapRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private onlineRetryListener: (() => void) | null = null;
 
   init(): Promise<void> {
     if (this.sdkReadyPromise) return this.sdkReadyPromise;
@@ -69,7 +74,7 @@ export class AuthService {
       const outcome = await this.refreshSessionToken();
       if (outcome.token === null) {
         this.currentUser.set(null);
-        if (outcome.transient) this.retryBootstrapWhenOnline();
+        if (outcome.transient) this.scheduleBootstrapRetry();
         return;
       }
 
@@ -79,16 +84,36 @@ export class AuthService {
     }
   }
 
-  private retryBootstrapWhenOnline(): void {
+  private scheduleBootstrapRetry(): void {
     if (typeof window === 'undefined') return;
-    window.addEventListener(
-      'online',
-      () => {
-        this.sdkReadyPromise = null;
-        void this.init();
-      },
-      { once: true }
-    );
+    this.cancelBootstrapRetry();
+    const retry = () => void this.retryBootstrap();
+    this.onlineRetryListener = retry;
+    window.addEventListener('online', retry, { once: true });
+    const delay = BOOTSTRAP_RETRY_DELAYS_MS[this.bootstrapRetryAttempt];
+    if (delay !== undefined) this.bootstrapRetryTimer = setTimeout(retry, delay);
+  }
+
+  private cancelBootstrapRetry(): void {
+    if (this.bootstrapRetryTimer !== null) {
+      clearTimeout(this.bootstrapRetryTimer);
+      this.bootstrapRetryTimer = null;
+    }
+    if (this.onlineRetryListener !== null && typeof window !== 'undefined') {
+      window.removeEventListener('online', this.onlineRetryListener);
+      this.onlineRetryListener = null;
+    }
+  }
+
+  private async retryBootstrap(): Promise<void> {
+    this.cancelBootstrapRetry();
+    if (this.currentUser()) return;
+    this.bootstrapRetryAttempt++;
+    this.sdkReadyPromise = null;
+    await this.init();
+    if (this.currentUser() && this.router.url.startsWith(ROUTES.LOGIN)) {
+      await this.router.navigate([ROUTES.EXPLORE]);
+    }
   }
 
   async handleOAuthCallback(code: string): Promise<void> {
@@ -355,6 +380,8 @@ export class AuthService {
     try {
       const user = await this.authApi.getMe();
       this.currentUser.set(user);
+      this.cancelBootstrapRetry();
+      this.bootstrapRetryAttempt = 0;
       this.onboardingPersistence.ensureUser(user.id);
     } catch {
       this.currentUser.set(null);

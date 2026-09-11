@@ -46,6 +46,18 @@ def test_omitted_content_for_missing_message_is_not_broadcast(monkeypatch, broad
     broadcast.assert_not_awaited()
 
 
+def test_database_failure_does_not_break_the_listener(monkeypatch, broadcast):
+    def boom(_id):
+        raise RuntimeError("pool agotado")
+
+    monkeypatch.setattr(realtime, "_load_message_content", boom)
+    payload = {"id": 12, "content_omitted": True}
+
+    asyncio.run(realtime.listener._dispatch(_notify("new_message", payload)))
+
+    broadcast.assert_not_awaited()
+
+
 def test_regular_payload_does_not_hit_the_database(monkeypatch, broadcast):
     def fail(_id):
         raise AssertionError("no debería consultar la BD")

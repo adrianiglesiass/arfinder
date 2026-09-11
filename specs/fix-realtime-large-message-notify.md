@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-realtime-large-message-notify
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-11
 ---
@@ -57,9 +57,27 @@ pierden.
   bytes y escuchando el canal.
 
 ## Checklist de verificación
-- [ ] Backend: `ruff check .`
-- [ ] Backend: `ruff format --check .`
-- [ ] Backend: `pytest`
-- [ ] Migración validada en Postgres limpio con un `INSERT` real por encima del límite
+- [x] Backend: `ruff check .`
+- [x] Backend: `ruff format --check .`
+- [x] Backend: `pytest`
+- [x] Migración validada en Postgres limpio con un `INSERT` real por encima del límite
 
 ## Resultado
+Revisión (SDD fase 6): agente con las instrucciones de `.opencode/agent/code-reviewer.md` → **APROBADO CON CAMBIOS MENORES**, sin bloqueantes. Cambio aplicado tras ella: si la
+consulta que recupera el contenido falla (BD caída o pool agotado), el error se registra y el evento
+se descarta. Antes la excepción subía hasta el bucle del listener, que cerraba la conexión `LISTEN`
+y perdía las notificaciones pendientes de todas las conversaciones.
+
+- Migración `b2c3d4e5f6a7_realtime_notify_size_guard` y `_restore_omitted_content` en
+  `app/core/realtime.py`.
+- **Bug reproducido y arreglo verificado** en un Postgres limpio con la cadena completa de
+  migraciones, insertando un mensaje real de 2500 caracteres (8500 bytes: emojis y comillas), la
+  mitad del límite de 5000 caracteres del schema:
+  - con la migración anterior (`a1b2c3d4e5f6`): el `INSERT` falla con
+    `InvalidParameterValue: payload string too long` y el mensaje no se guarda;
+  - con `b2c3d4e5f6a7`: el `INSERT` se guarda y la notificación ocupa 157 bytes con
+    `content_omitted: true`.
+  - `downgrade` a `a1b2c3d4e5f6` y vuelta a `head` funcionan.
+- `tests/realtime/test_realtime_dispatch.py`: 5 tests (restaura el contenido, mensaje inexistente,
+  fallo de la BD sin romper el listener, payload normal sin consultar la BD, y lectura real de un
+  mensaje de 3000 emojis).

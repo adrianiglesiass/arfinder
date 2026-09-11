@@ -52,10 +52,10 @@ fecha: 2026-09-10
 | 19 | La tarjeta pierde el hover al ir al corazón; en el deck el corazón inicia un arrastre | frontend | profile-actions-ux | ✅ done → PR #299 |
 | 20 | No se puede marcar favorito desde el detalle de perfil | frontend | profile-actions-ux | ✅ done → PR #299 |
 | 21 | Corazón con visitante anónimo: toggle optimista y revert silencioso por 401 | frontend | profile-actions-ux | ✅ done → PR #299 |
-| 22 | Rate limit **global** para todo el sitio (un solo bucket) y clave de IP falsificable por `X-Forwarded-For` | backend | prod-critical | ⏳ |
-| 23 | Mensajes que superan 8000 bytes en `pg_notify` (emojis, comillas) se pierden con un 500 | backend | prod-critical | ⏳ |
-| 24 | El WebSocket retiene una conexión del pool toda su vida; `get_current_user` bloquea el event loop | backend | prod-critical | ⏳ |
-| 25 | Un fallo transitorio al refrescar el token (red, 5xx) cierra la sesión para siempre | frontend | prod-critical | ⏳ |
+| 22 | Rate limit **global** para todo el sitio (un solo bucket) y clave de IP falsificable por `X-Forwarded-For` | backend | prod-critical | ✅ done → PR #300 |
+| 23 | Mensajes que superan 8000 bytes en `pg_notify` (emojis, comillas) se pierden con un 500 | backend | prod-critical | ✅ done → PR #300 |
+| 24 | El WebSocket retiene una conexión del pool toda su vida; `get_current_user` bloquea el event loop | backend | prod-critical | ✅ done → PR #300 |
+| 25 | Un fallo transitorio al refrescar el token (red, 5xx) cierra la sesión para siempre | frontend | prod-critical | ✅ done → PR #300 |
 | 26 | Diálogo de reporte colgado si falla la recarga de bloqueados tras reportar (regresión de #299) | frontend | release-blockers | ⏳ |
 | 27 | Toast de 400px cortado en móviles de 360px | frontend | release-blockers | ⏳ |
 | 28 | Tras bloquear, el corazón sigue marcado y el perfil sigue en la búsqueda ya cargada | frontend | release-blockers | ⏳ |
@@ -96,8 +96,8 @@ fecha: 2026-09-10
 8. ✅ **feat/user-block** → PR #295 (mergeado).
 9. ✅ **feat/reports** → PR #296 (mergeado).
 10. ✅ **fix/profile-actions-ux** → PR #299. Bugs visuales reportados tras la release v1.4.0.
-11. ⏳ **fix/prod-critical** — #22–#25. RAMA ACTUAL.
-12. ⏳ **fix/release-blockers** — #26–#31.
+11. ✅ **fix/prod-critical** → PR #300. #22–#25.
+12. ⏳ **fix/release-blockers** — #26–#31. RAMA SIGUIENTE.
 13. ⏳ **fix/backend-integrity** — #32–#39.
 14. ⏳ **fix/frontend-state** — #40–#45.
 15. ⏳ **fix/ux-a11y** — #46–#51.
