@@ -89,6 +89,13 @@ export class ProfileSearchService {
     this.filters.set({});
   }
 
+  removeProfile(profileId: number): void {
+    const index = this.profiles().findIndex((p) => p.id === profileId);
+    if (index === -1) return;
+    this.profiles.update((list) => list.filter((p) => p.id !== profileId));
+    if (index < this.deckIndex()) this.deckIndex.update((i) => i - 1);
+  }
+
   retry(): void {
     void this.resetAndLoad();
   }

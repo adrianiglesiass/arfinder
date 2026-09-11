@@ -4,6 +4,8 @@ import { BlockApiService } from '@infrastructure/api/block/block.api.service';
 
 import type { ProfileSummary } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { FavoritesService } from '@core/favorites/favorites.service';
+import { ProfileSearchService } from '@core/profile-search/profile-search.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +13,8 @@ import { AuthService } from '@core/auth/auth.service';
 export class BlockService {
   private readonly api = inject(BlockApiService);
   private readonly auth = inject(AuthService);
+  private readonly favorites = inject(FavoritesService);
+  private readonly search = inject(ProfileSearchService);
 
   readonly blockedIds = signal<ReadonlySet<number>>(new Set());
   readonly profiles = signal<ProfileSummary[]>([]);
@@ -57,6 +61,7 @@ export class BlockService {
     try {
       if (wasBlocked) await this.api.unblock(profileId);
       else await this.api.block(profileId);
+      void this.syncAfterBlockChange(profileId, !wasBlocked);
       return true;
     } catch {
       this.applyBlock(profileId, wasBlocked);
@@ -67,6 +72,11 @@ export class BlockService {
       }
       return false;
     }
+  }
+
+  async syncAfterBlockChange(profileId: number, blocked: boolean): Promise<void> {
+    if (blocked) this.search.removeProfile(profileId);
+    await this.favorites.refresh().catch(() => undefined);
   }
 
   private bootstrap(): Promise<void> {
