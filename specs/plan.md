@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-plan
-estado: done
+estado: in-progress
 stack: ambos
 fecha: 2026-09-10
 ---
@@ -52,6 +52,38 @@ fecha: 2026-09-10
 | 19 | La tarjeta pierde el hover al ir al corazón; en el deck el corazón inicia un arrastre | frontend | profile-actions-ux | ✅ done → PR #299 |
 | 20 | No se puede marcar favorito desde el detalle de perfil | frontend | profile-actions-ux | ✅ done → PR #299 |
 | 21 | Corazón con visitante anónimo: toggle optimista y revert silencioso por 401 | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 22 | Rate limit **global** para todo el sitio (un solo bucket) y clave de IP falsificable por `X-Forwarded-For` | backend | prod-critical | ⏳ |
+| 23 | Mensajes que superan 8000 bytes en `pg_notify` (emojis, comillas) se pierden con un 500 | backend | prod-critical | ⏳ |
+| 24 | El WebSocket retiene una conexión del pool toda su vida; `get_current_user` bloquea el event loop | backend | prod-critical | ⏳ |
+| 25 | Un fallo transitorio al refrescar el token (red, 5xx) cierra la sesión para siempre | frontend | prod-critical | ⏳ |
+| 26 | Diálogo de reporte colgado si falla la recarga de bloqueados tras reportar (regresión de #299) | frontend | release-blockers | ⏳ |
+| 27 | Toast de 400px cortado en móviles de 360px | frontend | release-blockers | ⏳ |
+| 28 | Tras bloquear, el corazón sigue marcado y el perfil sigue en la búsqueda ya cargada | frontend | release-blockers | ⏳ |
+| 29 | `profile-detail` sin tests de la orquestación de bloqueo y reporte (la spec afirmaba lo contrario) | frontend | release-blockers | ⏳ |
+| 30 | El detalle no reinicia su estado al cambiar de `:id` (diálogo abierto reporta al perfil nuevo) | frontend | release-blockers | ⏳ |
+| 31 | El banner de la PWA tapa la barra de acciones móvil (misma posición y z-index) | frontend | release-blockers | ⏳ |
+| 32 | `name`/`city` de 101–150 caracteres dan 500 (schema 150, columna 100) | backend | backend-integrity | ⏳ |
+| 33 | `PATCH /profiles/me` con `null` en campos obligatorios da 500 | backend | backend-integrity | ⏳ |
+| 34 | La exclusión por bloqueo en búsqueda y favoritos se corta en 200 usuarios | backend | backend-integrity | ⏳ |
+| 35 | Reportar no es atómico: si falla el bloqueo, el reintento da 409 y nunca se bloquea | backend | backend-integrity | ⏳ |
+| 36 | Tras borrar la cuenta, la caché de tokens (120 s) recrea el usuario local | backend | backend-integrity | ⏳ |
+| 37 | Subida de fotos sin tope de tamaño previo al buffer ni de número de fotos | backend | backend-integrity | ⏳ |
+| 38 | Crear conversación, bloquear, reportar y favorito sin rate limit | backend | backend-integrity | ⏳ |
+| 39 | `GET /profiles/me/photos` captura `HTTPException` en vez de `ProfileNotFoundError` | backend | backend-integrity | ⏳ |
+| 40 | Los filtros de Explorar se pierden al abrir un perfil; el deck vuelve a la tarjeta 1 | frontend | frontend-state | ⏳ |
+| 41 | La búsqueda cacheada no reacciona al login/logout (tu propio perfil aparece) | frontend | frontend-state | ⏳ |
+| 42 | Las fotos subidas en `/perfil` no aparecen hasta recargar | frontend | frontend-state | ⏳ |
+| 43 | Carreras en toggles optimistas (refresh vs toggle, doble toque) y favorito imposible tras desbloquear | frontend | frontend-state | ⏳ |
+| 44 | Mensajes: `ngOnInit` sigue tras destruirse; un envío en vuelo se cuela en otra conversación | frontend | frontend-state | ⏳ |
+| 45 | Errores silenciados que se muestran como estado vacío o "fin de resultados" | frontend | frontend-state | ⏳ |
+| 46 | Diálogos sin gestión de foco ni Escape; diálogo de reporte sin pie fijo | frontend | ux-a11y | ⏳ |
+| 47 | El código OTP desborda a 360px | frontend | ux-a11y | ⏳ |
+| 48 | Doble envío en el último paso del onboarding | frontend | ux-a11y | ⏳ |
+| 49 | Editar perfil: errores de validación invisibles, cambios perdidos sin aviso, borrar foto sin confirmar | frontend | ux-a11y | ⏳ |
+| 50 | Accesibilidad: botón de enviar sin nombre, filtros sin label, foco visible eliminado, deck anidado | frontend | ux-a11y | ⏳ |
+| 51 | Textos y consistencia visual (mayúsculas, clases de tema inexistentes, color fijo) | frontend | ux-a11y | ⏳ |
+| F6 | El bloqueo corta el chat y el acceso al perfil (hoy el bloqueado puede seguir escribiendo) | frontend+backend | feature | ⏳ |
+| 52 | Filtro de presupuesto invertido para quien ofrece habitación | frontend+backend | budget-filter | ⏳ |
 
 ## Fases (orden de ejecución)
 1. ✅ **fix/critical-issues** → PR #288 (mergeado).
@@ -64,20 +96,29 @@ fecha: 2026-09-10
 8. ✅ **feat/user-block** → PR #295 (mergeado).
 9. ✅ **feat/reports** → PR #296 (mergeado).
 10. ✅ **fix/profile-actions-ux** → PR #299. Bugs visuales reportados tras la release v1.4.0.
+11. ⏳ **fix/prod-critical** — #22–#25. RAMA ACTUAL.
+12. ⏳ **fix/release-blockers** — #26–#31.
+13. ⏳ **fix/backend-integrity** — #32–#39.
+14. ⏳ **fix/frontend-state** — #40–#45.
+15. ⏳ **fix/ux-a11y** — #46–#51.
+16. ⏳ **feat/block-cuts-messaging** — F6.
+17. ⏳ **fix/budget-filter-direction** — #52.
+18. ⏳ Release (merge commit con `--subject "release: vX.Y.Z"` + tag).
 
 ## Estado del backlog
-- Fases 1–10 cerradas. Release v1.4.0 en `main`; la fase 10 (#299) queda en `develop` para la
-  siguiente release.
-- Hallazgos #16–#21 resueltos en cuatro specs (`fix-profile-safety-actions`,
-  `fix-profile-detail-favorite`, `fix-blocked-page-mobile-access`, `fix-card-favorite-hover-jank`).
-  **Verificación visual incompleta**: el diálogo de reporte a 360×640, el flujo de bloqueo con toast
-  y la entrada "Bloqueados" del menú del avatar en móvil no se comprobaron en navegador. Revisarlos
-  a mano antes de la próxima release.
-- Candidatos fuera de alcance: panel de moderación de reportes, gating de mensajería para
-  bloqueados, `<app-navbar>` / `navbar-links` (no se renderizan en ningún sitio: código muerto), y el
-  parámetro `redirect` que envían "Enviar mensaje" y el corazón al ir a login, que nadie lee.
-- Próxima release: `gh pr merge <n> --merge --subject "release: vX.Y.Z"` para conservar el formato
-  del historial de `main` (la v1.4.0 quedó con el mensaje por defecto de GitHub).
+- Release v1.4.0 en `main`. Antes de la siguiente, una auditoría con cinco agentes (code-reviewer,
+  ui-ux-reviewer, backend, frontend y producto) dejó la PR #299 **BLOQUEADA** y encontró bugs
+  graves ya en producción: hallazgos #22–#52, repartidos en las fases 11–17. Criterio del usuario:
+  arreglar **todos los bugs confirmados** antes de subir a `main`.
+- Cada hallazgo marcado "reportado" se verifica al escribir su spec; si no se reproduce leyendo el
+  código, se descarta y se deja constancia en la spec de su fase.
+- **Revisión obligatoria antes de cada PR** (SDD fase 6): agente con las instrucciones de
+  `.opencode/agent/code-reviewer.md`, y `ui-ux-reviewer.md` si toca UI. La PR #299 se saltó este paso.
+- Features fuera de esta tanda, por orden: pausar perfil, notificaciones push de mensajes, deck con
+  memoria (descartar / me interesa / interés mutuo), moderación con rol de admin, actividad reciente,
+  alertas de búsqueda guardada.
+- Candidatos técnicos: `<app-navbar>` / `navbar-links` (código muerto) y el parámetro `redirect` al
+  ir a login, que nadie lee.
 
 ## Entorno local (LEER antes de verificar)
 - Postgres de dev en 5432 y de test en 5433 (`docker compose up -d db-test` desde `backend/`).
