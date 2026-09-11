@@ -1,4 +1,5 @@
 from fastapi import Depends
+from fastapi.concurrency import run_in_threadpool
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -22,7 +23,7 @@ async def get_current_user(
     if not session or not session.user:
         raise InvalidCredentialsError()
 
-    return get_or_create_local_user(db, session.user)
+    return await run_in_threadpool(get_or_create_local_user, db, session.user)
 
 
 async def get_current_user_optional(
@@ -36,4 +37,4 @@ async def get_current_user_optional(
     if not session or not session.user:
         return None
 
-    return get_or_create_local_user(db, session.user)
+    return await run_in_threadpool(get_or_create_local_user, db, session.user)
