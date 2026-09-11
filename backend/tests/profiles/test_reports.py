@@ -117,3 +117,60 @@ def test_report_detail_too_long_returns_422(client, auth_headers, other_profile)
 def test_report_requires_auth(client, other_profile):
     res = client.post(f"/profiles/{other_profile.id}/report", json={"reason": "spam"})
     assert res.status_code == 401
+
+
+def _reporter_and_target(db, create_test_user):
+    reporter = create_test_user(email="rep@test.com")
+    target = create_test_user(email="tgt@test.com")
+    return reporter, _make_profile(db, target.id, "Objetivo", "Madrid")
+
+
+def test_block_failure_leaves_no_report_so_retry_works(
+    db, create_test_user, monkeypatch
+):
+    from app.repositories import block_repository, report_repository
+    from app.schemas.report import ReportCreate
+    from app.services import block_service, report_service
+
+    reporter, target_profile = _reporter_and_target(db, create_test_user)
+    payload = ReportCreate(reason="harassment")
+    real_block = block_service.block_profile
+
+    def failing_block(*args, **kwargs):
+        raise RuntimeError("fallo de BD")
+
+    monkeypatch.setattr(block_service, "block_profile", failing_block)
+    with pytest.raises(RuntimeError):
+        report_service.report_profile(db, reporter.id, target_profile.id, payload)
+    assert not report_repository.exists(db, reporter.id, target_profile.user_id)
+
+    monkeypatch.setattr(block_service, "block_profile", real_block)
+    report_service.report_profile(db, reporter.id, target_profile.id, payload)
+
+    assert report_repository.exists(db, reporter.id, target_profile.user_id)
+    assert block_repository.is_blocked(db, reporter.id, target_profile.user_id)
+
+
+def test_report_failure_after_block_is_recoverable_on_retry(
+    db, create_test_user, monkeypatch
+):
+    from app.repositories import block_repository, report_repository
+    from app.schemas.report import ReportCreate
+    from app.services import report_service
+
+    reporter, target_profile = _reporter_and_target(db, create_test_user)
+    payload = ReportCreate(reason="spam")
+    real_add = report_repository.add
+
+    def failing_add(*args, **kwargs):
+        raise RuntimeError("fallo de BD")
+
+    monkeypatch.setattr(report_repository, "add", failing_add)
+    with pytest.raises(RuntimeError):
+        report_service.report_profile(db, reporter.id, target_profile.id, payload)
+    assert block_repository.is_blocked(db, reporter.id, target_profile.user_id)
+
+    monkeypatch.setattr(report_repository, "add", real_add)
+    report_service.report_profile(db, reporter.id, target_profile.id, payload)
+
+    assert report_repository.exists(db, reporter.id, target_profile.user_id)

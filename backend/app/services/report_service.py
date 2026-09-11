@@ -15,6 +15,11 @@ def report_profile(
     if reported_user_id == current_user_id:
         raise ReportSelfError()
 
+    try:
+        block_service.block_profile(db, current_user_id, profile_id)
+    except BlockAlreadyExistsError:
+        pass
+
     report_repository.add(
         db,
         current_user_id,
@@ -22,8 +27,3 @@ def report_profile(
         payload.reason.value,
         payload.detail,
     )
-
-    try:
-        block_service.block_profile(db, current_user_id, profile_id)
-    except BlockAlreadyExistsError:
-        pass
