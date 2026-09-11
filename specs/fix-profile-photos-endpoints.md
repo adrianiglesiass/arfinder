@@ -1,7 +1,7 @@
 ---
 tag: SPECS/2026-09-fix-profile-photos-endpoints
-estado: approved
-stack: backend
+estado: done
+stack: ambos
 fecha: 2026-09-11
 ---
 
@@ -55,8 +55,23 @@ el event loop, y listar fotos sin perfil no devuelve lo que se pretendía.
   `GET /me/photos` sin perfil devuelve `[]`.
 
 ## Checklist de verificación
-- [ ] Backend: `ruff check .`
-- [ ] Backend: `ruff format --check .`
-- [ ] Backend: `pytest`
+- [x] Backend: `ruff check .`
+- [x] Backend: `ruff format --check .`
+- [x] Backend: `pytest`
 
 ## Resultado
+Revisión (SDD fase 6): agente con las instrucciones de `.opencode/agent/code-reviewer.md` → **APROBADO CON CAMBIOS MENORES**, sin bloqueantes. Cambios aplicados tras ella:
+- **413 real con cuerpos por trozos:** en la ruta real FastAPI parsea el formulario dentro de un `try` que
+  convierte cualquier excepción en un 400. `_BodyTooLarge` pasa a heredar de `HTTPException(413)`, que
+  FastAPI deja pasar. El test ahora usa una ruta con `UploadFile`, que es la que lo detecta.
+- Test del camino de carrera: con 5 fotos, una subida concurrente completa la sexta mientras se sube otra;
+  el chequeo bajo el lock salta, se devuelve 409 y la imagen huérfana se borra de Cloudinary.
+- La ruta documenta el 409 (`CONFLICT` de `app/core/openapi.py`).
+- Textos en español para `PHOTO_LIMIT_REACHED` y `PAYLOAD_TOO_LARGE` en
+  `frontend/src/app/core/errors/error-messages.ts`.
+
+- `app/core/body_limit.py` registrado en `app/main.py` **antes** que CORS, para que el 413 lleve
+  cabeceras CORS.
+- Tope de 6 fotos: pre-chequeo antes de Cloudinary y chequeo exacto bajo el `pg_advisory_xact_lock` del
+  perfil en `create_profile_photo(max_photos=...)`.
+- Tests: `tests/core/test_body_limit.py` (5) y `tests/profiles/test_photo_limits.py` (5).

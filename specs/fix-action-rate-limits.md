@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-action-rate-limits
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-11
 ---
@@ -43,8 +43,16 @@ reportes y favoritos en masa.
   otro (con `ENVIRONMENT` distinto de `testing` durante el test).
 
 ## Checklist de verificación
-- [ ] Backend: `ruff check .`
-- [ ] Backend: `ruff format --check .`
-- [ ] Backend: `pytest`
+- [x] Backend: `ruff check .`
+- [x] Backend: `ruff format --check .`
+- [x] Backend: `pytest`
 
 ## Resultado
+Revisión (SDD fase 6): agente con las instrucciones de `.opencode/agent/code-reviewer.md` → **APROBADO CON CAMBIOS MENORES**, sin bloqueantes. Cambio aplicado tras ella: **dos contadores
+separados** en lugar de uno compartido. Con uno solo, marcar y desmarcar favoritos deprisa agotaba el
+límite y dejaba sin poder bloquear o reportar, que son justo las acciones de seguridad.
+
+- `action_rate_limiter` (30/min por usuario): `POST /conversations` y favoritos.
+- `safety_rate_limiter` (20/min por usuario): bloquear, desbloquear y reportar.
+- Tests en `tests/core/test_rate_limit.py`: las 6 rutas devuelven 429 al superar el límite, el límite es
+  por usuario, y el spam de favoritos no afecta a bloquear.

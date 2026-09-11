@@ -115,6 +115,7 @@ def strict_actions(monkeypatch):
 
     monkeypatch.setattr(settings, "ENVIRONMENT", "production")
     monkeypatch.setattr(rate_limit, "action_limiter", SlidingWindowLimiter(2))
+    monkeypatch.setattr(rate_limit, "safety_limiter", SlidingWindowLimiter(2))
 
 
 @pytest.mark.parametrize("method,path,body", ACTION_ROUTES)
@@ -139,5 +140,16 @@ def test_action_limit_is_per_user(
         client.post("/profiles/999999/block", headers=auth_headers)
 
     res = client.post("/profiles/999999/block", headers=other_headers)
+
+    assert res.status_code == 404
+
+
+def test_favorite_spam_does_not_block_safety_actions(
+    client, auth_headers, strict_actions
+):
+    for _ in range(3):
+        client.post("/profiles/999999/favorite", headers=auth_headers)
+
+    res = client.post("/profiles/999999/block", headers=auth_headers)
 
     assert res.status_code == 404

@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-block-exclusion-limit
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-11
 ---
@@ -38,8 +38,14 @@ búsqueda a las más antiguas. La exclusión bidireccional que promete F4 se rom
   sigue limitado.
 
 ## Checklist de verificación
-- [ ] Backend: `ruff check .`
-- [ ] Backend: `ruff format --check .`
-- [ ] Backend: `pytest`
+- [x] Backend: `ruff check .`
+- [x] Backend: `ruff format --check .`
+- [x] Backend: `pytest`
 
 ## Resultado
+Revisión (SDD fase 6): agente con las instrucciones de `.opencode/agent/code-reviewer.md` → **APROBADO CON CAMBIOS MENORES**, sin bloqueantes.
+
+- `limit: int | None` en `list_blocked_user_ids` y `list_blocker_user_ids`; `excluded_user_ids` pide
+  `limit=None`. El listado de `/profiles/me/blocked` conserva sus 200.
+- Tests en `tests/profiles/test_blocks.py`: con 201 bloqueos la exclusión los contiene todos
+  (**con el servicio anterior: `assert 200 == 201`**) y el listado sigue en 200.

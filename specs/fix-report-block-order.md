@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-report-block-order
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-11
 ---
@@ -42,8 +42,18 @@ acción que usa alguien que se siente acosado.
   falla el guardado del reporte tras bloquear, el reintento lo guarda.
 
 ## Checklist de verificación
-- [ ] Backend: `ruff check .`
-- [ ] Backend: `ruff format --check .`
-- [ ] Backend: `pytest`
+- [x] Backend: `ruff check .`
+- [x] Backend: `ruff format --check .`
+- [x] Backend: `pytest`
 
 ## Resultado
+Revisión (SDD fase 6): agente con las instrucciones de `.opencode/agent/code-reviewer.md` → **APROBADO CON CAMBIOS MENORES**, sin bloqueantes. Cambio aplicado tras ella: se comprueba si el
+reporte ya existe **antes** de bloquear. Sin eso, el orden nuevo introducía un efecto no pedido: si A
+reportaba a B, lo desbloqueaba y lo reportaba otra vez, B volvía a quedar bloqueado en silencio y la
+respuesta seguía siendo 409, con la interfaz mostrándolo desbloqueado.
+
+- `report_service.report_profile`: comprueba el duplicado, bloquea (absorbiendo
+  `BlockAlreadyExistsError`) y después guarda el reporte.
+- Tests en `tests/profiles/test_reports.py`: si falla el bloqueo no queda reporte y el reintento funciona;
+  si falla el guardado tras bloquear, el reintento lo guarda (**los dos fallan con el orden anterior**);
+  y un reporte duplicado no vuelve a bloquear.

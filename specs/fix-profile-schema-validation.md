@@ -1,7 +1,7 @@
 ---
 tag: SPECS/2026-09-fix-profile-schema-validation
-estado: approved
-stack: backend
+estado: done
+stack: ambos
 fecha: 2026-09-11
 ---
 
@@ -38,15 +38,30 @@ seis campos, provocan un error de la BD y un 500, en lugar de un 422 con un mens
 
 ## Decisión técnica
 - Alinear el schema con la columna, y no al revés: no hay datos que justifiquen ampliar la columna y
-  evita una migración. El frontend no permite más de 100 en esos campos.
+  evita una migración. (Corrección tras la revisión: el frontend **no** limita estos campos, no hay
+  ningún `maxlength` en los formularios. Con este cambio el usuario recibe un 422 con mensaje en vez de
+  un 500; añadir `maxlength="100"` en los inputs queda para `fix/ux-a11y`, #49.)
 
 ## Plan de tests
 - `tests/profiles/test_profile_validation.py` (nuevo): 101 caracteres en `name` y `city` dan 422 en
   create y update; `null` en cada uno de los seis campos da 422; `null` en `bio` se acepta.
 
 ## Checklist de verificación
-- [ ] Backend: `ruff check .`
-- [ ] Backend: `ruff format --check .`
-- [ ] Backend: `pytest`
+- [x] Backend: `ruff check .`
+- [x] Backend: `ruff format --check .`
+- [x] Backend: `pytest`
 
 ## Resultado
+Revisión (SDD fase 6): agente con las instrucciones de `.opencode/agent/code-reviewer.md` → **APROBADO CON CAMBIOS MENORES**, sin bloqueantes. Cambio de enfoque aplicado tras ella: en vez de
+un validador que rechaza `null`, los seis campos se declaran **no opcionales con valor por defecto**
+(`name: str = Field(None, max_length=100)`, `has_pets: bool = None`, etc.). Pydantic no valida el valor
+por defecto, así que omitir el campo sigue significando "no cambiar", y un `null` explícito falla por
+tipo. La ventaja es que el contrato OpenAPI, y por tanto `api.types.ts`, deja de decir que esos campos
+admiten `null`.
+
+- `name` y `city` a `max_length=100` en `ProfileCreate` y `ProfileUpdate`.
+- `frontend/src/app/core/api/api.types.ts` regenerado: los seis campos de `ProfileUpdate` pierden
+  `| null`. El frontend compila sin cambios, porque ya no enviaba `null` en ellos (lo confirmó la revisión
+  en `profile-edit.ts`).
+- `tests/profiles/test_profile_validation.py` (nuevo): 14 tests. **Contra el schema anterior fallan
+  exactamente los 10 que apuntan a los bugs** (4 de longitud y 6 de `null`).

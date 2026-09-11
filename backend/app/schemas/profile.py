@@ -39,25 +39,18 @@ class ProfileCreate(BaseModel):
 class ProfileUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    name: Optional[str] = Field(None, max_length=100)
-    age: Optional[int] = Field(None, ge=18, le=120)
-    city: Optional[str] = Field(None, max_length=100)
+    name: str = Field(None, max_length=100)
+    age: int = Field(None, ge=18, le=120)
+    city: str = Field(None, max_length=100)
     bio: Optional[str] = Field(None, max_length=2000)
     max_budget: Optional[int] = Field(None, ge=0, le=1000000)
-    has_pets: Optional[bool] = None
-    is_smoker: Optional[bool] = None
+    has_pets: bool = None
+    is_smoker: bool = None
     schedule: Optional[ScheduleEnum] = None
     gender: Optional[str] = Field(None, max_length=50)
     available_from: Optional[date] = None
-    type: Optional[TypeEnum] = None
+    type: TypeEnum = None
     room_description: Optional[str] = Field(None, max_length=3000)
-
-    @field_validator("name", "age", "city", "has_pets", "is_smoker", "type")
-    @classmethod
-    def reject_explicit_null(cls, value):
-        if value is None:
-            raise ValueError("no puede estar vacío")
-        return value
 
 
 class ProfilePhotoResponse(BaseModel):

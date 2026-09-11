@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.testclient import TestClient
 
 from app.core.body_limit import BodySizeLimitMiddleware
@@ -9,12 +9,18 @@ LIMIT = 1024
 def _client() -> TestClient:
     app = FastAPI()
     app.add_middleware(
-        BodySizeLimitMiddleware, max_bytes=LIMIT, routes={("POST", "/upload")}
+        BodySizeLimitMiddleware,
+        max_bytes=LIMIT,
+        routes={("POST", "/upload"), ("POST", "/photo")},
     )
 
     @app.post("/upload")
     async def upload(request: Request):
         return {"size": len(await request.body())}
+
+    @app.post("/photo")
+    async def photo(file: UploadFile = File(...)):
+        return {"name": file.filename}
 
     @app.post("/other")
     async def other(request: Request):
@@ -51,3 +57,28 @@ def test_other_routes_are_not_limited():
     res = _client().post("/other", content=b"x" * (LIMIT * 4))
 
     assert res.status_code == 200
+
+
+def test_streamed_multipart_over_the_limit_returns_413_not_400():
+    boundary = "limite"
+    crlf = "\r\n"
+    head = (
+        f"--{boundary}{crlf}"
+        f'Content-Disposition: form-data; name="file"; filename="a.png"{crlf}'
+        f"Content-Type: image/png{crlf}{crlf}"
+    ).encode()
+    tail = f"{crlf}--{boundary}--{crlf}".encode()
+
+    def chunks():
+        yield head
+        for _ in range(4):
+            yield b"x" * 512
+        yield tail
+
+    res = _client().post(
+        "/photo",
+        content=chunks(),
+        headers={"content-type": f"multipart/form-data; boundary={boundary}"},
+    )
+
+    assert res.status_code == 413

@@ -92,3 +92,34 @@ def test_listing_photos_without_a_profile_returns_empty(client, auth_headers):
 
     assert res.status_code == 200
     assert res.json() == []
+
+
+def test_limit_hit_after_uploading_removes_the_orphan_image(
+    client, db, auth_headers, my_profile, monkeypatch
+):
+    _fill(db, my_profile, profile_photo_service.MAX_PHOTOS_PER_PROFILE - 1)
+    deleted = []
+
+    async def upload_while_another_finishes(file, user_id):
+        profile_photo_repository.create_profile_photo(
+            db, my_profile.id, "https://cdn/concurrent.jpg"
+        )
+        return "https://cdn/orphan.jpg"
+
+    monkeypatch.setattr(
+        profile_photo_service, "upload_image", upload_while_another_finishes
+    )
+    monkeypatch.setattr(profile_photo_service, "delete_image", deleted.append)
+
+    res = client.post(
+        "/profiles/me/photos",
+        headers=auth_headers,
+        files={"file": ("foto.png", PNG, "image/png")},
+    )
+
+    assert res.status_code == 409
+    assert deleted == ["https://cdn/orphan.jpg"]
+    assert (
+        profile_photo_repository.count_photos(db, my_profile.id)
+        == profile_photo_service.MAX_PHOTOS_PER_PROFILE
+    )

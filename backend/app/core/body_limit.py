@@ -1,12 +1,19 @@
 import json
 
+from fastapi import HTTPException, status
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 PHOTO_UPLOAD_MAX_BYTES = 11 * 1024 * 1024
+TOO_LARGE_CODE = "PAYLOAD_TOO_LARGE"
+TOO_LARGE_DETAIL = "El archivo supera el tamaño máximo permitido"
 
 
-class _BodyTooLarge(Exception):
-    pass
+class _BodyTooLarge(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail=TOO_LARGE_DETAIL,
+        )
 
 
 class BodySizeLimitMiddleware:
@@ -59,12 +66,9 @@ class BodySizeLimitMiddleware:
                 await self._reject(send)
 
     async def _reject(self, send: Send) -> None:
-        body = json.dumps(
-            {
-                "code": "PAYLOAD_TOO_LARGE",
-                "detail": "El archivo supera el tamaño máximo permitido",
-            }
-        ).encode("utf-8")
+        body = json.dumps({"code": TOO_LARGE_CODE, "detail": TOO_LARGE_DETAIL}).encode(
+            "utf-8"
+        )
         await send(
             {
                 "type": "http.response.start",

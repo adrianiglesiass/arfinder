@@ -2,13 +2,13 @@ from typing import List, Optional
 from datetime import date
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
 from app.core.file_validation import validate_image_header
-from app.core.rate_limit import action_rate_limiter, rate_limiter
+from app.core.rate_limit import action_rate_limiter, rate_limiter, safety_rate_limiter
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, get_current_user_optional
 from app.core.exceptions.profile import ProfileNotFoundError
-from app.core.openapi import NOT_FOUND, PROTECTED, UNAUTH, BAD_REQUEST
+from app.core.openapi import BAD_REQUEST, CONFLICT, NOT_FOUND, PROTECTED, UNAUTH
 from app.db.database import get_db
 from app.core.route_utils import parse_age_param, parse_bool_param
 from app.models.profile import ScheduleEnum, TypeEnum
@@ -150,7 +150,7 @@ def get_my_blocked(
 @router.post(
     "/{profile_id}/block",
     status_code=204,
-    dependencies=[Depends(action_rate_limiter)],
+    dependencies=[Depends(safety_rate_limiter)],
     responses={
         **PROTECTED,
         **NOT_FOUND,
@@ -169,7 +169,7 @@ def block_profile(
 @router.delete(
     "/{profile_id}/block",
     status_code=204,
-    dependencies=[Depends(action_rate_limiter)],
+    dependencies=[Depends(safety_rate_limiter)],
     responses={**PROTECTED, **NOT_FOUND},
 )
 def unblock_profile(
@@ -183,7 +183,7 @@ def unblock_profile(
 @router.post(
     "/{profile_id}/report",
     status_code=204,
-    dependencies=[Depends(action_rate_limiter)],
+    dependencies=[Depends(safety_rate_limiter)],
     responses={
         **PROTECTED,
         **NOT_FOUND,
@@ -232,7 +232,7 @@ def update_my_profile(
     "/me/photos",
     response_model=ProfilePhotoResponse,
     dependencies=[Depends(rate_limiter)],
-    responses={**PROTECTED, 413: {"description": "File too large"}},
+    responses={**PROTECTED, **CONFLICT, 413: {"description": "File too large"}},
 )
 async def upload_profile_photo(
     file: UploadFile = File(...),

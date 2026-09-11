@@ -174,3 +174,22 @@ def test_report_failure_after_block_is_recoverable_on_retry(
     report_service.report_profile(db, reporter.id, target_profile.id, payload)
 
     assert report_repository.exists(db, reporter.id, target_profile.user_id)
+
+
+def test_duplicate_report_does_not_block_again(client, auth_headers, other_profile):
+    client.post(
+        f"/profiles/{other_profile.id}/report",
+        headers=auth_headers,
+        json={"reason": "spam"},
+    )
+    client.delete(f"/profiles/{other_profile.id}/block", headers=auth_headers)
+
+    res = client.post(
+        f"/profiles/{other_profile.id}/report",
+        headers=auth_headers,
+        json={"reason": "spam"},
+    )
+
+    assert res.status_code == 409
+    blocked = client.get("/profiles/me/blocked", headers=auth_headers).json()
+    assert blocked == []

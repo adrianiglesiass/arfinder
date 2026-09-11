@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-fix-account-deletion-session-cache
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-09-11
 ---
@@ -44,8 +44,16 @@ pestaña o dispositivo.
   deja las de otros; `delete_user` la invoca con el `insforge_id` del usuario.
 
 ## Checklist de verificación
-- [ ] Backend: `ruff check .`
-- [ ] Backend: `ruff format --check .`
-- [ ] Backend: `pytest`
+- [x] Backend: `ruff check .`
+- [x] Backend: `ruff format --check .`
+- [x] Backend: `pytest`
 
 ## Resultado
+Revisión (SDD fase 6): agente con las instrucciones de `.opencode/agent/code-reviewer.md` → **APROBADO CON CAMBIOS MENORES**, sin bloqueantes. Queda documentada una ventana de carrera
+mínima que la revisión calificó de *nicety*: una validación que ya estaba en curso contra InsForge antes
+del borrado podría volver a cachear la sesión justo después de purgarla. Cerrarla exigiría mantener una
+lista temporal de usuarios borrados; no se hace en este cambio.
+
+- `security.forget_user_sessions(insforge_user_id)` purga todas las sesiones del usuario, comparando ids
+  como `str`; `auth_service.delete_user` la llama tras borrar en InsForge y antes de borrar en local.
+- `tests/auth/test_session_cache.py` (nuevo): 3 tests.
