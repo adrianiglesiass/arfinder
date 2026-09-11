@@ -13,6 +13,7 @@ from app.routes.messages import router as messages_router
 from app.routes.profile import router as profile_router
 from app.routes.cities import router as cities_router
 from app.routes.realtime import router as realtime_router
+from app.core.body_limit import PHOTO_UPLOAD_MAX_BYTES, BodySizeLimitMiddleware
 
 
 @asynccontextmanager
@@ -34,6 +35,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(
+    BodySizeLimitMiddleware,
+    max_bytes=PHOTO_UPLOAD_MAX_BYTES,
+    routes={("POST", "/profiles/me/photos")},
+)
 app.add_middleware(GZipMiddleware, minimum_size=500)
 app.add_middleware(
     CORSMiddleware,
