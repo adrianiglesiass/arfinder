@@ -26,6 +26,7 @@ import { ErrorService } from '@core/errors';
 import { ProfileService } from '@core/profile/profile.service';
 
 import { Button } from '@shared/components/button/button';
+import { EmptyState } from '@shared/components/empty-state/empty-state';
 import { MobileActionBar } from '@shared/components/mobile-action-bar/mobile-action-bar';
 import { StepLifestyle } from '@shared/components/profile-form/step-lifestyle/step-lifestyle';
 import { StepObjective } from '@shared/components/profile-form/step-objective/step-objective';
@@ -70,6 +71,7 @@ interface Section {
     PhotosEditor,
     DangerZone,
     EditSection,
+    EmptyState,
   ],
   providers: [MessageService],
   templateUrl: './profile-edit.html',
@@ -82,6 +84,7 @@ export default class ProfileEdit implements OnInit {
   private readonly errorService = inject(ErrorService);
 
   readonly isLoading = signal(true);
+  readonly loadError = signal(false);
   readonly isSaving = signal(false);
   readonly showErrors = signal(false);
   readonly activeSection = signal<Section['id']>('photos');
@@ -145,6 +148,15 @@ export default class ProfileEdit implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    await this.load();
+  }
+
+  protected retryLoad(): void {
+    void this.load();
+  }
+
+  private async load(): Promise<void> {
+    this.loadError.set(false);
     try {
       const fresh = await this.profileService.loadProfile();
       if (!this.isDirty()) {
@@ -157,6 +169,7 @@ export default class ProfileEdit implements OnInit {
         this.router.navigate([ROUTES.WELCOME]);
         return;
       }
+      if (!this.profile()) this.loadError.set(true);
     } finally {
       if (this.profile()) this.isLoading.set(false);
     }

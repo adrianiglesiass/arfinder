@@ -51,6 +51,9 @@ export default class Messages implements OnInit {
   private readonly composer = viewChild(MessageComposer);
 
   protected readonly exploreRoute = ROUTES.EXPLORE;
+  protected readonly chatError = signal(false);
+  protected readonly sendError = signal(false);
+  private destroyed = false;
 
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
@@ -58,6 +61,7 @@ export default class Messages implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly realtimeService = inject(RealtimeService);
   private readonly store = inject(ConversationStore);
+  protected readonly conversationsError = this.store.error;
   private readonly destroyRef = inject(DestroyRef);
 
   readonly conversations = this.store.conversations;
@@ -154,6 +158,7 @@ export default class Messages implements OnInit {
     this.registerCleanup();
 
     await this.store.refresh();
+    if (this.destroyed) return;
     this.isLoading.set(false);
 
     this.unsubMessage = this.realtimeService.addMessageHandler((convId, msg) =>
@@ -195,6 +200,7 @@ export default class Messages implements OnInit {
 
   private registerCleanup(): void {
     this.destroyRef.onDestroy(() => {
+      this.destroyed = true;
       this.unsubMessage?.();
       this.unsubRead?.();
       this.cleanupViewport?.();
@@ -317,6 +323,8 @@ export default class Messages implements OnInit {
     this.hasMoreMessages.set(false);
     this.isLoadingOlder.set(false);
     this.initialScrollDone.set(false);
+    this.chatError.set(false);
+    this.sendError.set(false);
     this.store.setActiveConversation(conv.id);
     this.location.go(`${ROUTES.MESSAGES}/${conv.id}`);
     void this.realtimeService.subscribeConversation(conv.id);
@@ -330,8 +338,17 @@ export default class Messages implements OnInit {
 
       this.scrollToBottomSettled(epoch);
     } catch {
-      /* empty */
+      if (epoch === this.selectionEpoch) this.chatError.set(true);
     }
+  }
+
+  protected retryConversations(): void {
+    void this.store.refresh();
+  }
+
+  protected retryChat(): void {
+    const conv = this.selectedConversation();
+    if (conv) void this.selectConversation(conv);
   }
 
   async loadOlderMessages(): Promise<void> {
@@ -382,6 +399,8 @@ export default class Messages implements OnInit {
     const meId = this.myUserId();
     if (!conv && !draft) return;
     if (meId == null) return;
+    const epoch = this.selectionEpoch;
+    this.sendError.set(false);
 
     const tempId = -(Date.now() + Math.floor(Math.random() * 1000));
     const optimistic: MessageResponse = {
@@ -404,6 +423,12 @@ export default class Messages implements OnInit {
         ? await this.conversationApi.sendMessage(conv.id, content)
         : await this.conversationApi.sendMessageToUser(draft!.user_id, content);
 
+      if (epoch !== this.selectionEpoch || this.destroyed) {
+        if (conv) this.store.upsertConversationPreview(conv.id, real);
+        else void this.store.refresh();
+        return;
+      }
+
       this.replaceOptimistic(tempId, real);
 
       if (conv) {
@@ -412,8 +437,10 @@ export default class Messages implements OnInit {
         await this.adoptNewConversation(real, draft!);
       }
     } catch {
+      if (epoch !== this.selectionEpoch || this.destroyed) return;
       this.removeOptimistic(tempId);
       this.newMessage.set(content);
+      this.sendError.set(true);
     }
   }
 
