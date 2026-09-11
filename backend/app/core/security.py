@@ -27,6 +27,23 @@ def _purge_expired_locked(now: float) -> None:
         _token_cache.pop(k, None)
 
 
+def _session_user_id(session: object) -> str | None:
+    user_id = getattr(getattr(session, "user", None), "id", None)
+    return str(user_id) if user_id is not None else None
+
+
+async def forget_user_sessions(insforge_user_id: str) -> None:
+    target = str(insforge_user_id)
+    async with _cache_lock:
+        stale = [
+            key
+            for key, (_, session) in _token_cache.items()
+            if _session_user_id(session) == target
+        ]
+        for key in stale:
+            _token_cache.pop(key, None)
+
+
 async def validate_insforge_token(token: str):
     if not token:
         return None
