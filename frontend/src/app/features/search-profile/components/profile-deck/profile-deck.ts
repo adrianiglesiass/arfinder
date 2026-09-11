@@ -49,6 +49,7 @@ export class ProfileDeck {
   }
 
   protected readonly total = computed(() => this.profiles().length);
+  protected readonly loadMoreError = this.search.loadMoreError;
   protected readonly position = computed(() => Math.min(this.index() + 1, this.total()));
   protected readonly remaining = computed(() => this.total() - this.index());
   protected readonly canGoBack = computed(() => this.index() > 0);
@@ -200,6 +201,10 @@ export class ProfileDeck {
 
   protected prefetch(p: ProfileSummary): void {
     this.profileService.prefetchProfileById(p.id);
+  }
+
+  protected retryLoadMore(): void {
+    this.search.retryLoadMore();
   }
 
   private maybeLoadMore(): void {

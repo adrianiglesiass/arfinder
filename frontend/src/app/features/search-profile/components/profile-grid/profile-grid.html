@@ -54,6 +54,16 @@
       <app-spinner />
       <span class="sr-only">Cargando más perfiles...</span>
     </div>
+  } @else if (loadMoreError()) {
+    <div class="flex flex-col items-center gap-3 py-8" role="alert">
+      <p class="text-center text-xs font-medium text-gray-500">
+        No se pudieron cargar más perfiles.
+      </p>
+      <app-button variant="secondary" size="sm" (click)="retryLoadMore()">
+        <i class="pi pi-refresh text-xs"></i>
+        Reintentar
+      </app-button>
+    </div>
   } @else if (!hasMore() && profiles().length > 8) {
     <p class="text-center text-xs font-medium text-gray-400 py-8">
       Has visto todos los perfiles disponibles

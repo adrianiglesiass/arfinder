@@ -29,6 +29,7 @@ export class ProfileGrid implements OnDestroy {
   protected readonly isLoading = this.search.isLoading;
   protected readonly isLoadingMore = this.search.isLoadingMore;
   protected readonly hasMore = this.search.hasMore;
+  protected readonly loadMoreError = this.search.loadMoreError;
   protected readonly error = this.search.error;
   protected readonly hasActiveFilters = this.search.hasActiveFilters;
 
@@ -56,6 +57,10 @@ export class ProfileGrid implements OnDestroy {
 
   ngOnDestroy(): void {
     this.observer?.disconnect();
+  }
+
+  protected retryLoadMore(): void {
+    this.search.retryLoadMore();
   }
 
   protected retry(): void {
