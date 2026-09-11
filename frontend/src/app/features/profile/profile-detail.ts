@@ -14,19 +14,23 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
-import type { ProfileResponse } from '@core/api/api.models';
+import type { ProfileResponse, ReportCreate } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { BlockService } from '@core/block/block.service';
 import { ROUTES } from '@core/constants/routes';
 import { ProfileService } from '@core/profile/profile.service';
+import { ReportService } from '@core/report/report.service';
 
 import { BackLink } from '@shared/components/back-link/back-link';
-import { BlockButton } from '@shared/components/block-button/block-button';
 import { Button } from '@shared/components/button/button';
+import { ConfirmDestructiveDialog } from '@shared/components/confirm-destructive-dialog/confirm-destructive-dialog';
+import { FavoriteButton } from '@shared/components/favorite-button/favorite-button';
 import { MobileActionBar } from '@shared/components/mobile-action-bar/mobile-action-bar';
-import { ReportButton } from '@shared/components/report-button/report-button';
+import { ReportDialog } from '@shared/components/report-dialog/report-dialog';
 import { Skeleton } from '@shared/components/skeleton/skeleton';
 
 import { PhotoGallery } from '@features/profile/components/photo-gallery/photo-gallery';
+import { ProfileActionsMenu } from '@features/profile/components/profile-actions-menu/profile-actions-menu';
 import { ProfileInfoBlock } from '@features/profile/components/profile-info-block/profile-info-block';
 
 @Component({
@@ -34,13 +38,15 @@ import { ProfileInfoBlock } from '@features/profile/components/profile-info-bloc
   imports: [
     ToastModule,
     BackLink,
-    BlockButton,
-    ReportButton,
     Button,
+    ConfirmDestructiveDialog,
+    FavoriteButton,
+    ReportDialog,
     MobileActionBar,
     Skeleton,
     PhotoGallery,
     ProfileInfoBlock,
+    ProfileActionsMenu,
   ],
   providers: [MessageService],
   templateUrl: './profile-detail.html',
@@ -53,6 +59,9 @@ export default class ProfileDetail {
   private readonly router = inject(Router);
   private readonly profileService = inject(ProfileService);
   private readonly authService = inject(AuthService);
+  private readonly blocks = inject(BlockService);
+  private readonly reports = inject(ReportService);
+  private readonly messageService = inject(MessageService);
 
   readonly id = input.required<string>();
 
@@ -61,6 +70,8 @@ export default class ProfileDetail {
   error = signal<string | null>(null);
   activePhotoIndex = signal(0);
   sendingMessage = signal(false);
+  readonly activeDialog = signal<'block' | 'report' | null>(null);
+  readonly safetyBusy = signal(false);
 
   protected readonly exploreRoute = ROUTES.EXPLORE;
 
@@ -177,9 +188,100 @@ export default class ProfileDetail {
     return !this.isOwnProfile();
   });
 
-  readonly showBlockButton = computed(() => {
+  readonly showSafetyActions = computed(() => {
     return this.authService.currentUser() !== null && !this.isOwnProfile();
   });
+
+  openDialog(dialog: 'block' | 'report'): void {
+    this.activeDialog.set(dialog);
+  }
+
+  closeDialog(): void {
+    if (this.safetyBusy()) return;
+    this.activeDialog.set(null);
+  }
+
+  async confirmBlock(): Promise<void> {
+    const p = this.profile();
+    if (!p || this.safetyBusy()) return;
+    if (this.blocks.blockedIds().has(p.id)) {
+      this.activeDialog.set(null);
+      return;
+    }
+
+    this.safetyBusy.set(true);
+    const ok = await this.blocks.toggle(p.id);
+    this.safetyBusy.set(false);
+    this.activeDialog.set(null);
+
+    this.messageService.add(
+      ok
+        ? {
+            severity: 'success',
+            summary: `Has bloqueado a ${p.name}`,
+            detail: 'Ya no os veréis en las búsquedas ni en favoritos.',
+            life: 5000,
+          }
+        : {
+            severity: 'error',
+            summary: 'No se pudo bloquear',
+            detail: 'Inténtalo de nuevo en unos minutos.',
+            life: 5000,
+          }
+    );
+  }
+
+  async unblock(): Promise<void> {
+    const p = this.profile();
+    if (!p || this.safetyBusy() || !this.blocks.blockedIds().has(p.id)) return;
+
+    this.safetyBusy.set(true);
+    const ok = await this.blocks.toggle(p.id);
+    this.safetyBusy.set(false);
+
+    this.messageService.add(
+      ok
+        ? {
+            severity: 'success',
+            summary: `Has desbloqueado a ${p.name}`,
+            detail: 'Volveréis a veros en las búsquedas.',
+            life: 5000,
+          }
+        : {
+            severity: 'error',
+            summary: 'No se pudo desbloquear',
+            detail: 'Inténtalo de nuevo en unos minutos.',
+            life: 5000,
+          }
+    );
+  }
+
+  async submitReport(payload: ReportCreate): Promise<void> {
+    const p = this.profile();
+    if (!p || this.safetyBusy()) return;
+
+    this.safetyBusy.set(true);
+    const result = await this.reports.report(p.id, payload);
+    this.safetyBusy.set(false);
+
+    if (result.ok) {
+      this.activeDialog.set(null);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Reporte enviado',
+        detail: `Gracias por avisarnos. También hemos bloqueado a ${p.name}.`,
+        life: 5000,
+      });
+      return;
+    }
+
+    this.messageService.add({
+      severity: 'error',
+      summary: 'No se pudo enviar el reporte',
+      detail: result.message,
+      life: 5000,
+    });
+  }
 
   readonly photos = computed(() => this.profile()?.photos ?? []);
   readonly hasPhotos = computed(() => this.photos().length > 0);

@@ -1,4 +1,4 @@
-<div class="fixed inset-0 z-50 flex items-center justify-center px-4 animate-fade-in">
+<div class="fixed inset-0 z-[60] flex items-center justify-center px-4 animate-fade-in">
   <button
     type="button"
     (click)="onCancel()"
@@ -34,7 +34,7 @@
         [disabled]="isDeleting()"
         [loading]="isDeleting()"
       >
-        <i class="pi pi-trash text-xs"></i>
+        <i class="text-xs" [class]="confirmIcon()"></i>
         {{ confirmLabel() }}
       </app-button>
     </div>

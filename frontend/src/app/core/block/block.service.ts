@@ -48,7 +48,7 @@ export class BlockService {
     return this.initializing;
   }
 
-  async toggle(profileId: number): Promise<void> {
+  async toggle(profileId: number): Promise<boolean> {
     const wasBlocked = this.blockedIds().has(profileId);
     const removedProfile = this.profiles().find((p) => p.id === profileId);
 
@@ -57,6 +57,7 @@ export class BlockService {
     try {
       if (wasBlocked) await this.api.unblock(profileId);
       else await this.api.block(profileId);
+      return true;
     } catch {
       this.applyBlock(profileId, wasBlocked);
       if (wasBlocked && removedProfile) {
@@ -64,6 +65,7 @@ export class BlockService {
           list.some((p) => p.id === removedProfile.id) ? list : [removedProfile, ...list]
         );
       }
+      return false;
     }
   }
 
