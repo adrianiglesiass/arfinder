@@ -46,6 +46,12 @@ fecha: 2026-09-10
 | F3 | Favoritos | frontend+backend | feature | ✅ done → PR #294 (mergeado) |
 | F4 | Bloqueo de usuarios | frontend+backend | feature | ✅ done → PR #295 (mergeado) |
 | F5 | Reportes de usuarios | frontend+backend | feature | ✅ done → PR #296 (mergeado) |
+| 16 | Botón de bloquear fuera de estilo y sin feedback en el detalle | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 17 | Diálogo de reporte atrapado en la barra móvil (`backdrop-filter`): recortado y sin scroll | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 18 | `/bloqueados` inalcanzable en móvil (F4 prometió el menú de usuario y no se hizo) | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 19 | La tarjeta pierde el hover al ir al corazón; en el deck el corazón inicia un arrastre | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 20 | No se puede marcar favorito desde el detalle de perfil | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 21 | Corazón con visitante anónimo: toggle optimista y revert silencioso por 401 | frontend | profile-actions-ux | ✅ done → PR #299 |
 
 ## Fases (orden de ejecución)
 1. ✅ **fix/critical-issues** → PR #288 (mergeado).
@@ -56,16 +62,22 @@ fecha: 2026-09-10
 6. ✅ **feat/available-from-filter** → PR #293 (mergeado).
 7. ✅ **feat/favorites** → PR #294 (mergeado).
 8. ✅ **feat/user-block** → PR #295 (mergeado).
-9. ✅ **feat/reports** → PR #296 (mergeado). Última fase del backlog.
+9. ✅ **feat/reports** → PR #296 (mergeado).
+10. ✅ **fix/profile-actions-ux** → PR #299. Bugs visuales reportados tras la release v1.4.0.
 
 ## Estado del backlog
-- **Backlog completo**: los 15 hallazgos de auditoría, el saneamiento de arquitectura y las 5
-  features (F1–F5) están mergeados en `develop` (#288–#296). No queda trabajo planificado.
-- `develop` está por delante de `main`. La release se hace por PR `develop` → `main` + tag, según
-  el flujo de ramas del proyecto; queda pendiente de decisión del equipo, no es parte de F5.
-- Siguientes candidatos naturales (sin spec, no comprometidos): panel de moderación para los
-  reportes de F5 (hoy solo consultables por SQL, requiere concepto de admin en `User`) y gating de
-  mensajería para bloqueados, que F4 dejó explícitamente como no-goal.
+- Fases 1–10 cerradas. Release v1.4.0 en `main`; la fase 10 (#299) queda en `develop` para la
+  siguiente release.
+- Hallazgos #16–#21 resueltos en cuatro specs (`fix-profile-safety-actions`,
+  `fix-profile-detail-favorite`, `fix-blocked-page-mobile-access`, `fix-card-favorite-hover-jank`).
+  **Verificación visual incompleta**: el diálogo de reporte a 360×640, el flujo de bloqueo con toast
+  y la entrada "Bloqueados" del menú del avatar en móvil no se comprobaron en navegador. Revisarlos
+  a mano antes de la próxima release.
+- Candidatos fuera de alcance: panel de moderación de reportes, gating de mensajería para
+  bloqueados, `<app-navbar>` / `navbar-links` (no se renderizan en ningún sitio: código muerto), y el
+  parámetro `redirect` que envían "Enviar mensaje" y el corazón al ir a login, que nadie lee.
+- Próxima release: `gh pr merge <n> --merge --subject "release: vX.Y.Z"` para conservar el formato
+  del historial de `main` (la v1.4.0 quedó con el mensaje por defecto de GitHub).
 
 ## Entorno local (LEER antes de verificar)
 - Postgres de dev en 5432 y de test en 5433 (`docker compose up -d db-test` desde `backend/`).
@@ -89,3 +101,6 @@ fecha: 2026-09-10
   registradas en el Resultado de `specs/feat-user-block.md`.
 - `#296 incluyó`: F5 reportes de usuarios, que reutiliza `block_service` para bloquear al
   reportado. Ojo con `MessageService` de PrimeNG: es **por componente**, no global.
+- `#299 incluyó`: hallazgos #16–#21. Lección: un diálogo `fixed` no puede renderizarse dentro de
+  un ancestro con `backdrop-filter` (como `MobileActionBar`), porque ese ancestro pasa a ser su
+  bloque contenedor; los diálogos viven en la raíz de la página.
