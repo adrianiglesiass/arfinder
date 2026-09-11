@@ -6,6 +6,8 @@ import type { ProfileSummary } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
 import { BlockEvents } from '@core/block/block-events';
 
+const MAX_REFRESH_ATTEMPTS = 3;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -17,8 +19,11 @@ export class BlockService {
   readonly blockedIds = signal<ReadonlySet<number>>(new Set());
   readonly profiles = signal<ProfileSummary[]>([]);
   readonly isLoading = signal(false);
+  readonly error = signal(false);
 
   private initializing: Promise<void> | null = null;
+  private readonly pending = new Set<number>();
+  private version = 0;
   private currentUserId: number | null = null;
 
   constructor() {
@@ -39,9 +44,17 @@ export class BlockService {
     this.initializing = (async () => {
       this.isLoading.set(true);
       try {
-        const list = await this.api.getMyBlocked();
-        this.profiles.set(list);
-        this.blockedIds.set(new Set(list.map((p) => p.id)));
+        for (let attempt = 1; attempt <= MAX_REFRESH_ATTEMPTS; attempt++) {
+          const startedAt = this.version;
+          const list = await this.api.getMyBlocked();
+          if (this.version !== startedAt && attempt < MAX_REFRESH_ATTEMPTS) continue;
+          this.profiles.set(list);
+          this.blockedIds.set(new Set(list.map((p) => p.id)));
+          break;
+        }
+        this.error.set(false);
+      } catch {
+        this.error.set(true);
       } finally {
         this.isLoading.set(false);
         this.initializing = null;
@@ -51,6 +64,9 @@ export class BlockService {
   }
 
   async toggle(profileId: number): Promise<boolean> {
+    if (this.pending.has(profileId)) return false;
+    this.pending.add(profileId);
+    this.version++;
     const wasBlocked = this.blockedIds().has(profileId);
     const removedProfile = this.profiles().find((p) => p.id === profileId);
 
@@ -69,10 +85,14 @@ export class BlockService {
         );
       }
       return false;
+    } finally {
+      this.pending.delete(profileId);
+      this.version++;
     }
   }
 
   markBlocked(profileId: number): void {
+    this.version++;
     this.applyBlock(profileId, true);
     this.events.emit({ profileId, blocked: true });
   }

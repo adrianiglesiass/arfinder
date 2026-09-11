@@ -108,4 +108,18 @@ describe('BlockService — toggle optimista', () => {
     expect(service.blockedIds().has(42)).toBe(true);
     expect(changes).toEqual([{ profileId: 42, blocked: true }]);
   });
+
+  it('ignora un segundo toggle sobre el mismo perfil mientras hay uno en vuelo', async () => {
+    let finish!: () => void;
+    api.block = vi.fn(() => new Promise<void>((resolve) => (finish = resolve)));
+
+    const first = service.toggle(42);
+    const second = await service.toggle(42);
+    finish();
+
+    expect(second).toBe(false);
+    expect(await first).toBe(true);
+    expect(api.block).toHaveBeenCalledTimes(1);
+    expect(api.unblock).not.toHaveBeenCalled();
+  });
 });
