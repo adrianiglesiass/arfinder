@@ -67,9 +67,11 @@ export class OnboardingPersistenceService {
     try {
       sessionStorage.removeItem(ONBOARDING_STORAGE_KEY);
       sessionStorage.removeItem(CURRENT_STEP_KEY);
+      // Pending photos may live in either storage depending on app version.
       sessionStorage.removeItem(PENDING_PHOTOS_KEY);
       sessionStorage.removeItem(PHOTO_ORDER_KEY);
       sessionStorage.removeItem(LAST_USER_KEY);
+      // Pending onboarding photos are persisted in localStorage by PhotoStorageService.
       localStorage.removeItem(PENDING_PHOTOS_KEY);
       localStorage.removeItem(PHOTO_ORDER_KEY);
     } catch (error) {

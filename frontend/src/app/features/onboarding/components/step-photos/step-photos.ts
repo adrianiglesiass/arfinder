@@ -310,6 +310,10 @@ export class StepPhotos implements AfterViewInit {
     }
   }
 
+  clearPersistedPhotos(): void {
+    this.photoStorageService.clear();
+  }
+
   private persistLocalPhotos() {
     const payload = this.localPhotos().map((photo) => ({
       id: photo.id,
