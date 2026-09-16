@@ -9,7 +9,17 @@ Source of truth for Arfinder's legal texts (user-facing content is in Spanish). 
 | Cookies and local storage | [storage_policy.md](storage_policy.md) | `/cookies` |
 | Legal notice (LSSI art. 10) | [legal_notice.md](legal_notice.md) | `/aviso-legal` |
 
-When a document changes, update both the markdown file and the matching page, then bump `lastUpdated` and `LEGAL_DOCS_VERSION` in `legal-info.ts`.
+When a document changes, update both the markdown file and the matching page, then bump `lastUpdated` and `LEGAL_DOCS_VERSION` in `legal-info.ts` together with `CURRENT_TERMS_VERSION` in `backend/app/core/constants.py`.
+
+## Consent records
+
+Every account (email, Google or Apple sign-up) must accept the Terms and conditions and the Privacy policy and confirm being 18+ before its profile is created. The acceptance is stored as legal-basis evidence in `user.terms_accepted_at` (UTC timestamp) and `user.terms_version` (the version accepted), via `POST /auth/me/consent`.
+
+- New users accept it in the last onboarding step. The backend rejects profile creation with `403 TERMS_NOT_ACCEPTED` unless the current version was accepted.
+- Users who already have a profile and have not accepted the current version get a blocking dialog in the app (accept or log out).
+- The backend only accepts the current version (`422` otherwise).
+
+**Versioning:** `CURRENT_TERMS_VERSION` in `backend/app/core/constants.py` and `LEGAL_DOCS_VERSION` in `frontend/src/app/core/constants/legal-info.ts` must always match — bump both together (and deploy the backend first), otherwise consent cannot be recorded. Bumping the version asks every existing user to accept again.
 
 ## Before production
 
@@ -20,4 +30,4 @@ When a document changes, update both the markdown file and the matching page, th
 - [ ] Get a legal review of all documents.
 - [ ] Implement data export (portability) in-app. Until then, the right is exercised by email — keep the policy wording in sync.
 - [x] Delete profile photos from Cloudinary on account deletion (shipped in develop, PR #289).
-- [ ] Add an age (18+) confirmation at sign-up if required after legal review.
+- [x] Record explicit acceptance of the Terms and Privacy policy plus the 18+ confirmation at sign-up (`user.terms_accepted_at`, `user.terms_version`).

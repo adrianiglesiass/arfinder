@@ -19,7 +19,7 @@ Arfinder es un proyecto académico sin ánimo de lucro. No se cobra por su uso, 
 
 | Categoría | Datos |
 | --- | --- |
-| Cuenta | Email, contraseña (gestionada por el proveedor de autenticación; Arfinder no la almacena) o identificador de la cuenta de Google o Apple si te registras con ellas, estado de verificación del email. |
+| Cuenta | Email, contraseña (gestionada por el proveedor de autenticación; Arfinder no la almacena) o identificador de la cuenta de Google o Apple si te registras con ellas, estado de verificación del email, y fecha y versión en que aceptaste los Términos y condiciones y esta Política de privacidad y confirmaste ser mayor de 18 años. |
 | Perfil | Nombre, edad, ciudad, biografía, presupuesto máximo, si tienes mascotas, si fumas, horario, género (texto libre), fecha de disponibilidad, tipo de perfil (buscas habitación o la ofreces) y descripción de la habitación. |
 | Fotos | Las fotos de perfil que subes. |
 | Mensajes | Conversaciones con otros usuarios: contenido de los mensajes, fecha de envío y estado de lectura. |

@@ -22,6 +22,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/auth/me/consent': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Accept Terms */
+    post: operations['accept_terms_auth_me_consent_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/profiles': {
     parameters: {
       query?: never;
@@ -414,6 +431,16 @@ export interface components {
       /** File */
       file: string;
     };
+    /** ConsentCreate */
+    ConsentCreate: {
+      /** Terms Version */
+      terms_version: string;
+      /**
+       * Is Adult
+       * @constant
+       */
+      is_adult: true;
+    };
     /** ConversationCreate */
     ConversationCreate: {
       /** Other User Id */
@@ -654,6 +681,10 @@ export interface components {
       email: string;
       /** Created At */
       created_at: string;
+      /** Terms Accepted At */
+      terms_accepted_at?: string | null;
+      /** Terms Version */
+      terms_version?: string | null;
     };
     /** ValidationError */
     ValidationError: {
@@ -720,6 +751,53 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+    };
+  };
+  accept_terms_auth_me_consent_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ConsentCreate'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserResponse'];
+        };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
       };
     };
   };

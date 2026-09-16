@@ -1,6 +1,7 @@
 import type { components, operations } from '@core/api/api.types';
 
 export type UserResponse = components['schemas']['UserResponse'];
+export type ConsentCreate = components['schemas']['ConsentCreate'];
 
 export type ProfileCreate = components['schemas']['ProfileCreate'];
 export type ProfileResponse = components['schemas']['ProfileResponse'];
