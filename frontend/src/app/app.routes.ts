@@ -30,6 +30,22 @@ export const routes: Routes = [
     loadComponent: () => import('@features/auth/callback/callback'),
   },
   {
+    path: 'privacidad',
+    loadComponent: () => import('@features/legal/privacy/privacy'),
+  },
+  {
+    path: 'terminos',
+    loadComponent: () => import('@features/legal/terms/terms'),
+  },
+  {
+    path: 'cookies',
+    loadComponent: () => import('@features/legal/cookies/cookies'),
+  },
+  {
+    path: 'aviso-legal',
+    loadComponent: () => import('@features/legal/legal-notice/legal-notice'),
+  },
+  {
     path: 'bienvenida',
     loadComponent: () => import('@features/onboarding/onboarding'),
     canActivate: [authGuard, onboardingGuard],

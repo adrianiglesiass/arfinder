@@ -16,6 +16,7 @@ import {
 import { RightPanelService } from '@layout/right-panel.service';
 
 import type { ProfileSearchFilters } from '@core/api/api.models';
+import { STORAGE_KEYS } from '@core/constants/storage-keys';
 import { ProfileSearchService } from '@core/profile-search/profile-search.service';
 
 import { Button } from '@shared/components/button/button';
@@ -29,7 +30,7 @@ import { ProfileGrid } from '@features/search-profile/components/profile-grid/pr
 import { SearchFilters } from '@features/search-profile/components/search-filters/search-filters';
 
 type ViewMode = 'deck' | 'grid';
-const VIEW_STORAGE_KEY = 'arfinder.exploreView';
+const VIEW_STORAGE_KEY = STORAGE_KEYS.explore.viewMode;
 
 const DISMISS_THRESHOLD_PX = 120;
 const BODY_LOCK_CLASS = 'overflow-hidden';
