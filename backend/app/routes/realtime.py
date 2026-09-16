@@ -167,6 +167,11 @@ async def realtime_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         pass
     except Exception as e:
-        logger.warning(f"[realtime] ws closed with error: {e}")
+        # Log only the error type: client frames may carry user content.
+        logger.warning(
+            "[realtime] ws closed with error: %s (user_id=%s)",
+            type(e).__name__,
+            user_id,
+        )
     finally:
         await manager.disconnect(websocket)
