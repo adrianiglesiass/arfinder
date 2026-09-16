@@ -4,9 +4,11 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.clients.storage_client import delete_image
+from app.core.consent import has_accepted_current_terms
+from app.core.exceptions.auth import InvalidCredentialsError, TermsNotAcceptedError
 from app.core.exceptions.profile import ProfileAlreadyExistsError, ProfileNotFoundError
 from app.models.profile import Profile, ScheduleEnum, TypeEnum
-from app.repositories import profile_photo_repository, profile_repository
+from app.repositories import profile_photo_repository, profile_repository, user_repository
 from app.schemas.profile import ProfileCreate, ProfileSummary, ProfileUpdate
 
 
@@ -45,6 +47,11 @@ def get_profile(db: Session, user_id: int):
 
 
 def create_profile(db: Session, user_id: int, data: ProfileCreate):
+    user = user_repository.get_user_by_id(db, user_id)
+    if not user:
+        raise InvalidCredentialsError()
+    if not has_accepted_current_terms(user):
+        raise TermsNotAcceptedError()
     existing = profile_repository.get_profile_by_user_id(db, user_id)
     if existing:
         raise ProfileAlreadyExistsError(user_id)

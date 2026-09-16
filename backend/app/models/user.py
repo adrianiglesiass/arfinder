@@ -12,6 +12,10 @@ class User(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+    # Evidence of the legal basis: explicit acceptance of the Terms and Privacy
+    # policy (including the 18+ declaration) and the document version accepted.
+    terms_accepted_at = Column(DateTime(timezone=True), nullable=True)
+    terms_version = Column(String(50), nullable=True)
 
     profile = relationship(
         "Profile", back_populates="user", uselist=False, passive_deletes=True

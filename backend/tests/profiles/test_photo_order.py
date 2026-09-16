@@ -15,7 +15,7 @@ C = "https://cdn/c.jpg"
 
 
 def _make_profile_with_reordered_photos(db, create_test_user):
-    user = create_test_user(email="ordered@test.com")
+    user = create_test_user(email="ordered@test.com", accepted_terms=True)
     profile = create_profile(
         db,
         user.id,

@@ -17,6 +17,15 @@ class EmailAlreadyRegisteredError(AuthError):
         )
 
 
+class TermsNotAcceptedError(AuthError):
+    status_code = 403
+    code = "TERMS_NOT_ACCEPTED"
+    default_detail = (
+        "You must accept the current Terms and Privacy policy and confirm "
+        "you are 18 or older"
+    )
+
+
 class InvalidCredentialsError(AuthError):
     status_code = 401
     code = "INVALID_CREDENTIALS"

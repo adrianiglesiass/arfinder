@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone
 
 
 from dotenv import load_dotenv
@@ -30,6 +31,7 @@ from sqlalchemy.orm import sessionmaker  # noqa: E402
 
 import app.models  # noqa: E402
 from app.core.config import settings  # noqa: E402
+from app.core.constants import CURRENT_TERMS_VERSION  # noqa: E402
 from app.core.dependencies import (  # noqa: E402
     bearer_scheme,
     get_current_user,
@@ -137,8 +139,11 @@ def client(db, create_test_user):
 
 @pytest.fixture(scope="function")
 def create_test_user(db):
-    def _create(email: str, insforge_id: str = None):
+    def _create(email: str, insforge_id: str = None, accepted_terms: bool = False):
         user = User(email=email, insforge_id=insforge_id or f"test_{email}")
+        if accepted_terms:
+            user.terms_accepted_at = datetime.now(timezone.utc)
+            user.terms_version = CURRENT_TERMS_VERSION
         db.add(user)
         db.commit()
         db.refresh(user)
