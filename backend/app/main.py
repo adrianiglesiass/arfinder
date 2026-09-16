@@ -6,6 +6,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from app.core.config import settings
 from app.core.exception_handlers import register_exception_handlers
 from app.core.realtime import listener as realtime_listener
+from app.core.security_headers import SecurityHeadersMiddleware
 from app.services import city_service
 from app.routes.auth import router as auth_router
 from app.routes.conversations import router as conversations_router
@@ -58,6 +59,8 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type"],
     )
+    # Added last so it is the outermost layer and also covers CORS preflight responses.
+    application.add_middleware(SecurityHeadersMiddleware)
 
     register_exception_handlers(application)
 
