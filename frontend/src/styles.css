@@ -2,6 +2,9 @@
 
 @import 'tailwindcss';
 @import 'primeicons/primeicons.css' layer(base);
+@import '@fontsource-variable/plus-jakarta-sans/wght.css' layer(base);
+@import '@fontsource/playfair-display/700.css' layer(base);
+@import '@fontsource-variable/material-symbols-rounded/standard.css' layer(base);
 
 @theme {
   --color-primary: #18181b;
@@ -21,7 +24,7 @@
   --shadow-premium: 0 4px 12px 0 rgba(0, 0, 0, 0.03);
   --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
 
-  --font-family-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-family-sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', sans-serif;
   --font-family-serif: 'Playfair Display', serif;
 
   --ease-apple: cubic-bezier(0.28, 0.11, 0.32, 1);
@@ -222,6 +225,25 @@
     transform: translate3d(0, 0, 0) rotate(0);
     opacity: 1;
   }
+}
+
+/* Mirrors the class Google Fonts shipped; font files are self-hosted via @fontsource.
+   Kept unlayered so it keeps the same cascade priority as the former Google Fonts stylesheet. */
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded Variable', 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
 }
 
 .deck-enter {
