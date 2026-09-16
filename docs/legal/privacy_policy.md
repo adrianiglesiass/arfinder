@@ -68,20 +68,20 @@ No cedemos tus datos a terceros salvo obligación legal. Para prestar el servici
 
 ## 7. Conservación
 
-Conservamos tus datos mientras mantengas tu cuenta. Cuando eliminas la cuenta se borran tu cuenta, tu perfil, tus conversaciones y tus mensajes, y tus fotos dejan de mostrarse en Arfinder. Los archivos de las fotos pueden permanecer temporalmente en el almacenamiento de Cloudinary hasta su borrado definitivo; puedes solicitar su eliminación inmediata escribiendo al email de contacto. Algunos datos pueden permanecer durante un tiempo limitado en copias de seguridad técnicas de los proveedores hasta su borrado según sus ciclos habituales, o bloqueados cuando lo exija la ley.
+Conservamos tus datos mientras mantengas tu cuenta. Cuando eliminas la cuenta se borran tu cuenta, tu perfil, tus conversaciones, tus mensajes y tus fotos. Los archivos de las fotos se eliminan automáticamente del proveedor de almacenamiento de imágenes (Cloudinary) en el momento de la supresión, tanto al eliminar la cuenta como al eliminar una foto concreta; si el proveedor no responde, la incidencia se registra para su eliminación posterior. Algunos datos pueden permanecer durante un tiempo limitado en copias de seguridad técnicas de los proveedores hasta su borrado según sus ciclos habituales, o bloqueados cuando lo exija la ley.
 
 ## 8. Tus derechos
 
 Puedes ejercer en cualquier momento tus derechos de:
 
-- **Acceso:** saber qué datos tratamos sobre ti.
+- **Acceso:** saber qué datos tratamos sobre ti. Puedes descargar una copia de tus datos desde la aplicación (Editar perfil → Tus datos → Descargar mis datos).
 - **Rectificación:** corregir datos inexactos. Puedes editar tu perfil directamente desde la aplicación.
 - **Supresión:** eliminar tus datos. Puedes eliminar tu cuenta desde la aplicación (Editar perfil → Eliminar cuenta).
 - **Limitación del tratamiento.**
-- **Portabilidad:** recibir tus datos en un formato estructurado y de uso común.
+- **Portabilidad:** recibir tus datos en un formato estructurado y de uso común. Desde la aplicación (Editar perfil → Tus datos → Descargar mis datos) obtienes un archivo JSON con tu cuenta, tu perfil, las direcciones de tus fotos y tus conversaciones con sus mensajes.
 - **Oposición:** oponerte al tratamiento basado en interés legítimo.
 
-Salvo la rectificación y la supresión, que puedes realizar desde la aplicación, para ejercer estos derechos escribe a **adrianiglesias010@gmail.com** indicando el derecho que quieres ejercer y el email de tu cuenta. Responderemos en el plazo de un mes. Podremos pedirte información adicional para verificar tu identidad.
+Puedes ejercer el acceso, la rectificación, la supresión y la portabilidad directamente desde la aplicación. Para ejercer cualquier derecho por otra vía, o los de limitación y oposición, escribe a **adrianiglesias010@gmail.com** indicando el derecho que quieres ejercer y el email de tu cuenta. Responderemos en el plazo de un mes. Podremos pedirte información adicional para verificar tu identidad.
 
 Si consideras que no hemos atendido correctamente tus derechos, puedes presentar una reclamación ante la **Agencia Española de Protección de Datos (AEPD)** en [www.aepd.es](https://www.aepd.es).
 

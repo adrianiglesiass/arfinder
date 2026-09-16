@@ -40,6 +40,7 @@ import { StepProfile } from '@shared/components/profile-form/step-profile/step-p
 import { isProfileBasicsValid } from '@shared/utils/profile-limits';
 
 import { DangerZone } from '@features/profile/edit/danger-zone/danger-zone';
+import { DataDownload } from '@features/profile/edit/data-download/data-download';
 import { EditSection } from '@features/profile/edit/edit-section/edit-section';
 import { PhotosEditor } from '@features/profile/edit/photos-editor/photos-editor';
 
@@ -60,7 +61,7 @@ type EditableField =
 type FormState = Pick<ProfileResponse, EditableField>;
 
 interface Section {
-  id: 'photos' | 'profile' | 'objective' | 'lifestyle' | 'danger';
+  id: 'photos' | 'profile' | 'objective' | 'lifestyle' | 'data' | 'danger';
   label: string;
   icon: string;
 }
@@ -77,6 +78,7 @@ interface Section {
     StepLifestyle,
     PhotosEditor,
     DangerZone,
+    DataDownload,
     EditSection,
     EmptyState,
     ConfirmDestructiveDialog,
@@ -110,6 +112,7 @@ export default class ProfileEdit implements OnInit, PendingChanges {
     { id: 'profile', label: 'Información', icon: 'pi pi-user' },
     { id: 'objective', label: 'Objetivo', icon: 'pi pi-compass' },
     { id: 'lifestyle', label: 'Estilo', icon: 'pi pi-heart' },
+    { id: 'data', label: 'Tus datos', icon: 'pi pi-download' },
     { id: 'danger', label: 'Cuenta', icon: 'pi pi-shield' },
   ];
 

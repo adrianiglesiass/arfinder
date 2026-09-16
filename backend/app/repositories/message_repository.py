@@ -32,6 +32,20 @@ def get_messages_by_conversation(
     return list(reversed(rows))
 
 
+def get_all_messages_for_conversations(
+    db: Session, conversation_ids: Iterable[int]
+) -> list[Message]:
+    ids = list(conversation_ids)
+    if not ids:
+        return []
+    return (
+        db.query(Message)
+        .filter(Message.conversation_id.in_(ids))
+        .order_by(Message.conversation_id.asc(), Message.id.asc())
+        .all()
+    )
+
+
 def mark_conversation_as_read(
     db: Session,
     conversation_id: int,

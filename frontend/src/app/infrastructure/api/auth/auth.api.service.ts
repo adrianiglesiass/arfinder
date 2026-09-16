@@ -20,6 +20,10 @@ export class AuthApiService {
     return firstValueFrom(this.http.post<UserResponse>(`${this.APIURL}/me/consent`, body));
   }
 
+  async exportMyData(): Promise<Blob> {
+    return firstValueFrom(this.http.get(`${this.APIURL}/me/export`, { responseType: 'blob' }));
+  }
+
   async deleteAccount(): Promise<void> {
     await firstValueFrom(this.http.delete<void>(`${this.APIURL}/me`));
   }
