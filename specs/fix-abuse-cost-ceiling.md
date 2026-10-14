@@ -233,7 +233,7 @@ transformación ya se aplica al servir, el cambio se limita a no duplicarla y se
   presupuesto y **200 en `/health`** bajo la misma carga.
 - `backend/tests/test_docs_disabled.py`: en `ENVIRONMENT=production` `/docs`, `/redoc` y
   `/openapi.json` devuelven 404; en `testing` siguen accesibles.
-- `backend/tests/scripts/test_cost_guard.py`: cabecera de autorización, construcción y
+- `backend/tests/ops/test_cost_guard.py`: cabecera de autorización, construcción y
   validación de la query, parseo de la respuesta de Prometheus (vector vacío, varias series,
   `status` de error, JSON inválido), decisión de presupuesto, salidas en `$GITHUB_OUTPUT` y
   código 2 sin token o ante un error de red (nunca `over_budget=true` en un fallo).
