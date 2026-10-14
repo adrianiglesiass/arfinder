@@ -87,8 +87,8 @@ fecha: 2026-09-10
 | 53 | Tokens inválidos sin caché: cada bearer aleatorio dispara una llamada saliente a InsForge | backend | abuse-cost-ceiling | ✅ done → PR #304 |
 | 54 | WebSocket sin límites de conexión por usuario/IP, suscripciones ni tasa de mensajes | backend | abuse-cost-ceiling | ✅ done → PR #304 |
 | 55 | `fly.toml` sin `[http_service.concurrency]`: el proxy no desecha carga | backend | abuse-cost-ceiling | ⏳ |
-| 56 | Rutas de lectura (`GET /profiles/{id}`, conversaciones, mensajes, `/auth/me`) sin rate limit | backend | abuse-cost-ceiling | ⏳ PR #304 |
-| 57 | `/docs`, `/redoc` y `/openapi.json` públicos en producción | backend | abuse-cost-ceiling | ⏳ PR #304 |
+| 56 | Rutas de lectura (`GET /profiles/{id}`, conversaciones, mensajes, `/auth/me`) sin rate limit | backend | abuse-cost-ceiling | ✅ done → PR #304 |
+| 57 | `/docs`, `/redoc` y `/openapi.json` públicos en producción | backend | abuse-cost-ceiling | ✅ done → PR #304 |
 | 58 | ~~Subidas a Cloudinary sin transformación~~ **Descartado**: el ancho de banda ya se optimiza en la URL (`app.config.ts`) y la transformación en la subida rompería `extract_public_id_from_url`/`destroy` | backend | abuse-cost-ceiling | ↩️ descartado |
 | 59 | Sin techo de gasto: nada corta el despliegue si el egress se dispara (Fly no tiene alertas ni límite) | infra | abuse-cost-ceiling | ⏳ |
 
