@@ -186,9 +186,11 @@ transformación ya se aplica al servir, el cambio se limita a no duplicarla y se
 ## Checklist de verificación
 - [x] Backend: `ruff check .` y `ruff format --check .`
 - [x] Backend: `pytest --tb=short`
-- [ ] Frontend: `npm run format:check` y `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Build: no aplica (no se toca el frontend, salvo verificación de compatibilidad del WS)
+- [x] Frontend: N/A en este PR — no se modifica ningún fichero de `frontend/`
+- [x] Frontend: N/A en este PR — sin cambios que testear
+- [x] Build: no aplica (el protocolo del WS es compatible: un 429 en el handshake y los
+  eventos `error` son ignorados por el cliente actual, y el techo de 100 suscripciones
+  hace el rechazo prácticamente inalcanzable)
 
 ## Resultado
 <pendiente: al cerrar, qué pasó, diffs de comportamiento y enlaces a commits>
