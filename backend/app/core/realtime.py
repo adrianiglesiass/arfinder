@@ -25,8 +25,16 @@ HEARTBEAT_SECONDS = 25
 
 # Techos anti-abuso de la conexión en tiempo real (spec fix-abuse-cost-ceiling #54)
 MAX_SOCKETS_PER_USER = 5
-MAX_SOCKETS_PER_IP = 10
-MAX_SUBSCRIPTIONS_PER_SOCKET = 20
+# El límite real es por usuario (arriba); el por IP solo amortigua tras CGNAT
+# (operadores móviles, campus y oficinas comparten una sola IP pública).
+MAX_SOCKETS_PER_IP = 50
+# El frontend se suscribe a todas las conversaciones del usuario, así que el
+# techo tiene que cubrir la bandeja real; cada `subscribe` cuesta una query y
+# el usuario ya está limitado a MAX_SOCKETS_PER_USER sockets.
+MAX_SUBSCRIPTIONS_PER_SOCKET = 100
+# Segunda capa: la primera es `--ws-max-size 65536` en el CMD del Dockerfile,
+# que uvicorn aplica ANTES de materializar el frame. Este check se ejecuta
+# después de `receive_text()` y solo cubre lo que sí llegó a la app.
 MAX_MESSAGE_BYTES = 8192
 WS_MESSAGES_PER_WINDOW = 60
 WS_WINDOW_SECONDS = 10.0

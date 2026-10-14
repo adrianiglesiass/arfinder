@@ -146,7 +146,14 @@ def test_sockets_are_capped_per_ip_across_users(monkeypatch):
     assert exc.value.status_code == 429
 
 
-def test_subscription_limit_is_reported_as_error(db, ws_user, create_test_user):
+def test_subscription_limit_is_reported_as_error(
+    db, ws_user, create_test_user, monkeypatch
+):
+    # Este test mide el techo de suscripciones, no el de tasa: alcanzar los 100
+    # subscribe excede de camino los 60 mensajes/10 s, que tiene su propio test.
+    monkeypatch.setattr(
+        realtime_routes, "ws_message_limiter", SlidingWindowLimiter(200)
+    )
     conversations = [
         get_or_create_conversation(
             db, ws_user.id, create_test_user(email=f"peer-{i}@test.com").id
