@@ -31,7 +31,7 @@ ningún techo de gasto**: nadie corta el despliegue si el consumo se dispara.
 ## Alcance
 - **#53** Caché negativa de tokens inválidos en `app/core/security.py` (corta el amplificador de InsForge).
 - **#54** Límites de WebSocket: conexiones por usuario, conexiones por IP, suscripciones por
-  socket y tasa de mensajes por conexión.
+  socket y tasa de mensajes por usuario.
 - **#55** `[http_service.concurrency]` en `fly.toml` para que el proxy deseche carga.
 - **#56** Rate limit en rutas de lectura/autenticación que hoy no lo tienen.
 - **#57** Deshabilitar `/docs`, `/redoc` y `/openapi.json` en producción.
@@ -45,6 +45,11 @@ ningún techo de gasto**: nadie corta el despliegue si el consumo se dispara.
 ## No-goals
 - **Sin Cloudflare ni dominio propio**: decisión del usuario. No se configura ningún CDN/WAF.
 - No se toca el frontend salvo lo imprescindible para no romper el WebSocket.
+  **Limitación conocida de #54**: `conversation.store.ts` se suscribe a TODAS las
+  conversaciones del usuario y `realtime.service.ts` ignora los eventos `error`, así que un
+  techo de suscripciones bajo cortaría el tiempo real *en silencio*. Por eso el backend sube
+  su techo a 100 y **el frontend NO se toca en esta fase**: el refactor de suscripciones
+  (suscrito por pestaña visible + manejo de eventos `error`) queda como fase posterior.
 - No se añaden dependencias nuevas de runtime (se reutiliza `SlidingWindowLimiter` existente).
 - No se cambia el modelo de datos ni el contrato de la API (ninguna migración).
 - No se modifica `.github/workflows/backend-deploy-prod.yml` ni el flujo de despliegue.
@@ -54,9 +59,10 @@ ningún techo de gasto**: nadie corta el despliegue si el consumo se dispara.
 - DADO un token inválido repetido CUANDO llegan 100 peticiones con él ENTONCES InsForge recibe
   **1** llamada como máximo en el periodo de la caché negativa, y todas responden 401.
 - DADO un usuario autenticado CUANDO abre 6 sockets simultáneos ENTONCES el sexto es rechazado.
-- DADO un usuario CUANDO abre 21 suscripciones en el mismo socket ENTONCES la 21ª se rechaza.
-- DADO una conexión CUANDO envía más de 60 mensajes en 10 segundos ENTONCES el servidor cierra
-  el socket con código 1008.
+- DADO un usuario CUANDO abre 101 suscripciones en el mismo socket ENTONCES la 101ª se
+  rechaza (techo `MAX_SUBSCRIPTIONS_PER_SOCKET = 100`).
+- DADO un usuario CUANDO envía más de 60 mensajes en 10 segundos (sumando todas sus
+  conexiones) ENTONCES el servidor cierra el socket con código 1008.
 - DADO una carga sostenida CUANDO supera `hard_limit` de concurrencia ENTONCES el proxy responde
   503 sin llegar a la VM (comprobable en `fly logs`).
 - DADO `ENVIRONMENT=production` CUANDO se solicita `/docs`, `/redoc` u `/openapi.json` ENTONCES
@@ -76,15 +82,38 @@ devuelve `None` sin llamar a InsForge. *Descartado*: desactivar la validación �
 expiración real de sesiones.
 
 **#54 — WebSocket** (`app/core/realtime.py`, `app/routes/realtime.py`): constantes de módulo
-`MAX_SOCKETS_PER_USER = 5`, `MAX_SOCKETS_PER_IP = 10`, `MAX_SUBSCRIPTIONS_PER_SOCKET = 20`,
+`MAX_SOCKETS_PER_USER = 5`, `MAX_SOCKETS_PER_IP = 50`, `MAX_SUBSCRIPTIONS_PER_SOCKET = 100`,
 `MAX_MESSAGE_BYTES = 8192` y `WS_MESSAGES_PER_WINDOW = 60` / 10 s. El contador por usuario se
 deriva de `self._by_user`; el por IP necesita un mapa nuevo `_by_ip` de cuentas, decrementado al
 desconectar (el `finally` actual es el punto único de salida). La tasa de mensajes reutiliza
 `SlidingWindowLimiter` de `app/core/rate_limit.py` con clave `ws:{user_id}` — **no se duplica la
-implementación**. La clave de cliente se comparte con HTTP extrayendo un helper
+implementación**; el presupuesto es **por usuario** (compartido entre sus conexiones), no por
+conexión. La clave de cliente se comparte con HTTP extrayendo un helper
 `resolve_client_key(headers, client)` en `app/core/rate_limit.py`, de modo que el WebSocket lea
-`Fly-Client-IP` igual que las rutas HTTP. El rechazo en el *handshake* se hace con
-`websocket.close(code=1008)` + `HTTPException(429)`.
+`Fly-Client-IP` igual que las rutas HTTP. El rechazo en el *handshake* se hace con una
+respuesta **429 pre-upgrade** vía la extensión `websocket.http.response` (con `Retry-After`);
+si el cliente no la negocia, el cierre pre-accept se traduce en un rechazo HTTP del handshake
+(403 en uvicorn) — nunca entrega un 1008 al cliente, que solo existe tras el upgrade.
+*Descartado*: heartbeat de aplicación. uvicorn ya envía ping de protocolo cada 20 s
+(`ws_ping_interval=20.0`), lo que mantiene vivo el socket ante el timeout de 100 s de un proxy
+externo; añadiría código sin beneficio.
+
+Techos revisados tras la revisión de `code-reviewer`:
+- `MAX_SOCKETS_PER_IP = 50` (antes 10): **el límite real es por usuario (5)**; el por IP es
+  solo un amortiguador secundario y 10 resultaba demasiado bajo tras **CGNAT** — operadores
+  móviles, redes de campus y oficinas comparten una sola IP pública, así que un techo bajo
+  castigaba a usuarios legítimos sin añadir protección real.
+- `MAX_SUBSCRIPTIONS_PER_SOCKET = 100` (antes 20): el frontend se suscribe a **todas** las
+  conversaciones del usuario (ver *No-goals*), y con `realtime.service.ts` ignorando los
+  eventos `error` un techo de 20 habría cortado el tiempo real en silencio con 21+
+  conversaciones. El coste de abuso es nulo: cada `subscribe` es una query de participación y
+  el usuario ya está limitado a 5 sockets. **Interacción conocida**: el frontend lanza los
+  `subscribe` en ráfaga y la tasa por usuario (60 msgs/10 s) cierra el socket con 1008 pasado
+  el 60º mensaje, así que en la práctica el techo efectivo de suscripciones simultáneas es 60;
+  subir `WS_MESSAGES_PER_WINDOW` rompería el criterio de aceptación y queda fuera de esta fase.
+- **Techo de memoria real**: `--ws-max-size 65536` (64 KiB) en el CMD del `Dockerfile` —
+  uvicorn rechaza el frame *antes* de materializarlo (su default es 16 MiB). El check de
+  `MAX_MESSAGE_BYTES` corre después de `receive_text()` y actúa como **segunda capa**.
 *Descartado*: heartbeat de aplicación. uvicorn ya envía ping de protocolo cada 20 s
 (`ws_ping_interval=20.0`), lo que mantiene vivo el socket ante el timeout de 100 s de un proxy
 externo; añadiría código sin beneficio.
@@ -155,8 +184,8 @@ transformación ya se aplica al servir, el cambio se limita a no duplicarla y se
   dry-run antes de dejarlo armado.
 
 ## Checklist de verificación
-- [ ] Backend: `ruff check .` y `ruff format --check .`
-- [ ] Backend: `pytest --tb=short`
+- [x] Backend: `ruff check .` y `ruff format --check .`
+- [x] Backend: `pytest --tb=short`
 - [ ] Frontend: `npm run format:check` y `npm run lint`
 - [ ] Frontend: `npm run test:ci`
 - [ ] Build: no aplica (no se toca el frontend, salvo verificación de compatibilidad del WS)
