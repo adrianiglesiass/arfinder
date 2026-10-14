@@ -198,6 +198,11 @@ transformación ya se aplica al servir, el cambio se limita a no duplicarla y se
   arfinder-api --yes` con `secrets.FLY_COST_GUARD_TOKEN` y se abre una issue de aviso
   (`permissions: issues: write`) con los pasos de recuperación; si ya hay una issue abierta con
   el prefijo `[cost-guard]` no se duplica. Con 0 Machines el gasto cae a céntimos de rootfs.
+- **Sin configurar no molesta**: mientras no exista `FLY_READONLY_TOKEN`, el job pasa con un
+  `::warning::` ("no armado") en vez de fallar y enviar un correo cada 15 minutos.
+- **La alerta llega aunque falle el corte**: la issue se abre con `!cancelled()`; si
+  `flyctl scale` falla (p. ej. falta `FLY_COST_GUARD_TOKEN`) el título dice
+  `FAILED to scale down` e indica el comando manual.
 - **No puede destruir datos**: `fly.toml` no declara `[mounts]` (sin volúmenes) y la base de
   datos es externa, así que las Machines son desechables: `scale count 0` solo elimina cómputo
   sin estado y `fly scale count 1` las recrea desde la release actual. El token es un *deploy
@@ -219,6 +224,8 @@ transformación ya se aplica al servir, el cambio se limita a no duplicarla y se
   `production`, cuyas reglas de protección podrían bloquear un cron, y así se puede revocar uno
   sin romper el otro. La exención por debajo de $5 solo aplica a la organización personal y no
   está documentada en la página de precios: no se confía en ella, se diseña para no necesitarla.
+- Limitación conocida: un `fly deploy` (push a `main`) sobre una app con 0 Machines vuelve a
+  crear una, así que **no se debe desplegar durante un incidente** de coste.
 - Limitación conocida: los workflows con `schedule` solo corren desde la rama por defecto
   (`develop`) y GitHub los suspende tras 60 días sin actividad en el repositorio. El egress de
   Fly es la única métrica vigilada: Cloudinary e InsForge tienen sus propios planes gratuitos con
