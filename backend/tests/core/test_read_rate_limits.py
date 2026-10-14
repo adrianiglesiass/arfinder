@@ -27,12 +27,11 @@ READ_ROUTES = [
 def test_read_routes_are_rate_limited_per_user(
     client, auth_headers, strict_reads, method, path
 ):
-    statuses = [
-        client.request(method, path, headers=auth_headers).status_code for _ in range(3)
-    ]
+    responses = [client.request(method, path, headers=auth_headers) for _ in range(3)]
 
-    assert 429 not in statuses[:2]
-    assert statuses[2] == 429
+    assert all(res.status_code != 429 for res in responses[:2])
+    assert responses[2].status_code == 429
+    assert responses[2].headers.get("Retry-After") == "60"
 
 
 def test_read_limit_is_per_user(client, auth_headers, create_test_user, strict_reads):
