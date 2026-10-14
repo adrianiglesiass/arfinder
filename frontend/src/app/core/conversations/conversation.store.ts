@@ -17,6 +17,7 @@ export class ConversationStore {
   private readonly auth = inject(AuthService);
 
   readonly conversations = signal<ConversationResponse[]>([]);
+  readonly error = signal(false);
   readonly totalUnread = computed(() =>
     this.conversations().reduce((sum, c) => sum + (c.unread_count ?? 0), 0)
   );
@@ -52,8 +53,9 @@ export class ConversationStore {
         this.conversations.set(list);
         const ids = list.map((c) => c.id);
         if (ids.length) await this.realtime.subscribeConversations(ids);
+        this.error.set(false);
       } catch {
-        //
+        this.error.set(true);
       } finally {
         this.initializing = null;
       }

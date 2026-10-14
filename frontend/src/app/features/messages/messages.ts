@@ -10,6 +10,7 @@ import {
   inject,
   OnInit,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -22,6 +23,7 @@ import { ROUTES } from '@core/constants/routes';
 import { ConversationStore } from '@core/conversations/conversation.store';
 import { RealtimeService } from '@core/realtime/realtime.service';
 
+import { Button } from '@shared/components/button/button';
 import { Spinner } from '@shared/components/spinner/spinner';
 
 import { ChatHeader as ChatHeaderComponent } from '@features/messages/components/chat-header/chat-header';
@@ -41,6 +43,7 @@ const PAGE_SIZE = 50;
     ChatHeaderComponent,
     MessageBubble,
     MessageComposer,
+    Button,
   ],
   templateUrl: './messages.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,6 +54,18 @@ export default class Messages implements OnInit {
   private readonly composer = viewChild(MessageComposer);
 
   protected readonly exploreRoute = ROUTES.EXPLORE;
+  protected readonly chatError = signal(false);
+  protected readonly sendError = signal(false);
+  protected readonly retryingConversations = signal(false);
+  private failedContent: string | null = null;
+  private destroyed = false;
+
+  private readonly clearSendErrorOnEdit = effect(() => {
+    const draft = this.newMessage();
+    untracked(() => {
+      if (this.sendError() && draft !== this.failedContent) this.sendError.set(false);
+    });
+  });
 
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
@@ -58,6 +73,7 @@ export default class Messages implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly realtimeService = inject(RealtimeService);
   private readonly store = inject(ConversationStore);
+  protected readonly conversationsError = this.store.error;
   private readonly destroyRef = inject(DestroyRef);
 
   readonly conversations = this.store.conversations;
@@ -154,6 +170,7 @@ export default class Messages implements OnInit {
     this.registerCleanup();
 
     await this.store.refresh();
+    if (this.destroyed) return;
     this.isLoading.set(false);
 
     this.unsubMessage = this.realtimeService.addMessageHandler((convId, msg) =>
@@ -195,6 +212,7 @@ export default class Messages implements OnInit {
 
   private registerCleanup(): void {
     this.destroyRef.onDestroy(() => {
+      this.destroyed = true;
       this.unsubMessage?.();
       this.unsubRead?.();
       this.cleanupViewport?.();
@@ -317,6 +335,8 @@ export default class Messages implements OnInit {
     this.hasMoreMessages.set(false);
     this.isLoadingOlder.set(false);
     this.initialScrollDone.set(false);
+    this.chatError.set(false);
+    this.sendError.set(false);
     this.store.setActiveConversation(conv.id);
     this.location.go(`${ROUTES.MESSAGES}/${conv.id}`);
     void this.realtimeService.subscribeConversation(conv.id);
@@ -330,8 +350,22 @@ export default class Messages implements OnInit {
 
       this.scrollToBottomSettled(epoch);
     } catch {
-      /* empty */
+      if (epoch === this.selectionEpoch) this.chatError.set(true);
     }
+  }
+
+  protected async retryConversations(): Promise<void> {
+    this.retryingConversations.set(true);
+    try {
+      await this.store.refresh();
+    } finally {
+      this.retryingConversations.set(false);
+    }
+  }
+
+  protected retryChat(): void {
+    const conv = this.selectedConversation();
+    if (conv) void this.selectConversation(conv);
   }
 
   async loadOlderMessages(): Promise<void> {
@@ -382,6 +416,8 @@ export default class Messages implements OnInit {
     const meId = this.myUserId();
     if (!conv && !draft) return;
     if (meId == null) return;
+    const epoch = this.selectionEpoch;
+    this.sendError.set(false);
 
     const tempId = -(Date.now() + Math.floor(Math.random() * 1000));
     const optimistic: MessageResponse = {
@@ -404,16 +440,26 @@ export default class Messages implements OnInit {
         ? await this.conversationApi.sendMessage(conv.id, content)
         : await this.conversationApi.sendMessageToUser(draft!.user_id, content);
 
+      if (epoch !== this.selectionEpoch || this.destroyed) {
+        if (conv) this.store.upsertConversationPreview(conv.id, real);
+        else void this.store.refresh();
+        return;
+      }
+
       this.replaceOptimistic(tempId, real);
 
       if (conv) {
         this.store.upsertConversationPreview(conv.id, real);
       } else {
-        await this.adoptNewConversation(real, draft!);
+        await this.adoptNewConversation(real, draft!, epoch);
       }
     } catch {
+      if (epoch !== this.selectionEpoch || this.destroyed) return;
       this.removeOptimistic(tempId);
+      this.failedContent = content;
       this.newMessage.set(content);
+      this.sendError.set(true);
+      setTimeout(() => this.composer()?.fitHeight());
     }
   }
 
@@ -462,8 +508,13 @@ export default class Messages implements OnInit {
     return this.formatTime(conv.last_message.sent_at);
   }
 
-  private async adoptNewConversation(real: MessageResponse, draft: DraftRecipient): Promise<void> {
+  private async adoptNewConversation(
+    real: MessageResponse,
+    draft: DraftRecipient,
+    epoch: number
+  ): Promise<void> {
     await this.store.refresh();
+    if (epoch !== this.selectionEpoch || this.destroyed) return;
     const created = this.conversations().find((c) => c.id === real.conversation_id);
     if (created) {
       this.draftRecipient.set(null);

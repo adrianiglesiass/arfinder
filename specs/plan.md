@@ -70,12 +70,12 @@ fecha: 2026-09-10
 | 37 | Subida de fotos sin tope de tamaño previo al buffer ni de número de fotos | backend | backend-integrity | ✅ done → PR #302 |
 | 38 | Crear conversación, bloquear, reportar y favorito sin rate limit | backend | backend-integrity | ✅ done → PR #302 |
 | 39 | `GET /profiles/me/photos` captura `HTTPException` en vez de `ProfileNotFoundError` | backend | backend-integrity | ✅ done → PR #302 |
-| 40 | Los filtros de Explorar se pierden al abrir un perfil; el deck vuelve a la tarjeta 1 | frontend | frontend-state | ⏳ |
-| 41 | La búsqueda cacheada no reacciona al login/logout (tu propio perfil aparece) | frontend | frontend-state | ⏳ |
-| 42 | Las fotos subidas en `/perfil` no aparecen hasta recargar | frontend | frontend-state | ⏳ |
-| 43 | Carreras en toggles optimistas (refresh vs toggle, doble toque) y favorito imposible tras desbloquear | frontend | frontend-state | ⏳ |
-| 44 | Mensajes: `ngOnInit` sigue tras destruirse; un envío en vuelo se cuela en otra conversación | frontend | frontend-state | ⏳ |
-| 45 | Errores silenciados que se muestran como estado vacío o "fin de resultados" | frontend | frontend-state | ⏳ |
+| 40 | Los filtros de Explorar se pierden al abrir un perfil; el deck vuelve a la tarjeta 1 | frontend | frontend-state | ✅ done → PR #303 |
+| 41 | La búsqueda cacheada no reacciona al login/logout (tu propio perfil aparece) | frontend | frontend-state | ✅ done → PR #303 |
+| 42 | Las fotos subidas en `/perfil` no aparecen hasta recargar | frontend | frontend-state | ✅ done → PR #303 |
+| 43 | Carreras en toggles optimistas (refresh vs toggle, doble toque) y favorito imposible tras desbloquear | frontend | frontend-state | ✅ done → PR #303 |
+| 44 | Mensajes: `ngOnInit` sigue tras destruirse; un envío en vuelo se cuela en otra conversación | frontend | frontend-state | ✅ done → PR #303 |
+| 45 | Errores silenciados que se muestran como estado vacío o "fin de resultados" | frontend | frontend-state | ✅ done → PR #303 |
 | 46 | Diálogos sin gestión de foco ni Escape; diálogo de reporte sin pie fijo | frontend | ux-a11y | ⏳ |
 | 47 | El código OTP desborda a 360px | frontend | ux-a11y | ⏳ |
 | 48 | Doble envío en el último paso del onboarding | frontend | ux-a11y | ⏳ |
@@ -108,12 +108,12 @@ fecha: 2026-09-10
 13. ✅ **fix/backend-integrity** → PR #302. #32–#39.
 14. 🔄 **fix/abuse-cost-ceiling** — #53–#59. Techo de coste y endurecimiento anti-abuso
     (spec: [`fix-abuse-cost-ceiling.md`](fix-abuse-cost-ceiling.md)). **Backend (#53, #54, #56,
-    #57) en PR #304** → `develop`; #58 descartado con evidencia; quedan #55 (`fly.toml`
+    #57) → PR #304 (mergeado)**; #58 descartado con evidencia; quedan #55 (`fly.toml`
     concurrencia) y #59 (watchdog de coste) en el siguiente PR. Insertada fuera de orden a
     petición del usuario: sin Cloudflare ni dominio propio, la única garantía de factura es el
     código más el watchdog.
-15. ⏳ **fix/frontend-state** — #40–#45.
-16. ⏳ **fix/ux-a11y** — #46–#51.
+15. ✅ **fix/frontend-state** → PR #303. #40–#45.
+16. ⏳ **fix/ux-a11y** — #46–#51. RAMA SIGUIENTE.
 17. ⏳ **feat/block-cuts-messaging** — F6.
 18. ⏳ **fix/budget-filter-direction** — #52.
 19. ⏳ Release (merge commit con `--subject "release: vX.Y.Z"` + tag).

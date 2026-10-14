@@ -49,6 +49,13 @@ export class MessageComposer {
     }
   }
 
+  fitHeight(): void {
+    const ta = this.textarea()?.nativeElement;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = `${ta.scrollHeight}px`;
+  }
+
   resetHeight(): void {
     const ta = this.textarea()?.nativeElement;
     if (ta) ta.style.height = 'auto';
