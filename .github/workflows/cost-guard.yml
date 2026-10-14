@@ -87,31 +87,42 @@ jobs:
           SCALE_OUTCOME: ${{ steps.scale.outcome }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          open_alerts=$(gh issue list --state open --search '"[cost-guard]" in:title' --json number --jq 'length')
-          if [ "$open_alerts" != "0" ]; then
-            echo "An open [cost-guard] issue already exists; not opening another one."
-            exit 0
-          fi
           if [ "$SCALE_OUTCOME" = "success" ]; then
             action="scaled to zero"
-            status="The cost guard scaled \`${FLY_APP}\` to **0 Machines**"
+            status="The cost guard scaled \`${FLY_APP}\` to **0 Machines**."
           else
             action="FAILED to scale down"
-            status="The cost guard **could not scale** \`${FLY_APP}\` down (step outcome: ${SCALE_OUTCOME}); scale it manually with \`fly scale count 0 --app ${FLY_APP}\`"
+            status="The cost guard **could not scale** \`${FLY_APP}\` down (step outcome: ${SCALE_OUTCOME}). Scale it manually: \`fly scale count 0 --app ${FLY_APP}\`."
           fi
+          summary="Edge egress over the last 24 h was **${EGRESS_GB} GB**, above the **${BUDGET_GB} GB** daily budget. Run: ${RUN_URL}"
+
+          # One issue per incident. A repeated successful cut stays silent; a failed
+          # cut always reaches a human, as a comment on the open issue if there is one.
+          gh label create cost-guard --color B60205 --description "Cost guard alerts" --force
+          open_issue=$(gh issue list --state open --label cost-guard --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$open_issue" ]; then
+            if [ "$SCALE_OUTCOME" = "success" ]; then
+              echo "Issue #${open_issue} is already open for this incident."
+            else
+              gh issue comment "$open_issue" --body "${status} ${summary}"
+            fi
+            exit 0
+          fi
+
           gh issue create \
+            --label cost-guard \
             --title "[cost-guard] ${FLY_APP} ${action}: egress over budget" \
             --body "$(cat <<EOF
-          ${status}: edge egress over the last 24 h was **${EGRESS_GB} GB**, above the **${BUDGET_GB} GB** daily budget.
+          ${status}
 
-          Run: ${RUN_URL}
+          ${summary}
 
           Scaling to zero touches no data: the app has no volumes and the database is external.
 
           ## Recovery
           1. Investigate the traffic (\`fly logs --app ${FLY_APP}\`, Grafana at fly-metrics.net).
           2. Pause the guard, otherwise it scales the app down again while the 24 h window is over budget: \`gh workflow disable cost-guard.yml\`
-          3. Restore the app: \`fly scale count 1 --app ${FLY_APP}\`
+          3. Restore the app: \`fly scale count 1 --app ${FLY_APP}\`. If flyctl reports that there are no Machines to scale, redeploy the current \`main\` from \`backend/\`: \`fly deploy --remote-only --app ${FLY_APP}\`.
           4. After 24 h (or after raising the \`COST_GUARD_MAX_DAILY_EGRESS_GB\` variable), re-arm it: \`gh workflow enable cost-guard.yml\`
           5. Close this issue.
 

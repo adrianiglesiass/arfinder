@@ -196,8 +196,9 @@ transformación ya se aplica al servir, el cambio se limita a no duplicarla y se
   `COST_GUARD_MAX_DAILY_EGRESS_GB` sin tocar código.
 - **Acción**: si `over_budget == 'true'` y no es `dry_run`: `flyctl scale count 0 --app
   arfinder-api --yes` con `secrets.FLY_COST_GUARD_TOKEN` y se abre una issue de aviso
-  (`permissions: issues: write`) con los pasos de recuperación; si ya hay una issue abierta con
-  el prefijo `[cost-guard]` no se duplica. Con 0 Machines el gasto cae a céntimos de rootfs.
+  (`permissions: issues: write`, etiqueta `cost-guard`) con los pasos de recuperación. Una issue
+  por incidente: si ya hay una abierta con esa etiqueta, un corte repetido con éxito no hace
+  ruido, pero un corte **fallido** siempre se comenta en ella. Con 0 Machines el gasto cae a céntimos de rootfs.
 - **Sin configurar no molesta**: mientras no exista `FLY_READONLY_TOKEN`, el job pasa con un
   `::warning::` ("no armado") en vez de fallar y enviar un correo cada 15 minutos.
 - **La alerta llega aunque falle el corte**: la issue se abre con `!cancelled()`; si
@@ -215,17 +216,19 @@ transformación ya se aplica al servir, el cambio se limita a no duplicarla y se
   ventana que necesitamos.
 - **Recuperación manual** (en la issue y en la PR): como la ventana es de 24 h, el watchdog
   volvería a cortar si se restaura antes; por eso primero `gh workflow disable cost-guard.yml`,
-  luego `fly scale count 1 --app arfinder-api`, y `gh workflow enable cost-guard.yml` pasadas
+  luego `fly scale count 1 --app arfinder-api` (si flyctl responde que no hay Machines que
+  escalar, `fly deploy --remote-only` desde `backend/` sobre `main`), y `gh workflow enable cost-guard.yml` pasadas
   24 h (o subir antes `COST_GUARD_MAX_DAILY_EGRESS_GB`).
 - **Secretos/variables que debe crear el usuario**: `FLY_READONLY_TOKEN`
-  (`fly tokens create readonly <org>`), `FLY_COST_GUARD_TOKEN`
+  (`fly tokens create readonly -o <org>`), `FLY_COST_GUARD_TOKEN`
   (`fly tokens create deploy -a arfinder-api`) y, si la org no es `personal`, la variable
   `FLY_ORG`. Se usa un token propio y no `FLY_API_TOKEN_PROD`: ese vive en el *environment*
   `production`, cuyas reglas de protección podrían bloquear un cron, y así se puede revocar uno
   sin romper el otro. La exención por debajo de $5 solo aplica a la organización personal y no
   está documentada en la página de precios: no se confía en ella, se diseña para no necesitarla.
 - Limitación conocida: un `fly deploy` (push a `main`) sobre una app con 0 Machines vuelve a
-  crear una, así que **no se debe desplegar durante un incidente** de coste.
+  crear una; si el watchdog sigue armado y la ventana de 24 h sigue por encima del presupuesto,
+  la vuelve a cortar en ≤15 min (con la issue ya abierta, sin ruido).
 - Limitación conocida: los workflows con `schedule` solo corren desde la rama por defecto
   (`develop`) y GitHub los suspende tras 60 días sin actividad en el repositorio. El egress de
   Fly es la única métrica vigilada: Cloudinary e InsForge tienen sus propios planes gratuitos con
