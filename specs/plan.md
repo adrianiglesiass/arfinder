@@ -84,8 +84,8 @@ fecha: 2026-09-10
 | 51 | Textos y consistencia visual (mayúsculas, clases de tema inexistentes, color fijo) | frontend | ux-a11y | ⏳ |
 | F6 | El bloqueo corta el chat y el acceso al perfil (hoy el bloqueado puede seguir escribiendo) | frontend+backend | feature | ⏳ |
 | 52 | Filtro de presupuesto invertido para quien ofrece habitación | frontend+backend | budget-filter | ⏳ |
-| 53 | Tokens inválidos sin caché: cada bearer aleatorio dispara una llamada saliente a InsForge | backend | abuse-cost-ceiling | ⏳ PR #304 |
-| 54 | WebSocket sin límites de conexión por usuario/IP, suscripciones ni tasa de mensajes | backend | abuse-cost-ceiling | ⏳ PR #304 |
+| 53 | Tokens inválidos sin caché: cada bearer aleatorio dispara una llamada saliente a InsForge | backend | abuse-cost-ceiling | ✅ done → PR #304 |
+| 54 | WebSocket sin límites de conexión por usuario/IP, suscripciones ni tasa de mensajes | backend | abuse-cost-ceiling | ✅ done → PR #304 |
 | 55 | `fly.toml` sin `[http_service.concurrency]`: el proxy no desecha carga | backend | abuse-cost-ceiling | ⏳ |
 | 56 | Rutas de lectura (`GET /profiles/{id}`, conversaciones, mensajes, `/auth/me`) sin rate limit | backend | abuse-cost-ceiling | ⏳ PR #304 |
 | 57 | `/docs`, `/redoc` y `/openapi.json` públicos en producción | backend | abuse-cost-ceiling | ⏳ PR #304 |
