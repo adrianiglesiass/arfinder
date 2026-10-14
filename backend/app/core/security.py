@@ -11,8 +11,11 @@ insforge = InsforgeClient(settings.INSFORGE_URL, settings.INSFORGE_API_KEY)
 
 
 _TOKEN_CACHE_TTL_SECONDS = 120
+_NEGATIVE_CACHE_TTL_SECONDS = 60
+_NEGATIVE_CACHE_MAX_ENTRIES = 2000
 
 _token_cache: dict[str, tuple[float, object]] = {}
+_negative_cache: dict[str, float] = {}
 _inflight: dict[str, asyncio.Future] = {}
 _cache_lock = asyncio.Lock()
 
@@ -25,6 +28,14 @@ def _purge_expired_locked(now: float) -> None:
     expired = [k for k, (exp, _) in _token_cache.items() if exp <= now]
     for k in expired:
         _token_cache.pop(k, None)
+
+
+def _purge_negative_locked(now: float) -> None:
+    expired = [k for k, exp in _negative_cache.items() if exp <= now]
+    for k in expired:
+        _negative_cache.pop(k, None)
+    while len(_negative_cache) > _NEGATIVE_CACHE_MAX_ENTRIES:
+        _negative_cache.pop(next(iter(_negative_cache)))
 
 
 def _session_user_id(session: object) -> str | None:
@@ -59,6 +70,12 @@ async def validate_insforge_token(token: str):
                 return session
             _token_cache.pop(key, None)
 
+        negative_expiry = _negative_cache.get(key)
+        if negative_expiry is not None:
+            if negative_expiry > now:
+                return None
+            _negative_cache.pop(key, None)
+
         future = _inflight.get(key)
         is_leader = future is None
         if is_leader:
@@ -80,7 +97,15 @@ async def validate_insforge_token(token: str):
         _inflight.pop(key, None)
         if session is not None:
             _token_cache[key] = (time.monotonic() + _TOKEN_CACHE_TTL_SECONDS, session)
+            _negative_cache.pop(key, None)
             _purge_expired_locked(now)
+        else:
+            # Caché negativa: sin esta marca, cada token inválido repetido (p. ej.
+            # un diccionario de bearers aleatorios) detonaría una llamada saliente
+            # a InsForge, que es un amplificador de coste de egress bajo abuso.
+            # Solo se guarda el hash, nunca el token en claro.
+            _negative_cache[key] = time.monotonic() + _NEGATIVE_CACHE_TTL_SECONDS
+            _purge_negative_locked(now)
 
     if not future.done():
         future.set_result(session)

@@ -84,6 +84,13 @@ fecha: 2026-09-10
 | 51 | Textos y consistencia visual (mayúsculas, clases de tema inexistentes, color fijo) | frontend | ux-a11y | ⏳ |
 | F6 | El bloqueo corta el chat y el acceso al perfil (hoy el bloqueado puede seguir escribiendo) | frontend+backend | feature | ⏳ |
 | 52 | Filtro de presupuesto invertido para quien ofrece habitación | frontend+backend | budget-filter | ⏳ |
+| 53 | Tokens inválidos sin caché: cada bearer aleatorio dispara una llamada saliente a InsForge | backend | abuse-cost-ceiling | ✅ done → PR #304 |
+| 54 | WebSocket sin límites de conexión por usuario/IP, suscripciones ni tasa de mensajes | backend | abuse-cost-ceiling | ✅ done → PR #304 |
+| 55 | `fly.toml` sin `[http_service.concurrency]`: el proxy no desecha carga | backend | abuse-cost-ceiling | ⏳ |
+| 56 | Rutas de lectura (`GET /profiles/{id}`, conversaciones, mensajes, `/auth/me`) sin rate limit | backend | abuse-cost-ceiling | ✅ done → PR #304 |
+| 57 | `/docs`, `/redoc` y `/openapi.json` públicos en producción | backend | abuse-cost-ceiling | ✅ done → PR #304 |
+| 58 | ~~Subidas a Cloudinary sin transformación~~ **Descartado**: el ancho de banda ya se optimiza en la URL (`app.config.ts`) y la transformación en la subida rompería `extract_public_id_from_url`/`destroy` | backend | abuse-cost-ceiling | ↩️ descartado |
+| 59 | Sin techo de gasto: nada corta el despliegue si el egress se dispara (Fly no tiene alertas ni límite) | infra | abuse-cost-ceiling | ⏳ |
 
 ## Fases (orden de ejecución)
 1. ✅ **fix/critical-issues** → PR #288 (mergeado).
@@ -99,11 +106,17 @@ fecha: 2026-09-10
 11. ✅ **fix/prod-critical** → PR #300. #22–#25.
 12. ✅ **fix/release-blockers** → PR #301. #26–#31.
 13. ✅ **fix/backend-integrity** → PR #302. #32–#39.
-14. ⏳ **fix/frontend-state** — #40–#45. RAMA SIGUIENTE.
-15. ⏳ **fix/ux-a11y** — #46–#51.
-16. ⏳ **feat/block-cuts-messaging** — F6.
-17. ⏳ **fix/budget-filter-direction** — #52.
-18. ⏳ Release (merge commit con `--subject "release: vX.Y.Z"` + tag).
+14. 🔄 **fix/abuse-cost-ceiling** — #53–#59. Techo de coste y endurecimiento anti-abuso
+    (spec: [`fix-abuse-cost-ceiling.md`](fix-abuse-cost-ceiling.md)). **Backend (#53, #54, #56,
+    #57) en PR #304** → `develop`; #58 descartado con evidencia; quedan #55 (`fly.toml`
+    concurrencia) y #59 (watchdog de coste) en el siguiente PR. Insertada fuera de orden a
+    petición del usuario: sin Cloudflare ni dominio propio, la única garantía de factura es el
+    código más el watchdog.
+15. ⏳ **fix/frontend-state** — #40–#45.
+16. ⏳ **fix/ux-a11y** — #46–#51.
+17. ⏳ **feat/block-cuts-messaging** — F6.
+18. ⏳ **fix/budget-filter-direction** — #52.
+19. ⏳ Release (merge commit con `--subject "release: vX.Y.Z"` + tag).
 
 ## Estado del backlog
 - Release v1.4.0 en `main`. Antes de la siguiente, una auditoría con cinco agentes (code-reviewer,
