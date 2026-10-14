@@ -19,11 +19,6 @@ router = APIRouter(tags=["realtime"])
 
 WS_AUTH_SUBPROTOCOL = "bearer"
 
-_TOO_MANY_SOCKETS_DETAIL = (
-    "Demasiadas conexiones en tiempo real. "
-    "Cierra alguna pestaña e inténtalo de nuevo en unos segundos."
-)
-
 
 def _resolve_user_id(insforge_user) -> int:
     with SessionLocal() as db:
@@ -51,18 +46,22 @@ def _extract_bearer_token(websocket: WebSocket) -> str | None:
 async def _deny_handshake(websocket: WebSocket) -> None:
     """Rechaza el handshake con 429 HTTP previo al upgrade.
 
-    Si el servidor no soporta la extensión de respuesta de denegación, se
-    cierra el socket con 1008 (política violada) como alternativa.
+    Si el cliente negoció la extensión `websocket.http.response`, se le entrega
+    una respuesta 429 real (con `Retry-After`) antes del upgrade. Si no, se
+    cierra el socket pre-accept: el servidor ASGI lo traduce en un rechazo HTTP
+    del handshake (uvicorn responde 403), así que el cliente NO recibe un código
+    de cierre 1008 — ese código solo existe una vez aceptada la conexión.
     """
     if "websocket.http.response" in websocket.scope.get("extensions", {}):
         await websocket.send_denial_response(
             JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content={"detail": _TOO_MANY_SOCKETS_DETAIL},
+                content={"detail": TooManySocketsError.default_detail},
                 headers={"Retry-After": "10"},
             )
         )
     else:
+        # Último recurso sin extensión de denegación: rechazo HTTP (403), no 1008.
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
 
 

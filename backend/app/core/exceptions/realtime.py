@@ -9,6 +9,3 @@ class TooManySocketsError(AppError):
         "Demasiadas conexiones en tiempo real. "
         "Cierra alguna pestaña e inténtalo de nuevo en unos segundos."
     )
-
-    def __init__(self):
-        super().__init__()
