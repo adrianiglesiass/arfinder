@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-fix-abuse-cost-ceiling
-estado: approved
+estado: done
 stack: backend
 fecha: 2026-10-14
 ---
@@ -258,6 +258,32 @@ transformación ya se aplica al servir, el cambio se limita a no duplicarla y se
 - [x] Build: no aplica (el protocolo del WS es compatible: un 429 en el handshake y los
   eventos `error` son ignorados por el cliente actual, y el techo de 100 suscripciones
   hace el rechazo prácticamente inalcanzable)
+- [x] Workflow `cost-guard.yml`: YAML válido y `actionlint` 1.7.7 sin avisos; el paso de la
+  issue se ejecutó en seco con un `gh` simulado (corte con éxito/fallido, con/sin issue abierta)
+- [ ] Ejecución manual `workflow_dispatch` (`dry_run: true`): pendiente de que el usuario cree
+  los secretos (ver *Resultado*)
 
 ## Resultado
-<pendiente: al cerrar, qué pasó, diffs de comportamiento y enlaces a commits>
+Fase cerrada en dos PRs:
+- **PR #304** (mergeado): #53, #54, #56 y #57. 174 tests (+30). La revisión de `code-reviewer`
+  subió los techos de WebSocket (50/IP, 100 suscripciones) y añadió `--ws-max-size 65536`.
+- **#58** descartado con evidencia (ver *Decisión técnica*).
+- **PR #305**: #55 y #59.
+  - #55: `[http_service.concurrency]` `requests` 50/100 en `backend/fly.toml`. Sin el bloque Fly
+    aplicaba `soft_limit = 20` y **ningún `hard_limit`**. Entra en vigor con el siguiente
+    despliegue a `main`.
+  - #59: `backend/scripts/cost_guard.py` (mide, solo librería estándar) +
+    `.github/workflows/cost-guard.yml` (actúa). Prueba de humo contra el Prometheus real: sin
+    token y con un token falso (HTTP 401) sale con código 2 sin escribir veredicto.
+  - Revisión de `code-reviewer`: aprobada con avisos, aplicados: la deduplicación de issues pasa
+    a una etiqueta `cost-guard` (la búsqueda por título ignora los corchetes), un corte fallido
+    siempre se comenta en la issue abierta, `IncompleteRead` se trata como fallo de medición y
+    el runbook incluye `fly deploy` si `fly scale count 1` no encuentra Machines. Se aceptan sin
+    cambio: `setup-flyctl@master` (misma convención que `backend-deploy-prod.yml`) y el vector
+    vacío como 0 con `::warning::` (lo detecta la ejecución manual en seco).
+  - Verificación: `ruff check`, `ruff format --check` y `pytest` → **208 passed** (+34 en
+    `tests/ops/test_cost_guard.py`).
+  - **Pasos manuales del usuario** (el watchdog no está armado hasta entonces): secretos
+    `FLY_READONLY_TOKEN` (`fly tokens create readonly -o <org>`) y `FLY_COST_GUARD_TOKEN`
+    (`fly tokens create deploy -a arfinder-api`), variable `FLY_ORG` si la org no es `personal`,
+    y una ejecución `gh workflow run cost-guard.yml -f dry_run=true` tras el merge.
