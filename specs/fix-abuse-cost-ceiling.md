@@ -70,7 +70,10 @@ ningún techo de gasto**: nadie corta el despliegue si el consumo se dispara.
 - DADO una ruta de lectura protegida CUANDO un mismo usuario supera su presupuesto ENTONCES
   responde 429 con `Retry-After`; `/health` y `/health/realtime` **nunca** responden 429.
 - DADO que el egress de las últimas 24 h supera el presupuesto CUANDO el watchdog se ejecuta
-  ENTONCES se crean las Machines a 0 (`fly scale count 0`) y se abre una issue de aviso.
+  ENTONCES se escalan las Machines a 0 (`fly scale count 0`) y se abre una issue de aviso (una
+  sola mientras siga abierta).
+- DADO que la consulta a Prometheus falla CUANDO el watchdog se ejecuta ENTONCES el job falla y
+  **no** se escala nada.
 - DADO el watchdog CUANDO el consumo es normal ENTONCES no toca nada y no escribe en el repo.
 
 ## Decisión técnica
@@ -119,9 +122,30 @@ Techos revisados tras la revisión de `code-reviewer`:
 externo; añadiría código sin beneficio.
 
 **#55 — concurrencia** (`backend/fly.toml`): `[http_service.concurrency]` con
-`type = "requests"`, `soft_limit = 30`, `hard_limit = 60`. *Descartado* `type = "connections"`:
-contaría los sockets WebSocket ociosos y agotaría el presupuesto con usuarios legítimos.
-Verificar el bloque contra la doc de Fly antes de dar la fase por hecha.
+`type = "requests"`, `soft_limit = 50`, `hard_limit = 100`. Verificado contra la doc de Fly
+(*fly.toml reference*): sin bloque, el tipo es `connections`, `soft_limit` vale 20 y **no hay
+`hard_limit`** ("If unset, no `hard_limit` is enforced"), así que el proxy nunca deja de enviar
+tráfico a la Machine. Al alcanzar `hard_limit` el proxy deja de mandarle peticiones nuevas
+(esperan en el borde y acaban en error del proxy), sin consumir CPU ni memoria de la VM.
+Dimensionado (no hay `--workers` en el `CMD`: **un solo proceso uvicorn** en `shared-cpu-1x` /
+`256mb`):
+- Las rutas son síncronas → corren en el *threadpool* de AnyIO (**40 hilos** por defecto) y el
+  pool de SQLAlchemy permite **40 conexiones** (`pool_size=20` + `max_overflow=20`,
+  `app/db/database.py`). Más de ~40 peticiones de trabajo real simultáneas solo hacen cola
+  dentro del proceso consumiendo memoria.
+- `soft_limit = 50` ≈ capacidad del *threadpool* + margen para peticiones ligeras (`/health`,
+  respuestas cacheadas). Con una sola Machine solo sirve de señal (no hay otra a la que
+  desviar), pero deja el valor correcto si un día se escala a 2.
+- `hard_limit = 100`: la doc no aclara si un WebSocket abierto cuenta como petición durante toda
+  su vida; **asumimos que sí** (caso peor). 100 deja hueco a ~50 sockets en tiempo real más un
+  *threadpool* completo, y acota la memoria de peticiones en vuelo (cuerpo ≤ límite de
+  `BodySizeLimitMiddleware`) muy por debajo de 256 MB. El techo real por usuario lo siguen
+  poniendo los límites de #54 (5 sockets/usuario, 50/IP).
+*Descartado* `type = "connections"`: el proxy no podría reutilizar conexiones y cada socket
+TCP del cliente (keep-alive incluido) gastaría una plaza aunque estuviera ocioso.
+*Descartado* `30/60` (borrador inicial): con WebSockets contando como petición, 60 plazas
+equivalen a ~60 usuarios conectados a la vez; demasiado justo para un techo de coste cuyo
+objetivo es proteger la VM, no limitar usuarios legítimos.
 
 **#56 — límites de lectura** (`app/core/rate_limit.py` + routers): nuevo `read_limiter`
 (`SlidingWindowLimiter(240)`) por **usuario** para rutas autenticadas de lectura
@@ -153,23 +177,52 @@ En el resto de entornos se mantienen. Verificar antes que ni el frontend ni los 
 URL ya lleva transformación embebida (el commit histórico `#250` hablaba de `c_limit`); si la
 transformación ya se aplica al servir, el cambio se limita a no duplicarla y se documenta.
 
-**#59 — watchdog** (`.github/workflows/cost-guard.yml`, **nuevo**): cron `*/15 * * * *` +
-`workflow_dispatch`. Consulta
-`https://api.fly.io/prometheus/<ORG>/api/v1/query` con `Authorization: FlyV1 ${{ secrets.FLY_READONLY_TOKEN }}`:
-`sum(increase(fly_edge_data_out{app="arfinder-api"}[24h]))` y `fly_edge_http_responses_count`.
-- **Presupuesto**: `$4/mes` (por debajo del umbral de $5 bajo el que Fly exime la factura, lo que
-  mantiene el coste real en $0) → traducido a `MAX_DAILY_EGRESS_GB ≈ 6.5 GB/día`.
-- **Acción**: si se supera, `fly scale count 0` con `secrets.FLY_API_TOKEN` y se abre una issue
-  (`permissions: issues: write`). Con 0 Machines el gasto cae a céntimos de rootfs.
+**#59 — watchdog** (`.github/workflows/cost-guard.yml` + `backend/scripts/cost_guard.py`,
+**nuevos**): cron `*/15 * * * *` + `workflow_dispatch` (input `dry_run`, por defecto `true`).
+- **Medición** (`backend/scripts/cost_guard.py`, solo librería estándar): consulta
+  `https://api.fly.io/prometheus/<org>/api/v1/query` con
+  `sum(increase(fly_edge_data_out{app="arfinder-api"}[24h]))` (`fly_edge_data_out` es un
+  *counter* en bytes; doc *Metrics on Fly.io*). Cabecera `Authorization: FlyV1 <token>` para
+  tokens de `fly tokens create` (si el secreto ya trae el prefijo `FlyV1 `/`Bearer `, se respeta).
+  Valida `app` y la ventana con una expresión regular antes de construir la query. Escribe
+  `over_budget` y `egress_gb` en `$GITHUB_OUTPUT` y un resumen en `$GITHUB_STEP_SUMMARY`.
+  **El script nunca muta nada**: solo mide y decide. Responsabilidad única: el workflow actúa.
+- **Fallo seguro**: si la consulta falla (red, 401, JSON inválido, `status != success`) el script
+  sale con código 2, el job queda en rojo y **no se escala nada**. Un vector vacío (ninguna serie
+  en la ventana) cuenta como 0 bytes con un `::warning::` para detectar un `app`/org mal
+  configurado.
+- **Presupuesto**: `$4/mes` → `200 GB/mes` a `$0.02/GB` (Europa) → `MAX_DAILY_EGRESS_GB = 6.5`
+  (GB decimales, 10⁹ bytes, como factura Fly). Configurable con la variable de repositorio
+  `COST_GUARD_MAX_DAILY_EGRESS_GB` sin tocar código.
+- **Acción**: si `over_budget == 'true'` y no es `dry_run`: `flyctl scale count 0 --app
+  arfinder-api --yes` con `secrets.FLY_COST_GUARD_TOKEN` y se abre una issue de aviso
+  (`permissions: issues: write`) con los pasos de recuperación; si ya hay una issue abierta con
+  el prefijo `[cost-guard]` no se duplica. Con 0 Machines el gasto cae a céntimos de rootfs.
+- **No puede destruir datos**: `fly.toml` no declara `[mounts]` (sin volúmenes) y la base de
+  datos es externa, así que las Machines son desechables: `scale count 0` solo elimina cómputo
+  sin estado y `fly scale count 1` las recrea desde la release actual. El token es un *deploy
+  token* acotado a la app (no puede tocar otras apps de la org) y el workflow no ejecuta ningún
+  comando sobre volúmenes, secretos, bases de datos ni releases. *Descartado* `fly machine stop`:
+  con `auto_start_machines = true` el proxy la volvería a arrancar con la siguiente petición.
 - **Sin estado en disco**: se calcula `increase()` sobre las últimas 24 h, así que el workflow no
-  commitea nada. *Descartado* un fichero de estado acumulado en el repo: generaría ~96 commits al
-  día y la retención de Prometheus (15 días) ya cubre la ventana que necesitamos.
-- **Recuperación manual**: `fly scale count 1`, documentada en el runbook.
-- Secretos que debe crear el usuario: `FLY_READONLY_TOKEN` (`fly tokens create readonly`) y
-  `FLY_API_TOKEN`. La exención por debajo de $5 solo aplica a la organización personal y no está
-  documentada en la página de precios: no se confía en ella, se diseña para no necesitarla.
-- Limitación conocida: los workflows con `schedule` solo corren en la rama por defecto y se
-  suspenden tras 60 días sin actividad en el repositorio.
+  commitea nada (`permissions: contents: read`). *Descartado* un fichero de estado acumulado en
+  el repo: generaría ~96 commits al día y la retención de Prometheus (15 días) ya cubre la
+  ventana que necesitamos.
+- **Recuperación manual** (en la issue y en la PR): como la ventana es de 24 h, el watchdog
+  volvería a cortar si se restaura antes; por eso primero `gh workflow disable cost-guard.yml`,
+  luego `fly scale count 1 --app arfinder-api`, y `gh workflow enable cost-guard.yml` pasadas
+  24 h (o subir antes `COST_GUARD_MAX_DAILY_EGRESS_GB`).
+- **Secretos/variables que debe crear el usuario**: `FLY_READONLY_TOKEN`
+  (`fly tokens create readonly <org>`), `FLY_COST_GUARD_TOKEN`
+  (`fly tokens create deploy -a arfinder-api`) y, si la org no es `personal`, la variable
+  `FLY_ORG`. Se usa un token propio y no `FLY_API_TOKEN_PROD`: ese vive en el *environment*
+  `production`, cuyas reglas de protección podrían bloquear un cron, y así se puede revocar uno
+  sin romper el otro. La exención por debajo de $5 solo aplica a la organización personal y no
+  está documentada en la página de precios: no se confía en ella, se diseña para no necesitarla.
+- Limitación conocida: los workflows con `schedule` solo corren desde la rama por defecto
+  (`develop`) y GitHub los suspende tras 60 días sin actividad en el repositorio. El egress de
+  Fly es la única métrica vigilada: Cloudinary e InsForge tienen sus propios planes gratuitos con
+  tope duro.
 
 ## Plan de tests
 - `backend/tests/security/test_negative_token_cache.py`: un token inválido produce **una sola**
@@ -180,8 +233,12 @@ transformación ya se aplica al servir, el cambio se limita a no duplicarla y se
   presupuesto y **200 en `/health`** bajo la misma carga.
 - `backend/tests/test_docs_disabled.py`: en `ENVIRONMENT=production` `/docs`, `/redoc` y
   `/openapi.json` devuelven 404; en `testing` siguen accesibles.
-- `cost-guard`: se verifica con `actionlint` y una ejecución manual (`workflow_dispatch`) en modo
-  dry-run antes de dejarlo armado.
+- `backend/tests/scripts/test_cost_guard.py`: cabecera de autorización, construcción y
+  validación de la query, parseo de la respuesta de Prometheus (vector vacío, varias series,
+  `status` de error, JSON inválido), decisión de presupuesto, salidas en `$GITHUB_OUTPUT` y
+  código 2 sin token o ante un error de red (nunca `over_budget=true` en un fallo).
+- `cost-guard.yml`: YAML válido (+ `actionlint` si está disponible) y una ejecución manual
+  (`workflow_dispatch`, `dry_run: true`) una vez creados los secretos, antes de dejarlo armado.
 
 ## Checklist de verificación
 - [x] Backend: `ruff check .` y `ruff format --check .`
