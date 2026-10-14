@@ -1,28 +1,12 @@
-from types import SimpleNamespace
-
 import pytest
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from app.db.database import engine
 from app.main import app
-from app.routes import realtime as realtime_routes
 from app.services.conversation_service import get_or_create_conversation
 
 SUBPROTOCOLS = ["bearer", "good-token"]
-
-
-@pytest.fixture
-def ws_user(create_test_user, monkeypatch):
-    user = create_test_user(email="ws@test.com", insforge_id="if_ws")
-
-    async def fake_validate(token):
-        if token != "good-token":
-            return None
-        return SimpleNamespace(user=SimpleNamespace(id="if_ws", email="ws@test.com"))
-
-    monkeypatch.setattr(realtime_routes, "validate_insforge_token", fake_validate)
-    return user
 
 
 def test_open_socket_does_not_hold_a_pool_connection(db, ws_user, create_test_user):
