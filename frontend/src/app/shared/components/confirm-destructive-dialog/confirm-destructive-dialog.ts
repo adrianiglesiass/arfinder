@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { Button } from '@shared/components/button/button';
+import { ModalDialog } from '@shared/directives/modal-dialog';
 
 @Component({
   selector: 'app-confirm-destructive-dialog',
-  imports: [Button],
+  imports: [Button, ModalDialog],
   templateUrl: './confirm-destructive-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

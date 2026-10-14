@@ -3,12 +3,13 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import type { ReportCreate, ReportReasonEnum } from '@core/api/api.models';
 
 import { Button } from '@shared/components/button/button';
+import { ModalDialog } from '@shared/directives/modal-dialog';
 
 import { REPORT_REASONS } from './report-reasons';
 
 @Component({
   selector: 'app-report-dialog',
-  imports: [Button],
+  imports: [Button, ModalDialog],
   templateUrl: './report-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
