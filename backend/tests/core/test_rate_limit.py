@@ -98,6 +98,14 @@ def test_client_key_falls_back_to_socket_host():
     assert client_key(_request(host=None)) == "ip:unknown"
 
 
+def test_client_key_ignores_unparseable_fly_client_ip(monkeypatch):
+    monkeypatch.setenv("FLY_APP_NAME", "arfinder-api")
+    request = _request(headers={"fly-client-ip": "no-es-una-ip"})
+
+    # La cabecera spoofada no se usa como clave: manda el host del socket
+    assert client_key(request) == "ip:10.0.0.1"
+
+
 def test_resolve_client_key_is_shared_between_http_and_websocket(monkeypatch):
     monkeypatch.setenv("FLY_APP_NAME", "arfinder-api")
     headers = {"fly-client-ip": "203.0.113.7"}

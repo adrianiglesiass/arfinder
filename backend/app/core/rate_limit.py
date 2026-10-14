@@ -3,9 +3,10 @@ import os
 import threading
 import time
 from collections import OrderedDict, deque
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 
 from fastapi import Depends, HTTPException, Request, status
+from starlette.datastructures import Address
 
 from app.core.config import settings
 from app.core.dependencies import get_current_user
@@ -77,15 +78,22 @@ def _normalize_ip(raw: str) -> str:
     return str(address)
 
 
-def resolve_client_key(headers, client) -> str:
+def resolve_client_key(headers: Mapping[str, str], client: Address | None) -> str:
     """Clave de cliente compartida por HTTP y WebSocket.
 
-    Lee `Fly-Client-IP` solo detrás del proxy de Fly; fuera de él usa el host
-    del socket. Las IPv6 se normalizan a su red /64 para que una sola máquina
-    no multiplique claves.
+    Lee `Fly-Client-IP` solo detrás del proxy de Fly; fuera de él —o si la
+    cabecera no es una IP válida— usa el host del socket, para que un valor
+    arbitrario no multiplique claves de rate limit. Las IPv6 se normalizan a su
+    red /64 para que una sola máquina no multiplique claves.
     """
     fly_ip = headers.get("fly-client-ip") if os.getenv("FLY_APP_NAME") else None
-    raw = fly_ip or (client.host if client else "unknown")
+    socket_host = client.host if client else "unknown"
+    raw = fly_ip or socket_host
+    try:
+        ipaddress.ip_address(raw.strip())
+    except ValueError:
+        # Fly-Client-IP no parsea (o el host no lo es): clave por el socket.
+        raw = socket_host
     return f"ip:{_normalize_ip(raw)}"
 
 
