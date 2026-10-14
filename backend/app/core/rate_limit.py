@@ -3,9 +3,10 @@ import os
 import threading
 import time
 from collections import OrderedDict, deque
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 
 from fastapi import Depends, HTTPException, Request, status
+from starlette.datastructures import Address
 
 from app.core.config import settings
 from app.core.dependencies import get_current_user
@@ -16,6 +17,7 @@ REQUESTS_PER_WINDOW = 60
 MESSAGES_PER_WINDOW = 120
 ACTIONS_PER_WINDOW = 30
 SAFETY_ACTIONS_PER_WINDOW = 20
+READS_PER_WINDOW = 240
 MAX_TRACKED_KEYS = 10_000
 IPV6_PREFIX = 64
 
@@ -63,6 +65,7 @@ limiter = SlidingWindowLimiter(REQUESTS_PER_WINDOW)
 message_limiter = SlidingWindowLimiter(MESSAGES_PER_WINDOW)
 action_limiter = SlidingWindowLimiter(ACTIONS_PER_WINDOW)
 safety_limiter = SlidingWindowLimiter(SAFETY_ACTIONS_PER_WINDOW)
+read_limiter = SlidingWindowLimiter(READS_PER_WINDOW)
 
 
 def _normalize_ip(raw: str) -> str:
@@ -75,10 +78,27 @@ def _normalize_ip(raw: str) -> str:
     return str(address)
 
 
-def client_key(request: Request) -> str:
-    fly_ip = request.headers.get("fly-client-ip") if os.getenv("FLY_APP_NAME") else None
-    raw = fly_ip or (request.client.host if request.client else "unknown")
+def resolve_client_key(headers: Mapping[str, str], client: Address | None) -> str:
+    """Clave de cliente compartida por HTTP y WebSocket.
+
+    Lee `Fly-Client-IP` solo detrás del proxy de Fly; fuera de él —o si la
+    cabecera no es una IP válida— usa el host del socket, para que un valor
+    arbitrario no multiplique claves de rate limit. Las IPv6 se normalizan a su
+    red /64 para que una sola máquina no multiplique claves.
+    """
+    fly_ip = headers.get("fly-client-ip") if os.getenv("FLY_APP_NAME") else None
+    socket_host = client.host if client else "unknown"
+    raw = fly_ip or socket_host
+    try:
+        ipaddress.ip_address(raw.strip())
+    except ValueError:
+        # Fly-Client-IP no parsea (o el host no lo es): clave por el socket.
+        raw = socket_host
     return f"ip:{_normalize_ip(raw)}"
+
+
+def client_key(request: Request) -> str:
+    return resolve_client_key(request.headers, request.client)
 
 
 def _too_many() -> HTTPException:
@@ -120,5 +140,15 @@ async def safety_rate_limiter(current_user: User = Depends(get_current_user)) ->
         return current_user
 
     if not safety_limiter.try_acquire(f"user:{current_user.id}"):
+        raise _too_many()
+    return current_user
+
+
+async def read_rate_limiter(current_user: User = Depends(get_current_user)) -> User:
+    """Presupuesto por usuario para rutas de lectura (240/min, spec #56)."""
+    if settings.ENVIRONMENT == "testing":
+        return current_user
+
+    if not read_limiter.try_acquire(f"user:{current_user.id}"):
         raise _too_many()
     return current_user

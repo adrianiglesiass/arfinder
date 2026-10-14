@@ -28,42 +28,55 @@ async def lifespan(app: FastAPI):
     await realtime_listener.stop()
 
 
-app = FastAPI(
-    title=settings.APP_NAME,
-    description="Arfinder API documentation",
-    version="0.1.0",
-    lifespan=lifespan,
-)
+def create_app() -> FastAPI:
+    """Fábrica de la aplicación.
 
-app.add_middleware(
-    BodySizeLimitMiddleware,
-    max_bytes=PHOTO_UPLOAD_MAX_BYTES,
-    routes={("POST", "/profiles/me/photos")},
-)
-app.add_middleware(GZipMiddleware, minimum_size=500)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
-)
+    En producción se deshabilitan `/docs`, `/redoc` y `/openapi.json` para no
+    exponer el contrato completo de la API al exterior (spec #57).
+    """
+    production = settings.ENVIRONMENT == "production"
+    application = FastAPI(
+        title=settings.APP_NAME,
+        description="Arfinder API documentation",
+        version="0.1.0",
+        lifespan=lifespan,
+        docs_url=None if production else "/docs",
+        redoc_url=None if production else "/redoc",
+        openapi_url=None if production else "/openapi.json",
+    )
 
-register_exception_handlers(app)
+    application.add_middleware(
+        BodySizeLimitMiddleware,
+        max_bytes=PHOTO_UPLOAD_MAX_BYTES,
+        routes={("POST", "/profiles/me/photos")},
+    )
+    application.add_middleware(GZipMiddleware, minimum_size=500)
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
 
-app.include_router(auth_router)
-app.include_router(profile_router)
-app.include_router(messages_router)
-app.include_router(conversations_router)
-app.include_router(cities_router)
-app.include_router(realtime_router)
+    register_exception_handlers(application)
+
+    application.include_router(auth_router)
+    application.include_router(profile_router)
+    application.include_router(messages_router)
+    application.include_router(conversations_router)
+    application.include_router(cities_router)
+    application.include_router(realtime_router)
+
+    @application.get("/")
+    def root():
+        return {"message": "Welcome to Arfinder API!"}
+
+    @application.get("/health")
+    def health_check():
+        return {"status": "ok"}
+
+    return application
 
 
-@app.get("/")
-def root():
-    return {"message": "Welcome to Arfinder API!"}
-
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+app = create_app()

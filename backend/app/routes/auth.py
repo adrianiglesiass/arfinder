@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user
 from app.core.openapi import UNAUTH
 from app.core.config import settings
+from app.core.rate_limit import rate_limiter, read_rate_limiter
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.user import UserResponse
@@ -14,7 +15,12 @@ from app.services.sync_service import cleanup_orphaned_users
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.get("/me", response_model=UserResponse, responses=UNAUTH)
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    responses=UNAUTH,
+    dependencies=[Depends(read_rate_limiter)],
+)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
 
@@ -27,7 +33,9 @@ async def delete_my_account(
     await delete_user(db, current_user)
 
 
-@router.post("/sync-cleanup", include_in_schema=False)
+@router.post(
+    "/sync-cleanup", include_in_schema=False, dependencies=[Depends(rate_limiter)]
+)
 def sync_cleanup(
     x_sync_token: str | None = Header(default=None),
     db: Session = Depends(get_db),

@@ -1,10 +1,14 @@
+import json
 import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import JSONResponse
 
 from app.core.auth_utils import get_or_create_local_user
-from app.core.realtime import listener, manager
+from app.core.exceptions.realtime import TooManySocketsError
+from app.core.rate_limit import resolve_client_key
+from app.core.realtime import MAX_MESSAGE_BYTES, listener, manager, ws_message_limiter
 from app.core.security import validate_insforge_token
 from app.db.database import SessionLocal
 from app.repositories import conversation_repository
@@ -39,6 +43,90 @@ def _extract_bearer_token(websocket: WebSocket) -> str | None:
     return token if token else None
 
 
+async def _deny_handshake(websocket: WebSocket) -> None:
+    """Rechaza el handshake con 429 HTTP previo al upgrade.
+
+    Si el cliente negoció la extensión `websocket.http.response`, se le entrega
+    una respuesta 429 real (con `Retry-After`) antes del upgrade. Si no, se
+    cierra el socket pre-accept: el servidor ASGI lo traduce en un rechazo HTTP
+    del handshake (uvicorn responde 403), así que el cliente NO recibe un código
+    de cierre 1008 — ese código solo existe una vez aceptada la conexión.
+    """
+    if "websocket.http.response" in websocket.scope.get("extensions", {}):
+        await websocket.send_denial_response(
+            JSONResponse(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                content={"detail": TooManySocketsError.default_detail},
+                headers={"Retry-After": "10"},
+            )
+        )
+    else:
+        # Último recurso sin extensión de denegación: rechazo HTTP (403), no 1008.
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+
+
+async def _listen(websocket: WebSocket, user_id: int) -> None:
+    """Bucle de mensajes: aplica tamaño máximo y tasa antes de procesar."""
+    while True:
+        text = await websocket.receive_text()
+        if len(text.encode("utf-8")) > MAX_MESSAGE_BYTES:
+            await websocket.close(code=status.WS_1009_MESSAGE_TOO_BIG)
+            return
+        if not ws_message_limiter.try_acquire(f"ws:{user_id}"):
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            await websocket.send_json({"event": "error", "error": "invalid_json"})
+            continue
+        if not isinstance(data, dict):
+            # Un `[1,2]` u otro escalar no tiene `.get`: sin esta guardia
+            # estallaría como AttributeError y cerraría el socket con 1011.
+            await websocket.send_json({"event": "error", "error": "invalid_json"})
+            continue
+        action = data.get("action")
+        conversation_id = data.get("conversation_id")
+        if not isinstance(conversation_id, int):
+            await websocket.send_json(
+                {"event": "error", "error": "invalid_conversation_id"}
+            )
+            continue
+
+        if action == "subscribe":
+            allowed = await run_in_threadpool(_is_participant, conversation_id, user_id)
+            if not allowed:
+                await websocket.send_json(
+                    {
+                        "event": "error",
+                        "error": "forbidden",
+                        "conversation_id": conversation_id,
+                    }
+                )
+                continue
+            subscribed = await manager.subscribe(websocket, conversation_id)
+            if not subscribed:
+                await websocket.send_json(
+                    {
+                        "event": "error",
+                        "error": "too_many_subscriptions",
+                        "conversation_id": conversation_id,
+                    }
+                )
+                continue
+            await websocket.send_json(
+                {"event": "subscribed", "conversation_id": conversation_id}
+            )
+        elif action == "unsubscribe":
+            await manager.unsubscribe(websocket, conversation_id)
+            await websocket.send_json(
+                {"event": "unsubscribed", "conversation_id": conversation_id}
+            )
+        else:
+            await websocket.send_json({"event": "error", "error": "unknown_action"})
+
+
 @router.get("/health/realtime")
 def realtime_health():
     return {
@@ -65,44 +153,17 @@ async def realtime_endpoint(websocket: WebSocket):
         await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
         return
 
-    await websocket.accept(subprotocol=WS_AUTH_SUBPROTOCOL)
-    await manager.register(websocket, user_id)
+    try:
+        await manager.register(
+            websocket, user_id, resolve_client_key(websocket.headers, websocket.client)
+        )
+    except TooManySocketsError:
+        await _deny_handshake(websocket)
+        return
 
     try:
-        while True:
-            data = await websocket.receive_json()
-            action = data.get("action")
-            conversation_id = data.get("conversation_id")
-            if not isinstance(conversation_id, int):
-                await websocket.send_json(
-                    {"event": "error", "error": "invalid_conversation_id"}
-                )
-                continue
-
-            if action == "subscribe":
-                allowed = await run_in_threadpool(
-                    _is_participant, conversation_id, user_id
-                )
-                if not allowed:
-                    await websocket.send_json(
-                        {
-                            "event": "error",
-                            "error": "forbidden",
-                            "conversation_id": conversation_id,
-                        }
-                    )
-                    continue
-                await manager.subscribe(websocket, conversation_id)
-                await websocket.send_json(
-                    {"event": "subscribed", "conversation_id": conversation_id}
-                )
-            elif action == "unsubscribe":
-                await manager.unsubscribe(websocket, conversation_id)
-                await websocket.send_json(
-                    {"event": "unsubscribed", "conversation_id": conversation_id}
-                )
-            else:
-                await websocket.send_json({"event": "error", "error": "unknown_action"})
+        await websocket.accept(subprotocol=WS_AUTH_SUBPROTOCOL)
+        await _listen(websocket, user_id)
     except WebSocketDisconnect:
         pass
     except Exception as e:

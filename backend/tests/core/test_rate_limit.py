@@ -1,7 +1,7 @@
 import pytest
 from types import SimpleNamespace
 
-from app.core.rate_limit import SlidingWindowLimiter, client_key
+from app.core.rate_limit import SlidingWindowLimiter, client_key, resolve_client_key
 
 
 class FakeClock:
@@ -96,6 +96,26 @@ def test_client_key_groups_ipv6_by_64_prefix(monkeypatch):
 def test_client_key_falls_back_to_socket_host():
     assert client_key(_request()) == "ip:10.0.0.1"
     assert client_key(_request(host=None)) == "ip:unknown"
+
+
+def test_client_key_ignores_unparseable_fly_client_ip(monkeypatch):
+    monkeypatch.setenv("FLY_APP_NAME", "arfinder-api")
+    request = _request(headers={"fly-client-ip": "no-es-una-ip"})
+
+    # La cabecera spoofada no se usa como clave: manda el host del socket
+    assert client_key(request) == "ip:10.0.0.1"
+
+
+def test_resolve_client_key_is_shared_between_http_and_websocket(monkeypatch):
+    monkeypatch.setenv("FLY_APP_NAME", "arfinder-api")
+    headers = {"fly-client-ip": "203.0.113.7"}
+    socket_client = SimpleNamespace(host="10.0.0.1")
+
+    # Mismo resultado con la forma HTTP (request) y la de WebSocket (headers+client)
+    assert resolve_client_key(headers, socket_client) == client_key(
+        _request(headers=headers)
+    )
+    assert resolve_client_key({}, None) == "ip:unknown"
 
 
 ACTION_ROUTES = [
