@@ -2,7 +2,12 @@ from typing import List, Optional
 from datetime import date
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
 from app.core.file_validation import validate_image_header
-from app.core.rate_limit import action_rate_limiter, rate_limiter, safety_rate_limiter
+from app.core.rate_limit import (
+    action_rate_limiter,
+    rate_limiter,
+    read_rate_limiter,
+    safety_rate_limiter,
+)
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
@@ -200,7 +205,12 @@ def report_profile(
     report_service.report_profile(db, current_user.id, profile_id, payload)
 
 
-@router.get("/me", response_model=ProfileResponse, responses=PROTECTED)
+@router.get(
+    "/me",
+    response_model=ProfileResponse,
+    responses=PROTECTED,
+    dependencies=[Depends(read_rate_limiter)],
+)
 def get_my_profile(
     response: Response,
     db: Session = Depends(get_db),
@@ -301,7 +311,12 @@ def delete_profile_photo(
     return {"detail": "deleted"}
 
 
-@router.get("/{profile_id}", response_model=ProfileResponse, responses=NOT_FOUND)
+@router.get(
+    "/{profile_id}",
+    response_model=ProfileResponse,
+    responses=NOT_FOUND,
+    dependencies=[Depends(rate_limiter)],
+)
 def get_public_profile(
     profile_id: int, response: Response, db: Session = Depends(get_db)
 ):

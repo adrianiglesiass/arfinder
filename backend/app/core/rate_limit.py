@@ -16,6 +16,7 @@ REQUESTS_PER_WINDOW = 60
 MESSAGES_PER_WINDOW = 120
 ACTIONS_PER_WINDOW = 30
 SAFETY_ACTIONS_PER_WINDOW = 20
+READS_PER_WINDOW = 240
 MAX_TRACKED_KEYS = 10_000
 IPV6_PREFIX = 64
 
@@ -63,6 +64,7 @@ limiter = SlidingWindowLimiter(REQUESTS_PER_WINDOW)
 message_limiter = SlidingWindowLimiter(MESSAGES_PER_WINDOW)
 action_limiter = SlidingWindowLimiter(ACTIONS_PER_WINDOW)
 safety_limiter = SlidingWindowLimiter(SAFETY_ACTIONS_PER_WINDOW)
+read_limiter = SlidingWindowLimiter(READS_PER_WINDOW)
 
 
 def _normalize_ip(raw: str) -> str:
@@ -130,5 +132,15 @@ async def safety_rate_limiter(current_user: User = Depends(get_current_user)) ->
         return current_user
 
     if not safety_limiter.try_acquire(f"user:{current_user.id}"):
+        raise _too_many()
+    return current_user
+
+
+async def read_rate_limiter(current_user: User = Depends(get_current_user)) -> User:
+    """Presupuesto por usuario para rutas de lectura (240/min, spec #56)."""
+    if settings.ENVIRONMENT == "testing":
+        return current_user
+
+    if not read_limiter.try_acquire(f"user:{current_user.id}"):
         raise _too_many()
     return current_user
