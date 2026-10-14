@@ -75,10 +75,20 @@ def _normalize_ip(raw: str) -> str:
     return str(address)
 
 
-def client_key(request: Request) -> str:
-    fly_ip = request.headers.get("fly-client-ip") if os.getenv("FLY_APP_NAME") else None
-    raw = fly_ip or (request.client.host if request.client else "unknown")
+def resolve_client_key(headers, client) -> str:
+    """Clave de cliente compartida por HTTP y WebSocket.
+
+    Lee `Fly-Client-IP` solo detrás del proxy de Fly; fuera de él usa el host
+    del socket. Las IPv6 se normalizan a su red /64 para que una sola máquina
+    no multiplique claves.
+    """
+    fly_ip = headers.get("fly-client-ip") if os.getenv("FLY_APP_NAME") else None
+    raw = fly_ip or (client.host if client else "unknown")
     return f"ip:{_normalize_ip(raw)}"
+
+
+def client_key(request: Request) -> str:
+    return resolve_client_key(request.headers, request.client)
 
 
 def _too_many() -> HTTPException:
