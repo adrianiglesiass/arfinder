@@ -1,3 +1,4 @@
+import http.client
 import json
 import urllib.error
 import urllib.parse
@@ -132,6 +133,7 @@ def test_fetch_builds_authenticated_org_query():
     [
         FakeFetch(error=urllib.error.URLError("unreachable")),
         FakeFetch(error=TimeoutError()),
+        FakeFetch(error=http.client.IncompleteRead(b"partial")),
         FakeFetch(payload=b"<html>not json</html>"),
     ],
 )

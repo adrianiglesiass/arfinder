@@ -12,6 +12,7 @@ Spec: specs/fix-abuse-cost-ceiling.md (#59). Standard library only.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import math
 import os
@@ -116,7 +117,7 @@ def fetch_egress_bytes(
     try:
         body = fetch(request, REQUEST_TIMEOUT_SECONDS)
         payload = json.loads(body)
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+    except (urllib.error.URLError, http.client.HTTPException, OSError) as exc:
         raise CostGuardError(f"Prometheus request failed: {exc}") from exc
     except ValueError as exc:
         raise CostGuardError(f"Prometheus returned invalid JSON: {exc}") from exc
