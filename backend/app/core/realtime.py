@@ -9,6 +9,8 @@ from fastapi import WebSocket
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from app.core.config import settings
+from app.core.exceptions.realtime import TooManySocketsError
+from app.core.rate_limit import SlidingWindowLimiter
 from app.db.database import SessionLocal
 from app.repositories import message_repository
 
@@ -21,6 +23,19 @@ BACKOFF_FACTOR = 2
 NOTIFY_CHANNEL = "insforge_realtime"
 HEARTBEAT_SECONDS = 25
 
+# Techos anti-abuso de la conexión en tiempo real (spec fix-abuse-cost-ceiling #54)
+MAX_SOCKETS_PER_USER = 5
+MAX_SOCKETS_PER_IP = 10
+MAX_SUBSCRIPTIONS_PER_SOCKET = 20
+MAX_MESSAGE_BYTES = 8192
+WS_MESSAGES_PER_WINDOW = 60
+WS_WINDOW_SECONDS = 10.0
+
+# Reutiliza el sliding window de rate_limit; no se duplica la implementación.
+ws_message_limiter = SlidingWindowLimiter(
+    WS_MESSAGES_PER_WINDOW, window_seconds=WS_WINDOW_SECONDS
+)
+
 
 class ConnectionManager:
     def __init__(self) -> None:
@@ -28,18 +43,41 @@ class ConnectionManager:
         self._by_socket: dict[WebSocket, set[int]] = {}
         self._by_user: dict[int, set[WebSocket]] = {}
         self._socket_user: dict[WebSocket, int] = {}
+        self._socket_ip: dict[WebSocket, str] = {}
+        self._by_ip: dict[str, int] = {}
         self._lock = asyncio.Lock()
 
-    async def register(self, websocket: WebSocket, user_id: int) -> None:
+    async def register(
+        self, websocket: WebSocket, user_id: int, client_key: str
+    ) -> None:
+        """Registra un socket; lanza TooManySocketsError si supera los techos.
+
+        La validación ocurre ANTES de tocar ningún mapa para que un rechazo no
+        deje contadores huérfanos.
+        """
         async with self._lock:
+            user_sockets = self._by_user.get(user_id)
+            if user_sockets and len(user_sockets) >= MAX_SOCKETS_PER_USER:
+                raise TooManySocketsError()
+            if self._by_ip.get(client_key, 0) >= MAX_SOCKETS_PER_IP:
+                raise TooManySocketsError()
             self._by_socket.setdefault(websocket, set())
             self._by_user.setdefault(user_id, set()).add(websocket)
             self._socket_user[websocket] = user_id
+            self._socket_ip[websocket] = client_key
+            self._by_ip[client_key] = self._by_ip.get(client_key, 0) + 1
 
-    async def subscribe(self, websocket: WebSocket, conversation_id: int) -> None:
+    async def subscribe(self, websocket: WebSocket, conversation_id: int) -> bool:
+        """Suscribe el socket; devuelve False si supera MAX_SUBSCRIPTIONS_PER_SOCKET."""
         async with self._lock:
+            subscriptions = self._by_socket.setdefault(websocket, set())
+            if conversation_id in subscriptions:
+                return True
+            if len(subscriptions) >= MAX_SUBSCRIPTIONS_PER_SOCKET:
+                return False
             self._by_conversation.setdefault(conversation_id, set()).add(websocket)
-            self._by_socket.setdefault(websocket, set()).add(conversation_id)
+            subscriptions.add(conversation_id)
+            return True
 
     async def unsubscribe(self, websocket: WebSocket, conversation_id: int) -> None:
         async with self._lock:
@@ -53,6 +91,7 @@ class ConnectionManager:
                 convs.discard(conversation_id)
 
     async def disconnect(self, websocket: WebSocket) -> None:
+        """Punto único de salida: libera cupos de conversación, usuario e IP."""
         async with self._lock:
             convs = self._by_socket.pop(websocket, set())
             for cid in convs:
@@ -69,6 +108,13 @@ class ConnectionManager:
                     user_sockets.discard(websocket)
                     if not user_sockets:
                         self._by_user.pop(user_id, None)
+            client_key = self._socket_ip.pop(websocket, None)
+            if client_key is not None:
+                remaining = self._by_ip.get(client_key, 0) - 1
+                if remaining > 0:
+                    self._by_ip[client_key] = remaining
+                else:
+                    self._by_ip.pop(client_key, None)
 
     async def broadcast(self, conversation_id: int, message: dict[str, Any]) -> None:
         async with self._lock:
