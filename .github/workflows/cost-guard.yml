@@ -1,0 +1,92 @@
+name: Cost guard
+
+# Egress spend ceiling for the Fly.io backend (spec fix-abuse-cost-ceiling #59).
+# Fly has no billing alerts or spending cap, so every 15 minutes this measures the
+# app's edge egress over the last 24 h and, when it exceeds the budget, scales the
+# app to zero Machines and opens an issue. The app has no volumes and the database
+# is external, so scaling to zero destroys no data; recovery is manual (see issue).
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only measure and report; never scale or open an issue'
+        type: boolean
+        default: true
+
+concurrency:
+  group: cost-guard
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  FLY_APP: arfinder-api
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: backend/scripts
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Measure egress
+        id: measure
+        run: python backend/scripts/cost_guard.py --app "$FLY_APP"
+        env:
+          FLY_READONLY_TOKEN: ${{ secrets.FLY_READONLY_TOKEN }}
+          FLY_ORG: ${{ vars.FLY_ORG || 'personal' }}
+          COST_GUARD_MAX_DAILY_EGRESS_GB: ${{ vars.COST_GUARD_MAX_DAILY_EGRESS_GB || '6.5' }}
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        if: steps.measure.outputs.over_budget == 'true' && !inputs.dry_run
+
+      - name: Scale the app to zero Machines
+        if: steps.measure.outputs.over_budget == 'true' && !inputs.dry_run
+        run: flyctl scale count 0 --app "$FLY_APP" --yes
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_COST_GUARD_TOKEN }}
+
+      - name: Open an alert issue
+        if: steps.measure.outputs.over_budget == 'true' && !inputs.dry_run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EGRESS_GB: ${{ steps.measure.outputs.egress_gb }}
+          BUDGET_GB: ${{ steps.measure.outputs.budget_gb }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          open_alerts=$(gh issue list --state open --search '"[cost-guard]" in:title' --json number --jq 'length')
+          if [ "$open_alerts" != "0" ]; then
+            echo "An open [cost-guard] issue already exists; not opening another one."
+            exit 0
+          fi
+          gh issue create \
+            --title "[cost-guard] ${FLY_APP} scaled to zero: egress over budget" \
+            --body "$(cat <<EOF
+          The cost guard scaled \`${FLY_APP}\` to **0 Machines**: edge egress over the last 24 h was **${EGRESS_GB} GB**, above the **${BUDGET_GB} GB** daily budget.
+
+          Run: ${RUN_URL}
+
+          No data was touched: the app has no volumes and the database is external.
+
+          ## Recovery
+          1. Investigate the traffic (\`fly logs --app ${FLY_APP}\`, Grafana at fly-metrics.net).
+          2. Pause the guard, otherwise it scales the app down again while the 24 h window is over budget: \`gh workflow disable cost-guard.yml\`
+          3. Restore the app: \`fly scale count 1 --app ${FLY_APP}\`
+          4. After 24 h (or after raising the \`COST_GUARD_MAX_DAILY_EGRESS_GB\` variable), re-arm it: \`gh workflow enable cost-guard.yml\`
+          5. Close this issue.
+
+          Spec: \`specs/fix-abuse-cost-ceiling.md\` (#59).
+          EOF
+          )"
