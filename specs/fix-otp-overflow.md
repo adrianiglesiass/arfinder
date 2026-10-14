@@ -20,10 +20,12 @@ pantalla y hay scroll horizontal.
 - Los inputs pasan a `flex-1 min-w-0 max-w-12` (crecen hasta 48 px y encogen si no caben), con un hueco
   y una altura algo menores en móvil.
 - `AuthCard` reduce el padding interior en móvil (`p-6 sm:p-8 lg:p-10`).
-- Cada dígito tiene `aria-label` ("Dígito n de 6") y el primero `autocomplete="one-time-code"`.
+- Cada dígito tiene `aria-label` ("Dígito n de 6") y el conjunto es un `role="group"` con nombre.
 
 ## No-goals
 - NO se cambia la lógica de pegado, avance ni borrado entre dígitos.
+- NO se añade `autocomplete="one-time-code"`: con `maxlength="1"` el autorrelleno de iOS escribiría el
+  código entero en el primer dígito y habría que cambiar la lógica de entrada.
 
 ## Criterios de aceptación
 - DADO un móvil de 360 px CUANDO abro "Verifica tu email" ENTONCES los seis dígitos caben en la tarjeta,
