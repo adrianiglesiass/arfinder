@@ -47,3 +47,18 @@ def test_invalid_token_is_rejected(ws_user):
             ws.receive_json()
 
     assert exc.value.code == 1008
+
+
+def test_malformed_payload_answers_invalid_json_and_keeps_the_socket(ws_user):
+    with TestClient(app).websocket_connect(
+        "/ws/realtime", subprotocols=SUBPROTOCOLS
+    ) as ws:
+        ws.send_text("[1, 2]")
+        assert ws.receive_json() == {"event": "error", "error": "invalid_json"}
+
+        ws.send_text("esto no es json")
+        assert ws.receive_json() == {"event": "error", "error": "invalid_json"}
+
+        # El payload inválido no cierra el socket: la sesión sigue operativa
+        ws.send_json({"action": "noop", "conversation_id": 1})
+        assert ws.receive_json()["error"] == "unknown_action"

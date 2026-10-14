@@ -76,7 +76,16 @@ async def _listen(websocket: WebSocket, user_id: int) -> None:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
 
-        data = json.loads(text)
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            await websocket.send_json({"event": "error", "error": "invalid_json"})
+            continue
+        if not isinstance(data, dict):
+            # Un `[1,2]` u otro escalar no tiene `.get`: sin esta guardia
+            # estallaría como AttributeError y cerraría el socket con 1011.
+            await websocket.send_json({"event": "error", "error": "invalid_json"})
+            continue
         action = data.get("action")
         conversation_id = data.get("conversation_id")
         if not isinstance(conversation_id, int):
