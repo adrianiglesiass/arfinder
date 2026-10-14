@@ -32,16 +32,33 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # Until the user creates the secret, scheduled runs pass with a warning instead
+      # of failing (and e-mailing) every 15 minutes.
+      - name: Check configuration
+        id: config
+        env:
+          FLY_READONLY_TOKEN: ${{ secrets.FLY_READONLY_TOKEN }}
+        run: |
+          if [ -z "$FLY_READONLY_TOKEN" ]; then
+            echo "::warning::FLY_READONLY_TOKEN is not set: the cost guard is NOT armed."
+            echo "armed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "armed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.config.outputs.armed == 'true'
         with:
           sparse-checkout: backend/scripts
 
       - uses: actions/setup-python@v5
+        if: steps.config.outputs.armed == 'true'
         with:
           python-version: '3.12'
 
       - name: Measure egress
         id: measure
+        if: steps.config.outputs.armed == 'true'
         run: python backend/scripts/cost_guard.py --app "$FLY_APP"
         env:
           FLY_READONLY_TOKEN: ${{ secrets.FLY_READONLY_TOKEN }}
@@ -52,18 +69,22 @@ jobs:
         if: steps.measure.outputs.over_budget == 'true' && !inputs.dry_run
 
       - name: Scale the app to zero Machines
+        id: scale
         if: steps.measure.outputs.over_budget == 'true' && !inputs.dry_run
         run: flyctl scale count 0 --app "$FLY_APP" --yes
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_COST_GUARD_TOKEN }}
 
+      # Runs even if scaling failed (e.g. missing FLY_COST_GUARD_TOKEN) so the alert
+      # still reaches a human.
       - name: Open an alert issue
-        if: steps.measure.outputs.over_budget == 'true' && !inputs.dry_run
+        if: ${{ !cancelled() && steps.measure.outputs.over_budget == 'true' && !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           EGRESS_GB: ${{ steps.measure.outputs.egress_gb }}
           BUDGET_GB: ${{ steps.measure.outputs.budget_gb }}
+          SCALE_OUTCOME: ${{ steps.scale.outcome }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           open_alerts=$(gh issue list --state open --search '"[cost-guard]" in:title' --json number --jq 'length')
@@ -71,14 +92,21 @@ jobs:
             echo "An open [cost-guard] issue already exists; not opening another one."
             exit 0
           fi
+          if [ "$SCALE_OUTCOME" = "success" ]; then
+            action="scaled to zero"
+            status="The cost guard scaled \`${FLY_APP}\` to **0 Machines**"
+          else
+            action="FAILED to scale down"
+            status="The cost guard **could not scale** \`${FLY_APP}\` down (step outcome: ${SCALE_OUTCOME}); scale it manually with \`fly scale count 0 --app ${FLY_APP}\`"
+          fi
           gh issue create \
-            --title "[cost-guard] ${FLY_APP} scaled to zero: egress over budget" \
+            --title "[cost-guard] ${FLY_APP} ${action}: egress over budget" \
             --body "$(cat <<EOF
-          The cost guard scaled \`${FLY_APP}\` to **0 Machines**: edge egress over the last 24 h was **${EGRESS_GB} GB**, above the **${BUDGET_GB} GB** daily budget.
+          ${status}: edge egress over the last 24 h was **${EGRESS_GB} GB**, above the **${BUDGET_GB} GB** daily budget.
 
           Run: ${RUN_URL}
 
-          No data was touched: the app has no volumes and the database is external.
+          Scaling to zero touches no data: the app has no volumes and the database is external.
 
           ## Recovery
           1. Investigate the traffic (\`fly logs --app ${FLY_APP}\`, Grafana at fly-metrics.net).
