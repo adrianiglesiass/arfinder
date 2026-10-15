@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-fix-profile-edit-safety
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-10-15
 ---
@@ -68,10 +68,22 @@ puede escribir textos que el servidor rechaza.
 - `shared/utils/profile-limits.spec.ts` (nuevo): límites de edad y campos obligatorios.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Build: `ng build --configuration production`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Build: `ng build --configuration production`
 
 ## Resultado
-_Pendiente._
+Revisión (SDD fase 6): dos agentes. **code-reviewer → APROBADO CON CAMBIOS** (sin bloqueantes) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES** (sin bloqueantes). Cambios aplicados tras ella:
+- al guardar con errores, el foco va al primer campo inválido (además del scroll);
+- el aviso de ciudad se lee con el campo: el autocompletado recibe `ariaLabelledBy` con la etiqueta y el
+  error (PrimeNG no expone `aria-describedby` en `p-autoComplete`);
+- el anillo rojo de la ciudad usa `[class.ring-1]`/`[class.ring-red-400]`;
+- salir mientras se está guardando no pregunta.
+
+- `shared/utils/profile-limits.ts` (límites y `isProfileBasicsValid`), `core/navigation/unsaved-changes.guard.ts`,
+  confirmación al borrar foto en `PhotosEditor` y `maxlength` en nombre, ciudad, biografía y habitación.
+- Tests nuevos: `profile-edit.spec.ts` (11), `photos-editor.spec.ts` (3) y `profile-limits.spec.ts` (2).
+
+Verificación final: `format:check`, `lint`, `test:ci` (**139 tests**, 23 archivos) y build de
+producción.

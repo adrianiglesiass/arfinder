@@ -122,7 +122,8 @@ export class ProfileDeck {
   }
 
   protected onPointerDown(event: PointerEvent): void {
-    if (this.busy) return;
+    // Only the primary button drags or taps; right/middle clicks keep their browser meaning.
+    if (this.busy || event.button !== 0) return;
     (event.target as Element).setPointerCapture?.(event.pointerId);
     this.startX = event.clientX;
     this.startY = event.clientY;

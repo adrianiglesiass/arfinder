@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   effect,
   inject,
+  Injector,
   OnInit,
   signal,
 } from '@angular/core';
@@ -89,6 +91,7 @@ export default class ProfileEdit implements OnInit, PendingChanges {
   private readonly messageService = inject(MessageService);
   private readonly errorService = inject(ErrorService);
   private readonly authService = inject(AuthService);
+  private readonly injector = inject(Injector);
 
   readonly isLoading = signal(true);
   readonly loadError = signal(false);
@@ -228,6 +231,7 @@ export default class ProfileEdit implements OnInit, PendingChanges {
       if (!this.isValid()) {
         this.showErrors.set(true);
         this.scrollTo('profile');
+        afterNextRender(() => this.focusFirstError(), { injector: this.injector });
       }
       return;
     }
@@ -288,7 +292,7 @@ export default class ProfileEdit implements OnInit, PendingChanges {
   }
 
   canLeave(): boolean | Promise<boolean> {
-    if (!this.isDirty() || this.authService.currentUser() === null) return true;
+    if (!this.isDirty() || this.isSaving() || this.authService.currentUser() === null) return true;
     this.resolveLeave?.(false);
     this.showLeaveConfirm.set(true);
     return new Promise<boolean>((resolve) => (this.resolveLeave = resolve));
@@ -304,6 +308,16 @@ export default class ProfileEdit implements OnInit, PendingChanges {
 
   protected onBeforeUnload(event: BeforeUnloadEvent): void {
     if (this.isDirty()) event.preventDefault();
+  }
+
+  /** Moves focus to the first invalid field so keyboard and screen reader users land on it. */
+  private focusFirstError(): void {
+    if (typeof document === 'undefined') return;
+    const section = document.getElementById('section-profile');
+    const field =
+      section?.querySelector<HTMLElement>('[aria-invalid="true"]') ??
+      section?.querySelector<HTMLElement>('.p-invalid input');
+    field?.focus({ preventScroll: true });
   }
 
   private settleLeave(leave: boolean): void {

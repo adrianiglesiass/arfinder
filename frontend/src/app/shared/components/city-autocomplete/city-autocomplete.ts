@@ -17,6 +17,8 @@ export class CityAutocomplete {
   readonly inputId = input<string | undefined>(undefined);
   readonly maxlength = input<number | null>(null);
   readonly invalid = input(false);
+  /** Ids that name the field; lets a caller append its error message to the accessible name. */
+  readonly ariaLabelledBy = input<string | undefined>(undefined);
   readonly citySelected = output<string>();
 
   protected readonly value = signal<string>('');

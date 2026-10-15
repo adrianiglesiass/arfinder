@@ -74,6 +74,25 @@ describe('ProfileEdit', () => {
     );
   });
 
+  it('moves focus to the first invalid field when saving fails validation', async () => {
+    document.body.appendChild(fixture.nativeElement);
+    component.updateForm({ name: '' });
+    await component.save();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(document.activeElement?.id).toBe('fullName');
+    fixture.nativeElement.remove();
+  });
+
+  it('does not ask before leaving while a save is in flight', () => {
+    updateProfile.mockReturnValue(new Promise(() => undefined));
+    component.updateForm({ city: 'Sevilla' });
+    void component.save();
+
+    expect(component.canLeave()).toBe(true);
+  });
+
   it('rejects an age outside 18–120', async () => {
     component.updateForm({ age: 17 });
     await component.save();

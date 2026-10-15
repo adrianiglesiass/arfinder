@@ -76,7 +76,7 @@
             [class.touch-pan-y]="card.pos === 0"
             [class.deck-enter]="card.pos === 0 && entering()"
             [attr.inert]="card.pos === 0 ? null : ''"
-            [attr.aria-label]="card.profile.name"
+            [attr.aria-label]="'Perfil de ' + card.profile.name"
             (pointerdown)="card.pos === 0 ? onPointerDown($event) : null"
             (pointermove)="card.pos === 0 ? onPointerMove($event) : null"
             (pointerup)="card.pos === 0 ? onPointerUp($event, card.profile) : null"

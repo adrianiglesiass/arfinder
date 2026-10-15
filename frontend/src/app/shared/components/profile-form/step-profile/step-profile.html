@@ -68,14 +68,19 @@
     </div>
 
     <div class="flex flex-col gap-3">
-      <label for="city" class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
+      <label
+        id="city-label"
+        for="city"
+        class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+      >
         Ciudad <span class="text-red-400">*</span>
       </label>
-      <div class="rounded-xl" [class]="cityError() ? 'ring-1 ring-red-400' : ''">
+      <div class="rounded-xl" [class.ring-1]="cityError()" [class.ring-red-400]="cityError()">
         <app-city-autocomplete
           inputId="city"
           [maxlength]="limits.cityMaxLength"
           [invalid]="cityError()"
+          [ariaLabelledBy]="cityError() ? 'city-label city-error' : undefined"
           [city]="city()"
           (citySelected)="onCitySelect($event)"
         />

@@ -76,6 +76,15 @@ describe('ProfileDeck', () => {
     expect(navigate).toHaveBeenCalledWith(['/perfil', 1]);
   });
 
+  it('does not open the profile on a right or middle click', () => {
+    const card = cards()[0];
+    for (const button of [1, 2]) {
+      card.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button }));
+      card.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button }));
+    }
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('opens the profile from the "Ver perfil completo" button, once', () => {
     const button = Array.from(cards()[0].querySelectorAll('button')).find((b) =>
       b.textContent?.includes('Ver perfil completo')

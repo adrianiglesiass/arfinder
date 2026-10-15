@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-fix-onboarding-double-submit
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-10-15
 ---
@@ -38,10 +38,17 @@ Un segundo toque mientras se guarda lanza otro `saveOnboarding` (que cae en el `
   `saveOnboarding`; tras un fallo `isSubmitting` vuelve a `false`.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Build: `ng build --configuration production`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Build: `ng build --configuration production`
 
 ## Resultado
-_Pendiente._
+Revisión (SDD fase 6): dos agentes. **code-reviewer → APROBADO CON CAMBIOS** (sin bloqueantes) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES** (sin bloqueantes). Sin cambios pedidos sobre este punto.
+
+- Signal `isSubmitting` con `finally`; "Ir a explorar" con carga; "Anterior" y "Salir" desactivados.
+- `onboarding.spec.ts` (nuevo): 3 tests (un solo guardado con dos toques, reintento tras fallo, no se
+  retrocede mientras se envía).
+
+Verificación final: `format:check`, `lint`, `test:ci` (**139 tests**, 23 archivos) y build de
+producción.

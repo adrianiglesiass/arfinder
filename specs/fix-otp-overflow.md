@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-fix-otp-overflow
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-10-15
 ---
@@ -40,10 +40,16 @@ pantalla y hay scroll horizontal.
   (jsdom no calcula layout).
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Build: `ng build --configuration production`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Build: `ng build --configuration production`
 
 ## Resultado
-_Pendiente._
+Revisión (SDD fase 6): dos agentes. **code-reviewer → APROBADO CON CAMBIOS** (sin bloqueantes) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES** (sin bloqueantes). El ui-ux-reviewer comprobó las medidas: a 360 px quedan 264 px útiles y cada dígito mide ~39 px, sin
+desbordar.
+
+- Dígitos `flex-1 min-w-0 max-w-12`, hueco `gap-1.5 sm:gap-2`, y `AuthCard` con `p-6 sm:p-8 lg:p-10`.
+
+Verificación final: `format:check`, `lint`, `test:ci` (**139 tests**, 23 archivos) y build de
+producción.

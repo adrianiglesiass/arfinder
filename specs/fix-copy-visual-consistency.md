@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-fix-copy-visual-consistency
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-10-15
 ---
@@ -45,10 +45,17 @@ Clases que no hacen nada, un color fuera del tema y textos con mayúsculas incoh
   con el CSS generado.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Build: `ng build --configuration production`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Build: `ng build --configuration production`
 
 ## Resultado
-_Pendiente._
+Revisión (SDD fase 6): dos agentes. **code-reviewer → APROBADO CON CAMBIOS** (sin bloqueantes) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES** (sin bloqueantes). Sin cambios pedidos sobre este punto; el subtítulo
+"correo electrónico" bajo "Verifica tu email" se deja como está.
+
+- Tras el cambio, el script que cruza las clases de las plantillas con el CSS del build de producción no
+  encuentra ninguna clase de utilidad inexistente.
+
+Verificación final: `format:check`, `lint`, `test:ci` (**139 tests**, 23 archivos) y build de
+producción.

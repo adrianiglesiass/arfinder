@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-fix-a11y-labels-focus
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-10-15
 ---
@@ -64,10 +64,22 @@ con teclado pierde el foco de vista en varios sitios y en el deck tabula por car
   el botón abren el perfil una sola vez, y las flechas dentro de un campo no pasan de carta.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Build: `ng build --configuration production`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Build: `ng build --configuration production`
 
 ## Resultado
-_Pendiente._
+Revisión (SDD fase 6): dos agentes. **code-reviewer → APROBADO CON CAMBIOS** (sin bloqueantes) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES** (sin bloqueantes). Cambios aplicados tras ella:
+- el toque en la carta solo cuenta con el botón principal del ratón (un clic derecho o central ya no abre
+  el perfil, regresión del cambio de `click` a `pointerup`);
+- la carta se anuncia como "Perfil de <nombre>".
+
+Descartado: `aria-valuetext` en el slider de presupuesto (el `p-slider` de PrimeNG 21 no lo expone) y
+pasar los chips a `radiogroup` (opcional; `aria-pressed` es válido).
+
+- Tests nuevos: `message-composer.spec.ts` (2), `profile-deck.spec.ts` (5) y 2 más en
+  `search-filters.spec.ts`.
+
+Verificación final: `format:check`, `lint`, `test:ci` (**139 tests**, 23 archivos) y build de
+producción.

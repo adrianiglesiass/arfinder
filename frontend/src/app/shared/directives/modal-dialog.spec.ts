@@ -21,6 +21,23 @@ class Host {
   escapes = 0;
 }
 
+@Component({
+  imports: [ModalDialog],
+  template: `
+    <div appModalDialog (escaped)="outer = outer + 1"><button type="button">Fuera</button></div>
+    @if (inner()) {
+      <div appModalDialog (escaped)="innerEscapes = innerEscapes + 1">
+        <button type="button">Dentro</button>
+      </div>
+    }
+  `,
+})
+class StackedHost {
+  readonly inner = signal(true);
+  outer = 0;
+  innerEscapes = 0;
+}
+
 const press = (key: string, shiftKey = false): KeyboardEvent => {
   const event = new KeyboardEvent('keydown', { key, shiftKey, bubbles: true, cancelable: true });
   document.activeElement?.dispatchEvent(event);
@@ -69,10 +86,14 @@ describe('ModalDialog', () => {
   });
 
   it('lets Tab move normally between inner elements', () => {
-    const event = press('Tab', true);
-    expect(event.defaultPrevented).toBe(true);
-    const inner = press('Tab', true);
-    expect(inner.defaultPrevented).toBe(false);
+    const event = press('Tab');
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('ignores Escape already handled by an inner widget', () => {
+    byId('first').addEventListener('keydown', (e) => e.preventDefault(), { once: true });
+    press('Escape');
+    expect(host.escapes).toBe(0);
   });
 
   it('pulls focus back inside when it escaped the panel', () => {
@@ -85,5 +106,25 @@ describe('ModalDialog', () => {
     host.open.set(false);
     fixture.detectChanges();
     expect(document.activeElement).toBe(byId('opener'));
+  });
+});
+
+describe('ModalDialog stacked', () => {
+  it('only lets the topmost dialog react to Escape', async () => {
+    const fixture = TestBed.createComponent(StackedHost);
+    document.body.appendChild(fixture.nativeElement);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    press('Escape');
+    expect(fixture.componentInstance.innerEscapes).toBe(1);
+    expect(fixture.componentInstance.outer).toBe(0);
+
+    fixture.componentInstance.inner.set(false);
+    fixture.detectChanges();
+    press('Escape');
+    expect(fixture.componentInstance.outer).toBe(1);
+    fixture.destroy();
+    fixture.nativeElement.remove();
   });
 });

@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-fix-dialog-focus-escape
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-10-15
 ---
@@ -60,10 +60,26 @@ mueve el foco al abrirse, ni lo encierra, ni lo devuelve al cerrarse.
   devolución del foco al destruir.
 
 ## Checklist de verificación
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Build: `ng build --configuration production`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Build: `ng build --configuration production`
 
 ## Resultado
-_Pendiente._
+Revisión (SDD fase 6): dos agentes. **code-reviewer → APROBADO CON CAMBIOS** (sin bloqueantes) y **ui-ux-reviewer → APROBADO CON OBSERVACIONES** (sin bloqueantes). Cambios aplicados tras ella:
+- la directiva ignora un Escape que ya ha gestionado un widget interior (`defaultPrevented`): cerrar la
+  lista del autocompletado de ciudad ya no cierra toda la hoja de filtros;
+- solo el diálogo de más arriba reacciona al teclado (pila de diálogos abiertos);
+- el ciclo de Tab salta elementos ocultos (`checkVisibility`);
+- `ConfirmDestructiveDialog` y `ReportDialog` usan ids únicos por instancia (`uniqueId`) y los botones de
+  motivo del reporte tienen anillo de foco.
+
+Aceptado sin cambios: si el elemento que abrió el diálogo ya no existe al cerrarse (p. ej. la papelera de
+una foto recién borrada), el foco no se devuelve a ningún sitio concreto.
+
+- `shared/directives/modal-dialog.ts` aplicada a los tres diálogos; pie fijo en el de reporte.
+- `modal-dialog.spec.ts`: 9 tests (foco inicial, Escape, Escape ya gestionado, ciclo de Tab, diálogos
+  apilados y devolución del foco).
+
+Verificación final: `format:check`, `lint`, `test:ci` (**139 tests**, 23 archivos) y build de
+producción.
