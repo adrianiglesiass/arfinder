@@ -43,3 +43,14 @@
     }
   </div>
 </div>
+
+@if (pendingDelete()) {
+  <app-confirm-destructive-dialog
+    title="¿Eliminar esta foto?"
+    description="Se quitará de tu perfil. Esta acción no se puede deshacer."
+    confirmLabel="Eliminar foto"
+    [isDeleting]="busy()"
+    (dismissed)="cancelDelete()"
+    (confirmed)="confirmDelete()"
+  />
+}
