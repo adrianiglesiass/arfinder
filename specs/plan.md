@@ -76,12 +76,12 @@ fecha: 2026-09-10
 | 43 | Carreras en toggles optimistas (refresh vs toggle, doble toque) y favorito imposible tras desbloquear | frontend | frontend-state | ✅ done → PR #303 |
 | 44 | Mensajes: `ngOnInit` sigue tras destruirse; un envío en vuelo se cuela en otra conversación | frontend | frontend-state | ✅ done → PR #303 |
 | 45 | Errores silenciados que se muestran como estado vacío o "fin de resultados" | frontend | frontend-state | ✅ done → PR #303 |
-| 46 | Diálogos sin gestión de foco ni Escape; diálogo de reporte sin pie fijo | frontend | ux-a11y | ⏳ |
-| 47 | El código OTP desborda a 360px | frontend | ux-a11y | ⏳ |
-| 48 | Doble envío en el último paso del onboarding | frontend | ux-a11y | ⏳ |
-| 49 | Editar perfil: errores de validación invisibles, cambios perdidos sin aviso, borrar foto sin confirmar; `maxlength` de nombre y ciudad | frontend | ux-a11y | ⏳ |
-| 50 | Accesibilidad: botón de enviar sin nombre, filtros sin label, foco visible eliminado, deck anidado | frontend | ux-a11y | ⏳ |
-| 51 | Textos y consistencia visual (mayúsculas, clases de tema inexistentes, color fijo) | frontend | ux-a11y | ⏳ |
+| 46 | Diálogos sin gestión de foco ni Escape; diálogo de reporte sin pie fijo | frontend | ux-a11y | ✅ done → PR #306 |
+| 47 | El código OTP desborda a 360px | frontend | ux-a11y | ✅ done → PR #306 |
+| 48 | Doble envío en el último paso del onboarding | frontend | ux-a11y | ✅ done → PR #306 |
+| 49 | Editar perfil: errores de validación invisibles, cambios perdidos sin aviso, borrar foto sin confirmar; `maxlength` de nombre y ciudad | frontend | ux-a11y | ✅ done → PR #306 |
+| 50 | Accesibilidad: botón de enviar sin nombre, filtros sin label, foco visible eliminado, deck anidado | frontend | ux-a11y | ✅ done → PR #306 |
+| 51 | Textos y consistencia visual (mayúsculas, clases de tema inexistentes, color fijo) | frontend | ux-a11y | ✅ done → PR #306 |
 | F6 | El bloqueo corta el chat y el acceso al perfil (hoy el bloqueado puede seguir escribiendo) | frontend+backend | feature | ⏳ |
 | 52 | Filtro de presupuesto invertido para quien ofrece habitación | frontend+backend | budget-filter | ⏳ |
 | 53 | Tokens inválidos sin caché: cada bearer aleatorio dispara una llamada saliente a InsForge | backend | abuse-cost-ceiling | ✅ done → PR #304 |
@@ -112,8 +112,8 @@ fecha: 2026-09-10
     #58 descartado con evidencia. Insertada fuera de orden a petición del usuario: sin Cloudflare
     ni dominio propio, la única garantía de factura es el código más el watchdog.
 15. ✅ **fix/frontend-state** → PR #303. #40–#45.
-16. ⏳ **fix/ux-a11y** — #46–#51. RAMA SIGUIENTE.
-17. ⏳ **feat/block-cuts-messaging** — F6.
+16. ✅ **fix/ux-a11y** → PR #306. #46–#51.
+17. ⏳ **feat/block-cuts-messaging** — F6. RAMA SIGUIENTE.
 18. ⏳ **fix/budget-filter-direction** — #52.
 19. ⏳ Release (merge commit con `--subject "release: vX.Y.Z"` + tag).
 
