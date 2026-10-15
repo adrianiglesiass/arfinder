@@ -1,5 +1,7 @@
 import { Component, input, output } from '@angular/core';
 
+import { uniqueId } from '@shared/utils/unique-id';
+
 export interface FilterChipOption<T> {
   label: string;
   value: T;
@@ -17,6 +19,8 @@ export class FilterChipGroup<T> {
   allowDeselect = input<boolean>(true);
 
   changed = output<T | null>();
+
+  protected readonly labelId = uniqueId('chip-group-label');
 
   isSelected(option: FilterChipOption<T>): boolean {
     return this.value() === option.value;

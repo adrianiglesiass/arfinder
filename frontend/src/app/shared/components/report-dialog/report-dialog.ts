@@ -3,12 +3,14 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import type { ReportCreate, ReportReasonEnum } from '@core/api/api.models';
 
 import { Button } from '@shared/components/button/button';
+import { ModalDialog } from '@shared/directives/modal-dialog';
+import { uniqueId } from '@shared/utils/unique-id';
 
 import { REPORT_REASONS } from './report-reasons';
 
 @Component({
   selector: 'app-report-dialog',
-  imports: [Button],
+  imports: [Button, ModalDialog],
   templateUrl: './report-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -18,6 +20,7 @@ export class ReportDialog {
   readonly dismissed = output<void>();
   readonly submitted = output<ReportCreate>();
 
+  protected readonly titleId = uniqueId('report-dialog-title');
   protected readonly reasons = REPORT_REASONS;
   protected readonly selectedReason = signal<ReportReasonEnum | null>(null);
   protected readonly detail = signal('');

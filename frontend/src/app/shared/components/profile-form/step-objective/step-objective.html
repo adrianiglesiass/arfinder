@@ -14,7 +14,7 @@
             ? 'bg-primary text-white border-primary shadow-sm'
             : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
         "
-        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 outline-none group"
+        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         aria-label="Seleccionar opción: Busco piso"
         [aria-pressed]="isLookingForFlat()"
         (keydown.enter)="setType('looking_for_flat')"
@@ -48,7 +48,7 @@
             ? 'bg-primary text-white border-primary shadow-sm'
             : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
         "
-        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 outline-none group"
+        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         aria-label="Seleccionar opción: Tengo piso"
         [aria-pressed]="isLookingForRoommate()"
         (keydown.enter)="setType('looking_for_roommate')"
@@ -125,6 +125,7 @@
           <textarea
             pTextarea
             id="roomDescription"
+            [maxlength]="limits.roomDescriptionMaxLength"
             [ngModel]="roomDescription()"
             (ngModelChange)="dataChange.emit({ room_description: $event })"
             class="w-full rounded-2xl min-h-40 py-3 px-4 border border-gray-border shadow-none bg-white font-medium"

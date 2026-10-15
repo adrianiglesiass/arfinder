@@ -20,6 +20,7 @@ import { ProfileSearchService } from '@core/profile-search/profile-search.servic
 
 import { Button } from '@shared/components/button/button';
 import { IconButton } from '@shared/components/icon-button/icon-button';
+import { ModalDialog } from '@shared/directives/modal-dialog';
 
 import { SCHEDULE_LABELS, TYPE_LABELS } from '@features/profile/profile-labels';
 import { ProfileDeck } from '@features/search-profile/components/profile-deck/profile-deck';
@@ -65,7 +66,7 @@ const availableLabel = (v: string): string | null => {
 
 @Component({
   selector: 'app-search-profile',
-  imports: [SearchFilters, ProfileDeck, ProfileGrid, Button, IconButton],
+  imports: [SearchFilters, ProfileDeck, ProfileGrid, Button, IconButton, ModalDialog],
   templateUrl: './search-profile.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

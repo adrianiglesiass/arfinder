@@ -5,6 +5,7 @@ import { Layout } from '@layout/layout';
 import { authGuard } from '@core/auth/auth-guard';
 import { guestGuard } from '@core/auth/guest-guard';
 import { verifyEmailGuard } from '@core/auth/verify-email.guard';
+import { unsavedChangesGuard } from '@core/navigation/unsaved-changes.guard';
 import { onboardingGuard } from '@core/profile/onboarding.guard';
 import { profileGuard } from '@core/profile/profile-guard';
 
@@ -48,6 +49,7 @@ export const routes: Routes = [
         path: 'perfil',
         loadComponent: () => import('@features/profile/edit/profile-edit'),
         canActivate: [authGuard],
+        canDeactivate: [unsavedChangesGuard],
       },
       {
         path: 'perfil/:id',

@@ -11,12 +11,14 @@
       (keydown)="onKeydown($event)"
       (input)="onInput($event)"
       placeholder="Mensaje"
+      aria-label="Escribe un mensaje"
     ></textarea>
     <button
       type="submit"
       (mousedown)="$event.preventDefault()"
       [disabled]="!canSend()"
-      class="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3 rounded-full flex items-center justify-center transition-all duration-100 text-white select-none"
+      aria-label="Enviar mensaje"
+      class="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-3 rounded-full flex items-center justify-center transition-all duration-100 text-white select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-chat-sent"
       [class]="submitClass()"
     >
       <svg

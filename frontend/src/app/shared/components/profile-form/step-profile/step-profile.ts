@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -8,6 +8,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { ProfileCreate } from '@core/api/api.models';
 
 import { CityAutocomplete } from '@shared/components/city-autocomplete/city-autocomplete';
+import { isValidAge, PROFILE_LIMITS } from '@shared/utils/profile-limits';
 
 @Component({
   selector: 'app-step-profile',
@@ -24,6 +25,19 @@ export class StepProfile {
   showErrors = input<boolean>(false);
 
   changed = output<Partial<ProfileCreate>>();
+
+  protected readonly limits = PROFILE_LIMITS;
+
+  protected readonly nameError = computed(() => this.showErrors() && !this.name()?.trim());
+  protected readonly cityError = computed(() => this.showErrors() && !this.city()?.trim());
+  protected readonly ageError = computed(() => {
+    if (!this.showErrors()) return null;
+    const age = this.age();
+    if (!age) return 'Campo obligatorio';
+    return isValidAge(age)
+      ? null
+      : `Debes tener entre ${PROFILE_LIMITS.minAge} y ${PROFILE_LIMITS.maxAge} años`;
+  });
 
   onModelChange(field: keyof ProfileCreate, value: ProfileCreate[keyof ProfileCreate]): void {
     this.changed.emit({ [field]: value });

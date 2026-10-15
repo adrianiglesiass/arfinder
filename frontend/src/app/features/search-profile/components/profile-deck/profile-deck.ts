@@ -23,6 +23,9 @@ const SWIPE_THRESHOLD_PX = 110;
 const FLY_DURATION_MS = 300;
 const TAP_TOLERANCE_PX = 8;
 const PREFETCH_AHEAD = 3;
+/** Arrow keys inside these keep their own meaning (caret, slider, open dialog) and must not swipe. */
+const DECK_KEYS_IGNORED_IN =
+  'input, textarea, select, [contenteditable="true"], [role="slider"], [role="dialog"]';
 
 interface DeckCard {
   profile: ProfileSummary;
@@ -119,7 +122,8 @@ export class ProfileDeck {
   }
 
   protected onPointerDown(event: PointerEvent): void {
-    if (this.busy) return;
+    // Only the primary button drags or taps; right/middle clicks keep their browser meaning.
+    if (this.busy || event.button !== 0) return;
     (event.target as Element).setPointerCapture?.(event.pointerId);
     this.startX = event.clientX;
     this.startY = event.clientY;
@@ -135,7 +139,15 @@ export class ProfileDeck {
     if (this.moved) this.dragX.set(dx);
   }
 
-  protected onPointerUp(): void {
+  /** A tap (no drag) on the card opens the profile, unless it landed on one of its own controls. */
+  protected onPointerUp(event: PointerEvent, profile: ProfileSummary): void {
+    const wasTap = this.dragging() && !this.moved;
+    this.endDrag();
+    const onControl = (event.target as Element | null)?.closest?.('button, a');
+    if (wasTap && !onControl) this.openProfile(profile);
+  }
+
+  protected endDrag(): void {
     if (!this.dragging()) return;
     this.dragging.set(false);
     const dx = this.dragX();
@@ -184,6 +196,8 @@ export class ProfileDeck {
   }
 
   protected onKey(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest?.(DECK_KEYS_IGNORED_IN)) return;
     if (event.key === 'ArrowRight') this.next();
     else if (event.key === 'ArrowLeft') this.prev();
   }

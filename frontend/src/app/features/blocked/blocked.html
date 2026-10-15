@@ -43,7 +43,10 @@
       title="No has bloqueado a nadie"
       message="Si un perfil no te encaja, puedes bloquearlo desde su página y dejará de aparecer en tus búsquedas y favoritos."
     >
-      <a [routerLink]="exploreLink" class="text-sm font-bold text-primary hover:text-primary-light">
+      <a
+        [routerLink]="exploreLink"
+        class="text-sm font-bold text-primary hover:underline underline-offset-4"
+      >
         Explorar perfiles
       </a>
     </app-empty-state>

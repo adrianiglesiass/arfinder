@@ -71,7 +71,8 @@
       </div>
     </aside>
 
-    <main
+    <section
+      aria-label="Conversación"
       class="flex-1 flex-col bg-white h-full min-w-0 min-h-0"
       [class]="chatActive() ? 'flex' : 'hidden md:flex'"
     >
@@ -131,6 +132,6 @@
         }
         <app-message-composer [(value)]="newMessage" (send)="sendMessage()" />
       }
-    </main>
+    </section>
   }
 </div>

@@ -17,6 +17,7 @@ import { ProfilePhotoResponse } from '@core/api/api.models';
 import { ErrorService } from '@core/errors';
 import { ProfileService } from '@core/profile/profile.service';
 
+import { ConfirmDestructiveDialog } from '@shared/components/confirm-destructive-dialog/confirm-destructive-dialog';
 import { PhotoCard } from '@shared/components/profile-form/photo-card/photo-card';
 import {
   CombinedPhoto,
@@ -27,7 +28,7 @@ import {
 
 @Component({
   selector: 'app-photos-editor',
-  imports: [DragDropModule, PhotoCard],
+  imports: [DragDropModule, PhotoCard, ConfirmDestructiveDialog],
   templateUrl: './photos-editor.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -42,6 +43,7 @@ export class PhotosEditor {
 
   readonly MAX_PHOTOS = 6;
   readonly busy = signal(false);
+  readonly pendingDelete = signal<ProfilePhotoResponse | null>(null);
 
   private readonly orderedPhotos = signal<ProfilePhotoResponse[] | null>(null);
 
@@ -116,9 +118,20 @@ export class PhotosEditor {
     }
   }
 
-  async onPhotoDeleted(photo: CombinedPhoto): Promise<void> {
-    if (isLocalPhoto(photo)) return;
-    const id = (photo as ProfilePhotoResponse).id;
+  onPhotoDeleted(photo: CombinedPhoto): void {
+    if (isLocalPhoto(photo) || this.busy()) return;
+    this.pendingDelete.set(photo as ProfilePhotoResponse);
+  }
+
+  cancelDelete(): void {
+    if (this.busy()) return;
+    this.pendingDelete.set(null);
+  }
+
+  async confirmDelete(): Promise<void> {
+    const photo = this.pendingDelete();
+    if (!photo || this.busy()) return;
+    const id = photo.id;
     this.busy.set(true);
     try {
       await this.profileService.deletePhoto(id);
@@ -130,6 +143,7 @@ export class PhotosEditor {
       this.toast(general || 'Error al eliminar la foto', 'error');
     } finally {
       this.busy.set(false);
+      this.pendingDelete.set(null);
     }
   }
 

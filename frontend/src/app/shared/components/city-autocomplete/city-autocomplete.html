@@ -10,6 +10,10 @@
       (onKeyUp)="onKeyUp($event)"
       (onClear)="onClear()"
       [minLength]="2"
+      [inputId]="inputId()"
+      [maxlength]="maxlength()"
+      [invalid]="invalid()"
+      [ariaLabelledBy]="ariaLabelledBy()"
       placeholder="Selecciona una ciudad"
       class="w-full"
       [inputStyle]="{ 'padding-left': '2.8rem' }"
@@ -56,7 +60,7 @@
 
   @if (citySearchService.cityResource.error()) {
     <div
-      class="flex items-center gap-2 mt-2 px-3 py-2 bg-red-50 border border-red-100 rounded-xl animate-in fade-in duration-200"
+      class="flex items-center gap-2 mt-2 px-3 py-2 bg-red-50 border border-red-100 rounded-xl animate-fade-in"
     >
       <i class="pi pi-exclamation-circle text-red-500 text-xs"></i>
       <span class="text-xs text-red-500 font-medium">No se pudo cargar la lista de ciudades</span>

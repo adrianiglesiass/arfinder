@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { Button } from '@shared/components/button/button';
+import { ModalDialog } from '@shared/directives/modal-dialog';
+import { uniqueId } from '@shared/utils/unique-id';
 
 @Component({
   selector: 'app-confirm-destructive-dialog',
-  imports: [Button],
+  imports: [Button, ModalDialog],
   templateUrl: './confirm-destructive-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -19,6 +21,9 @@ export class ConfirmDestructiveDialog {
 
   readonly dismissed = output<void>();
   readonly confirmed = output<void>();
+
+  protected readonly titleId = uniqueId('confirm-dialog-title');
+  protected readonly descriptionId = uniqueId('confirm-dialog-description');
 
   onCancel(): void {
     if (this.isDeleting()) return;

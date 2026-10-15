@@ -18,14 +18,18 @@
         <input
           pInputText
           id="fullName"
+          [maxlength]="limits.nameMaxLength"
           [ngModel]="name()"
           (ngModelChange)="onModelChange('name', $event)"
           class="w-full rounded-2xl py-3 px-4 border transition-colors duration-200 shadow-none bg-white font-medium"
-          [class]="showErrors() && !name().trim() ? 'border-red-400' : 'border-gray-border'"
+          [class]="nameError() ? 'border-red-400' : 'border-gray-border'"
+          [attr.aria-invalid]="nameError()"
+          [attr.aria-describedby]="nameError() ? 'fullName-error' : null"
           placeholder="Ej. Alex García"
         />
-        @if (showErrors() && !name().trim()) {
+        @if (nameError()) {
           <span
+            id="fullName-error"
             class="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-wider animate-fade-in"
             >Campo obligatorio</span
           >
@@ -43,30 +47,47 @@
           pInputText
           id="age"
           type="number"
+          [min]="limits.minAge"
+          [max]="limits.maxAge"
           [ngModel]="age()"
           (ngModelChange)="onModelChange('age', $event)"
           class="w-full rounded-2xl py-3 px-4 border transition-colors duration-200 shadow-none bg-white font-medium"
-          [class]="showErrors() && !age() ? 'border-red-400' : 'border-gray-border'"
+          [class]="ageError() ? 'border-red-400' : 'border-gray-border'"
+          [attr.aria-invalid]="!!ageError()"
+          [attr.aria-describedby]="ageError() ? 'age-error' : null"
           placeholder="Ej. 26"
         />
-        @if (showErrors() && !age()) {
+        @if (ageError(); as message) {
           <span
+            id="age-error"
             class="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-wider animate-fade-in"
-            >Campo obligatorio</span
+            >{{ message }}</span
           >
         }
       </div>
     </div>
 
     <div class="flex flex-col gap-3">
-      <label for="city" class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
-        Ciudad
+      <label
+        id="city-label"
+        for="city"
+        class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+      >
+        Ciudad <span class="text-red-400">*</span>
       </label>
-      <div [class.ring-1.ring-red-400.rounded-2xl]="showErrors() && !city().trim()">
-        <app-city-autocomplete [city]="city()" (citySelected)="onCitySelect($event)" />
+      <div class="rounded-xl" [class.ring-1]="cityError()" [class.ring-red-400]="cityError()">
+        <app-city-autocomplete
+          inputId="city"
+          [maxlength]="limits.cityMaxLength"
+          [invalid]="cityError()"
+          [ariaLabelledBy]="cityError() ? 'city-label city-error' : undefined"
+          [city]="city()"
+          (citySelected)="onCitySelect($event)"
+        />
       </div>
-      @if (showErrors() && !city().trim()) {
+      @if (cityError()) {
         <span
+          id="city-error"
           class="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-wider animate-fade-in"
           >Campo obligatorio</span
         >
@@ -80,6 +101,7 @@
       <textarea
         pTextarea
         id="bio"
+        [maxlength]="limits.bioMaxLength"
         [ngModel]="bio()"
         (ngModelChange)="onModelChange('bio', $event)"
         class="w-full rounded-2xl min-h-40 py-3 px-4 border border-gray-border shadow-none bg-white font-medium"
