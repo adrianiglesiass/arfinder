@@ -35,10 +35,13 @@ describe('ProfileInfoBlock — importe según el tipo de perfil', () => {
   });
 
   it('sin importe, un presupuesto es "Sin límite" y un precio "Sin indicar"', () => {
-    expect(render('looking_for_flat', null)).toContain('Sin límite');
+    const seeker = render('looking_for_flat', null);
+    expect(seeker).toContain('Sin límite');
+    expect(seeker).toContain('all_inclusive');
 
     const room = render('looking_for_roommate', null);
     expect(room).toContain('Sin indicar');
     expect(room).not.toContain('Sin límite');
+    expect(room).not.toContain('all_inclusive');
   });
 });

@@ -22,12 +22,12 @@ export const BUDGET_TEXT: Record<BudgetDirection, BudgetText> = {
   min: {
     label: 'Presupuesto mínimo',
     unset: 'Sin mínimo',
-    hint: 'Al fijarlo verás solo perfiles que buscan piso',
+    hint: 'Al fijarlo se marca «Busca piso»',
   },
   max: {
     label: 'Precio máx. habitación',
     unset: 'Sin límite',
-    hint: 'Al fijarlo verás solo habitaciones',
+    hint: 'Al fijarlo se marca «Busca compañero» (habitaciones)',
   },
 };
 

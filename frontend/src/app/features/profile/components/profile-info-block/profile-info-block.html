@@ -46,8 +46,8 @@
       <span
         class="mt-2 inline-flex items-center gap-1.5 text-2xl font-bold text-primary leading-none"
       >
-        @if (!isRoommate()) {
-          <span class="material-symbols-rounded text-[22px]! text-gray-400">all_inclusive</span>
+        @if (budgetText().unsetIcon; as icon) {
+          <span class="material-symbols-rounded text-[22px]! text-gray-400">{{ icon }}</span>
         }
         {{ budgetText().unset }}
       </span>

@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-fix-profile-detail-budget-label
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-10-15
 ---
@@ -46,7 +46,8 @@ quien lo visita lee un dato equivocado (parece lo que esa persona puede pagar, n
 
 ## Decisión técnica
 - Un `computed` en `ProfileInfoBlock` (`budgetText`) devuelve etiqueta y texto vacío según el
-  `isRoommate()` que ya existe en el componente. La plantilla solo pinta esos textos.
+  `isRoommate()` que ya existe en el componente (etiqueta, texto vacío e icono vacío). La plantilla
+  solo pinta esos valores.
 - Se reutiliza el texto del formulario en lugar de crear uno nuevo; no se extrae a una constante
   compartida porque son dos usos con contextos distintos (formulario y lectura).
 
@@ -54,10 +55,19 @@ quien lo visita lee un dato equivocado (parece lo que esa persona puede pagar, n
 - `profile-info-block.spec.ts` (nuevo, Vitest + TestBed): etiqueta e importe para cada tipo; texto sin
   importe para cada tipo.
 
-## Checklist de verificación
-- [ ] Frontend: `npm run format:check` y `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Build: `node scripts/set-env.js && npx ng build --configuration production`
+## Checklist de verificación (tras la revisión)
+- [x] Frontend: `npm ci`, `npm run format:check` y `npm run lint` en verde
+- [x] Frontend: `npm run test:ci` **188 passed** (26 ficheros; develop: 177 en 25)
+- [x] Build: `node scripts/set-env.js && npx ng build --configuration production` OK
 
 ## Resultado
-Pendiente.
+Implementado según "Alcance": `ProfileInfoBlock.budgetText` da etiqueta, texto e icono según el tipo
+del perfil; la plantilla ya no fija "Presupuesto máximo".
+
+Revisión (SDD fase 6), dos agentes de solo lectura: **code-reviewer → APROBADO CON CAMBIOS MENORES**
+y **ui-ux-reviewer → APROBADO CON OBSERVACIONES**, sin bloqueantes.
+Cambios aplicados tras la revisión: el icono de infinito sale del mismo `budgetText` que los textos (una
+sola fuente) y el test comprueba que no aparece en un precio sin indicar.
+
+Prueba: los tests nuevos ejecutados contra el código de `develop` → **2 de 3 fallan** (pasa el de
+control de quien busca piso).

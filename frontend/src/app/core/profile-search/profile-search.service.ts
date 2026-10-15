@@ -104,14 +104,13 @@ export class ProfileSearchService {
       .subscribe(() => {
         if (!this.isOnExplore()) return;
         const fromUrl = this.readFromUrl();
-        if (Object.keys(fromUrl).length > 0) {
-          if (!this.sameFilters(fromUrl, this.filters())) {
-            this.filters.set(fromUrl);
-            return;
-          }
-        } else if (this.hasActiveFilters()) {
-          this.writeToUrl(this.filters());
+        if (Object.keys(fromUrl).length > 0 && !this.sameFilters(fromUrl, this.filters())) {
+          this.filters.set(fromUrl);
+          return;
         }
+        // Rewrites a URL that differs from the filters it resolves to (e.g. a budget without its
+        // type) or that lost them; `writeToUrl` does nothing when the query already matches.
+        if (this.hasActiveFilters()) this.writeToUrl(this.filters());
         this.refreshIfStale();
       });
 

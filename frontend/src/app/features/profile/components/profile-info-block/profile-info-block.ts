@@ -32,8 +32,8 @@ export class ProfileInfoBlock {
   /** `max_budget` is a room's price for room offerers and a seeker's budget otherwise. */
   protected readonly budgetText = computed(() =>
     this.isRoommate()
-      ? { label: 'Precio de la habitación', unset: 'Sin indicar' }
-      : { label: 'Presupuesto máximo', unset: 'Sin límite' }
+      ? { label: 'Precio de la habitación', unset: 'Sin indicar', unsetIcon: null }
+      : { label: 'Presupuesto máximo', unset: 'Sin límite', unsetIcon: 'all_inclusive' }
   );
 
   protected readonly formattedAvailableFrom = computed(() => {

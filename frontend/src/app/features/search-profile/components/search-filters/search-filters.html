@@ -62,11 +62,13 @@
       </span>
     </div>
     @if (!profileType()) {
-      <p class="text-[11px] text-gray-400 font-medium ml-1 -mt-1">{{ budgetText().hint }}</p>
+      <p [id]="ids.budgetHint" class="text-[11px] text-gray-400 font-medium ml-1 -mt-1">
+        {{ budgetText().hint }}
+      </p>
     }
     <div class="px-1">
       <p-slider
-        [ariaLabelledBy]="ids.budget"
+        [ariaLabelledBy]="profileType() ? ids.budget : ids.budget + ' ' + ids.budgetHint"
         [ngModel]="budgetSliderValue()"
         (ngModelChange)="onBudgetSlide($event)"
         (onSlideEnd)="commitBudget()"

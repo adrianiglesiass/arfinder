@@ -258,6 +258,28 @@ describe('ProfileSearchService', () => {
 
       expect(service.filters()).toEqual({ budget_max: 500, profile_type: 'looking_for_roommate' });
     });
+
+    it('el mismo enlace sin tipo, con esos filtros ya puestos, también reescribe la URL', async () => {
+      service.updateFilters({ budget_min: 600 });
+      await settle();
+      await navigate('/perfil/5');
+      const calls = search.mock.calls.length;
+
+      await navigate('/explorar?budget_min=600');
+
+      expect(location.path()).toBe('/explorar?budget_min=600&profile_type=looking_for_flat');
+      expect(search.mock.calls.length).toBe(calls);
+    });
+
+    it('quitar el tipo mientras el importe pasa al otro sentido quita los dos importes', async () => {
+      service.updateFilters({ profile_type: 'looking_for_roommate', budget_max: 600 });
+      await settle();
+
+      service.updateFilters({ profile_type: null, budget_min: 600, budget_max: null });
+      await settle();
+
+      expect(service.filters()).toEqual({});
+    });
   });
 
   describe('recarga y sesión', () => {

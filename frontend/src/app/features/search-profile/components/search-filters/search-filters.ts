@@ -89,6 +89,7 @@ export class SearchFilters {
   protected readonly ids = {
     city: uniqueId('filter-city'),
     budget: uniqueId('filter-budget'),
+    budgetHint: uniqueId('filter-budget-hint'),
     age: uniqueId('filter-age'),
     availableFrom: uniqueId('filter-available-from'),
   };

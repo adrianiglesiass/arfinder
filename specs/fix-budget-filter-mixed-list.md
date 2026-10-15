@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-fix-budget-filter-mixed-list
-estado: approved
+estado: done
 stack: frontend
 fecha: 2026-10-15
 ---
@@ -40,9 +40,10 @@ recortada sin motivo.
 - **Enlace con importe y sin tipo** (`/explorar?budget_min=600`): se resuelve al tipo del parámetro y la
   URL se reescribe con él (`profile_type=looking_for_flat`).
 - **Texto de ayuda**: "Pensado para…" deja de ser exacto (el filtro ya no se aplica a la lista mezclada).
-  Sin tipo elegido, bajo la etiqueta se avisa de lo que pasará al fijar el importe:
-  "Al fijarlo verás solo perfiles que buscan piso" (`min`) o "Al fijarlo verás solo habitaciones"
-  (`max`). Con tipo elegido no se muestra nada (sin cambios).
+  Sin tipo elegido, bajo la etiqueta se avisa del chip que se marcará al fijar el importe:
+  "Al fijarlo se marca «Busca piso»" (`min`) o "Al fijarlo se marca «Busca compañero» (habitaciones)"
+  (`max`). El slider lo incluye en su nombre accesible (`aria-labelledby`). Con tipo elegido no se
+  muestra nada (sin cambios).
 - Sin cambios: el sentido elegido por "¿Qué busca?", el traslado del importe al cambiar de tipo, los
   extremos neutros y los textos de etiqueta y chip.
 
@@ -69,8 +70,8 @@ recortada sin motivo.
   'looking_for_flat' }` y la URL incluye `profile_type=looking_for_flat`; con `budget_max` el tipo es
   `looking_for_roommate`.
 - DADO un tipo ya elegido CUANDO se fija un importe ENTONCES el tipo no cambia.
-- DADO el panel sin tipo elegido ENTONCES el texto de ayuda dice "Al fijarlo verás solo perfiles que
-  buscan piso" o "Al fijarlo verás solo habitaciones" según el sentido, y desaparece con tipo elegido.
+- DADO el panel sin tipo elegido ENTONCES el texto de ayuda dice "Al fijarlo se marca «Busca piso»" o
+  "Al fijarlo se marca «Busca compañero» (habitaciones)" según el sentido, y desaparece con tipo elegido.
 
 ## Decisión técnica
 - La regla vive en el servicio porque es un invariante del estado de filtros, no de un componente:
@@ -90,10 +91,28 @@ recortada sin motivo.
   enlaces con `budget_min` o `budget_max` sin tipo se resuelven y reescriben la URL.
 - `search-filters.spec.ts`: texto de ayuda nuevo según el sentido y oculto con tipo elegido.
 
-## Checklist de verificación
-- [ ] Frontend: `npm run format:check` y `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Build: `node scripts/set-env.js && npx ng build --configuration production`
+## Checklist de verificación (tras la revisión)
+- [x] Frontend: `npm ci`, `npm run format:check` y `npm run lint` en verde
+- [x] Frontend: `npm run test:ci` **188 passed** (26 ficheros; develop: 177 en 25)
+- [x] Build: `node scripts/set-env.js && npx ng build --configuration production` OK
 
 ## Resultado
-Pendiente.
+Implementado según "Comportamiento decidido": `withBudgetType` en `ProfileSearchService` se aplica al
+leer la URL y en cada `updateFilters`; el panel cambia el texto de ayuda.
+
+Revisión (SDD fase 6), dos agentes de solo lectura: **code-reviewer → APROBADO CON CAMBIOS MENORES**
+y **ui-ux-reviewer → APROBADO CON OBSERVACIONES**, sin bloqueantes.
+Cambios aplicados tras la revisión:
+- Volver a `/explorar` con un enlace sin tipo cuyos filtros ya coinciden también reescribe la URL con
+  el tipo (antes, al no cambiar los filtros, la URL se quedaba sin `profile_type`). No lanza búsqueda.
+- El texto de ayuda nombra el chip que se marcará («Busca piso» / «Busca compañero»), y el slider lo
+  incluye en su `aria-labelledby` mientras se muestra.
+- Test del cambio combinado que manda el panel al desmarcar el tipo con traslado de importe.
+
+Descartado con motivo: aviso (toast o `aria-label`) al quitar el tipo y con él el importe; los dos chips
+desaparecen a la vista y la regla está en la spec. Exportar la correspondencia parámetro → tipo desde
+`core` para derivar `budget-filter.ts`: la spec la deja local a propósito (dos entradas).
+
+Prueba: los tests nuevos ejecutados contra el código de `develop` → en `profile-search.service.spec.ts`
+**5 de 6 fallan** (pasa el de control "con un tipo ya elegido…"); el del texto de ayuda en
+`search-filters.spec.ts` falla.

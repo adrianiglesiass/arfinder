@@ -168,17 +168,22 @@ describe('SearchFilters — controles del panel de filtros', () => {
 
     it('sin tipo elegido avisa del tipo que se elegirá al fijar el importe', () => {
       viewerIs('looking_for_roommate');
-      expect(fixture.nativeElement.textContent).toContain(
-        'Al fijarlo verás solo perfiles que buscan piso'
+      expect(fixture.nativeElement.textContent).toContain('Al fijarlo se marca «Busca piso»');
+      const handle = (fixture.nativeElement as HTMLElement).querySelector('[role="slider"]')!;
+      expect(handle.getAttribute('aria-labelledby')).toBe(
+        `${component['ids'].budget} ${component['ids'].budgetHint}`
       );
 
       viewerIs('looking_for_flat');
-      expect(fixture.nativeElement.textContent).toContain('Al fijarlo verás solo habitaciones');
+      expect(fixture.nativeElement.textContent).toContain(
+        'Al fijarlo se marca «Busca compañero» (habitaciones)'
+      );
 
       filters.set({ profile_type: 'looking_for_flat' });
       fixture.detectChanges();
       expect(fixture.nativeElement.textContent).not.toContain('Al fijarlo');
       expect(fixture.nativeElement.textContent).not.toContain('Pensado para');
+      expect(handle.getAttribute('aria-labelledby')).toBe(component['ids'].budget);
     });
 
     it('un importe en el extremo neutro del nuevo sentido deja de filtrar', () => {
