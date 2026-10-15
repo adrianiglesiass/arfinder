@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
 from app.core.dependencies import get_current_user
-from app.core.openapi import PROTECTED
+from app.core.openapi import MESSAGING_BLOCKED, PROTECTED
 from app.core.rate_limit import (
     action_rate_limiter,
     message_rate_limiter,
@@ -30,6 +30,7 @@ router = APIRouter(prefix="/conversations", tags=["conversations"], responses=PR
     "",
     response_model=ConversationResponse,
     status_code=201,
+    responses=MESSAGING_BLOCKED,
     dependencies=[Depends(action_rate_limiter)],
 )
 async def create_or_get_conversation(
@@ -115,7 +116,10 @@ def mark_as_read(
 
 
 @router.post(
-    "/{conversation_id}/messages", response_model=MessageResponse, status_code=201
+    "/{conversation_id}/messages",
+    response_model=MessageResponse,
+    status_code=201,
+    responses=MESSAGING_BLOCKED,
 )
 def send_new_message(
     conversation_id: int,
@@ -132,6 +136,7 @@ def send_new_message(
     "/with/{recipient_user_id}/messages",
     response_model=MessageResponse,
     status_code=201,
+    responses=MESSAGING_BLOCKED,
 )
 async def send_message_lazy(
     recipient_user_id: int,

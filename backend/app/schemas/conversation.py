@@ -33,5 +33,6 @@ class ConversationResponse(BaseModel):
     other_user: ParticipantSummary | None = None
     last_message: LastMessageSummary | None = None
     unread_count: int = 0
+    can_message: bool = True
 
     model_config = ConfigDict(from_attributes=True)

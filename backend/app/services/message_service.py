@@ -3,7 +3,11 @@ from app.models.message import Message
 from app.repositories import message_repository
 from app.repositories.message_repository import create_message
 from app.core.exceptions.message import MessageNotFoundError, MessageAccessDeniedError
-from app.services.conversation_service import get_conversation_or_raise
+from app.services.conversation_service import (
+    ensure_can_message,
+    get_conversation_or_raise,
+    other_participant_id,
+)
 
 
 def mark_message_as_read(db: Session, message_id: int, user_id: int):
@@ -47,5 +51,6 @@ def send_message(
     sender_id: int,
     content: str,
 ) -> Message:
-    get_conversation_or_raise(db, conversation_id, sender_id)
+    conversation = get_conversation_or_raise(db, conversation_id, sender_id)
+    ensure_can_message(db, sender_id, other_participant_id(conversation, sender_id))
     return create_message(db, conversation_id, sender_id, content)

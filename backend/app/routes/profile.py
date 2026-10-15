@@ -318,10 +318,17 @@ def delete_profile_photo(
     dependencies=[Depends(rate_limiter)],
 )
 def get_public_profile(
-    profile_id: int, response: Response, db: Session = Depends(get_db)
+    profile_id: int,
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
-    response.headers["Cache-Control"] = "public, max-age=60"
-    return profile_service.get_public_profile(db, profile_id)
+    response.headers["Vary"] = "Authorization"
+    response.headers["Cache-Control"] = (
+        "private, no-store" if current_user else "public, max-age=60"
+    )
+    viewer_id = current_user.id if current_user else None
+    return block_service.get_visible_profile(db, profile_id, viewer_id)
 
 
 @router.delete("/me", status_code=204, responses=PROTECTED)
