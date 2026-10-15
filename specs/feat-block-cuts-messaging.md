@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-feat-block-cuts-messaging
-estado: approved
+estado: done
 stack: ambos
 fecha: 2026-10-15
 ---
@@ -93,8 +93,9 @@ Sea `A` y `B` dos usuarios y exista un bloqueo en **cualquier** sentido entre el
   - `Messages`: `messagingBlocked` (conversación con `can_message === false`, perfil bloqueado por mí o
     403 `MESSAGING_BLOCKED` en el envío). Con bloqueo, en lugar del composer se muestra un aviso en
     español y el historial queda visible:
-    - si lo bloqueé yo: "Has bloqueado a {nombre}. Desbloquéalo desde su perfil para volver a escribirle."
-    - en otro caso: "Ya no puedes enviar mensajes en esta conversación."
+    - si lo bloqueé yo: "Has bloqueado a {nombre}. Para volver a escribir, desbloquea desde su perfil."
+      (con enlace al perfil);
+    - en otro caso: "No puedes enviar mensajes en esta conversación."
     Un 403 `MESSAGING_BLOCKED` al enviar no muestra el error genérico de envío ni devuelve el texto al
     composer; marca la conversación como bloqueada.
   - `ProfileDetail`: el botón "Mensaje" no se muestra si he bloqueado el perfil (la barra móvil se mantiene
@@ -154,13 +155,39 @@ Sea `A` y `B` dos usuarios y exista un bloqueo en **cualquier** sentido entre el
 - Frontend `profile-detail.spec.ts`: 404 con caché muestra el aviso; "Mensaje" oculto si lo bloqueé.
 
 ## Checklist de verificación
-- [ ] Backend: `make lint`
-- [ ] Backend: `make format-check`
-- [ ] Backend: `make test`
-- [ ] Frontend: `npm run format:check`
-- [ ] Frontend: `npm run lint`
-- [ ] Frontend: `npm run test:ci`
-- [ ] Frontend: `node scripts/set-env.js && npx ng build --configuration production`
+- [x] Backend: `make lint`
+- [x] Backend: `ruff format --check .` (el Makefile no tiene objetivo `format-check`)
+- [x] Backend: `make test`
+- [x] Frontend: `npm run format:check`
+- [x] Frontend: `npm run lint`
+- [x] Frontend: `npm run test:ci`
+- [x] Frontend: `node scripts/set-env.js && npx ng build --configuration production`
 
 ## Resultado
-_Pendiente._
+Implementado backend y frontend según "Comportamiento decidido".
+
+Revisión (SDD fase 6), dos agentes de solo lectura con las instrucciones de `.opencode/agent/`:
+**code-reviewer → APROBADO CON CAMBIOS MENORES** y **ui-ux-reviewer → APROBADO CON OBSERVACIONES**,
+sin bloqueantes. Cambios aplicados tras la revisión:
+- Un 403 `MESSAGING_BLOCKED` ya no devuelve el texto al composer (lo pedía esta spec y no se cumplía).
+- El listener solo consulta el bloqueo si hay sockets locales suscritos a la conversación
+  (`manager.has_subscribers`): sin esto cada notify costaba una consulta en todas las máquinas.
+- Tests añadidos: crear conversación vuelve a dar 201 tras desbloquear; `Vary: Authorization` también sin
+  sesión; sin suscriptores no se consulta la BD.
+- UI: el enlace "su perfil" va subrayado y con foco visible (WCAG 1.4.1); la barra móvil dice
+  "Has bloqueado a {nombre}" en vez de "¿Te encaja…?"; en desktop, sin botón de mensaje, una línea explica
+  "Has bloqueado este perfil. Para escribir, desbloquea desde el menú."; el estado 404 oculta el icono a
+  lectores de pantalla y anuncia el error con `role="status"`; el aviso genérico pasa a "No puedes enviar
+  mensajes en esta conversación." (sirve también para un borrador, que no tenía conversación previa).
+
+Descartado con motivo: evitar la doble consulta de bloqueo al crear desde un borrador (solo ocurre en el
+primer mensaje); limpiar `draftBlocked` cuando el otro desbloquea (ese desbloqueo no se notifica; se
+corrige al volver a abrir el chat).
+
+Prueba: los tests nuevos de backend ejecutados contra el código de `develop` → **21 fallan** (el único que
+pasa es el de control: un bloqueo ajeno no afecta a la conversación).
+
+## Checklist de verificación (tras la revisión)
+- Backend: `ruff check .` sin errores, `ruff format --check .` 118 ficheros, `pytest` **235 passed** (+27).
+- Frontend: `format:check` y `lint` en verde, `test:ci` **151 passed** (23 ficheros, +12), build de
+  producción OK.
