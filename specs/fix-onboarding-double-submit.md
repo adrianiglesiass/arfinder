@@ -18,7 +18,7 @@ Un segundo toque mientras se guarda lanza otro `saveOnboarding` (que cae en el `
 
 ## Alcance
 - Signal `isSubmitting`: `nextStep()` ignora la llamada si ya hay un envío en curso.
-- "Ir a explorar" muestra carga y se desactiva; "Anterior" y "Cancelar registro" se desactivan mientras
+- "Ir a explorar" muestra carga y se desactiva; "Anterior" y "Salir" (cancelar el registro) se desactivan mientras
   se envía.
 - Tras un error, el botón vuelve a estar disponible para reintentar.
 

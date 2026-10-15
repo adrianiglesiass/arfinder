@@ -6,7 +6,7 @@
           <button
             type="button"
             (click)="openExitConfirm()"
-            [disabled]="isExiting()"
+            [disabled]="isExiting() || isSubmitting()"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold text-red-500 hover:bg-red-50 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <i class="pi pi-sign-out text-xs"></i>
@@ -124,12 +124,13 @@
           variant="ghost"
           size="sm"
           [class.invisible]="isFirstStep()"
+          [disabled]="isSubmitting()"
           (click)="prevStep()"
         >
           Anterior
         </app-button>
 
-        <app-button (click)="nextStep()">
+        <app-button (click)="nextStep()" [loading]="isSubmitting()" [disabled]="isSubmitting()">
           {{ submitLabel() }}
         </app-button>
       </div>
