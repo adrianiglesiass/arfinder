@@ -34,7 +34,10 @@ con teclado pierde el foco de vista en varios sitios y en el deck tabula por car
   `aria-pressed`. `CityAutocomplete` acepta `inputId`, y `StepProfile` lo usa.
 - Foco visible: anillo `focus-visible` en los elementos citados; la papelera se muestra con el foco.
 - Deck: el `<article>` deja de ser botón; el texto "Ver perfil completo" pasa a ser un `<button>` real
-  que abre el perfil; las cartas de detrás llevan `inert`. El `<main>` de mensajes pasa a `<section>`.
+  que abre el perfil; las cartas de detrás llevan `inert`. Tocar la carta (sin arrastrar) sigue abriendo
+  el perfil, salvo si el toque cae en uno de sus botones. Las flechas del teclado no pasan de carta si
+  el foco está en un campo, un slider o un diálogo (antes, mover el slider de presupuesto o escribir la
+  edad con las flechas pasaba cartas). El `<main>` de mensajes pasa a `<section>`.
 
 ## No-goals
 - NO se rediseña el deck ni cambia el gesto de deslizar o tocar la carta.
@@ -48,12 +51,17 @@ con teclado pierde el foco de vista en varios sitios y en el deck tabula por car
 
 ## Decisión técnica
 - Anillos con utilidades de Tailwind (`focus-visible:ring-2`…), coherentes con los que ya usan los inputs.
-- El botón "Ver perfil completo" emite `open` y para la propagación, para no navegar dos veces con el
-  `click` del `<article>` (que sigue sirviendo para tocar la carta con el dedo).
+- El botón "Ver perfil completo" emite `opened`. El toque sobre la carta se detecta en `pointerup` (sin
+  movimiento y fuera de un `button`/`a`) en lugar de un `click` en el `<article>`: así el artículo no
+  tiene un manejador de clic sin equivalente de teclado (regla de lint de accesibilidad) y no se navega
+  dos veces.
+- Ids únicos por instancia con `shared/utils/unique-id.ts`.
 
 ## Plan de tests
 - `MessageComposer` (nuevo spec): el botón de enviar tiene nombre accesible.
 - `search-filters.spec.ts`: cada control tiene etiqueta y los ids no se repiten entre dos instancias.
+- `profile-deck.spec.ts` (nuevo): sin `role="button"` en la carta, cartas de detrás `inert`, el toque y
+  el botón abren el perfil una sola vez, y las flechas dentro de un campo no pasan de carta.
 
 ## Checklist de verificación
 - [ ] Frontend: `npm run format:check`

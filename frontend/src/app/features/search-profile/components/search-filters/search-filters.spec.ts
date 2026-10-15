@@ -77,4 +77,28 @@ describe('SearchFilters — controles del panel de filtros', () => {
     component.setAvailableFrom('');
     expect(updateFilter).toHaveBeenCalledWith('available_from', null);
   });
+
+  it('etiqueta cada control y agrupa los chips', () => {
+    const el: HTMLElement = fixture.nativeElement;
+    for (const label of Array.from(el.querySelectorAll('label[for]'))) {
+      const id = label.getAttribute('for')!;
+      expect(el.querySelector(`#${id}`)).not.toBeNull();
+    }
+    expect(el.querySelector('[aria-label="Edad mínima"]')).not.toBeNull();
+    expect(el.querySelector('[aria-label="Edad máxima"]')).not.toBeNull();
+    const groups = Array.from(el.querySelectorAll('[role="group"][aria-labelledby]'));
+    expect(groups.length).toBeGreaterThanOrEqual(6);
+    for (const group of groups) {
+      expect(el.querySelector(`#${group.getAttribute('aria-labelledby')}`)).not.toBeNull();
+    }
+  });
+
+  it('no repite ids entre dos instancias del panel', () => {
+    const other = TestBed.createComponent(SearchFilters);
+    other.detectChanges();
+    const ids = (root: HTMLElement) =>
+      Array.from(root.querySelectorAll('[id]')).map((node) => node.id);
+    const shared = ids(fixture.nativeElement).filter((id) => ids(other.nativeElement).includes(id));
+    expect(shared).toEqual([]);
+  });
 });

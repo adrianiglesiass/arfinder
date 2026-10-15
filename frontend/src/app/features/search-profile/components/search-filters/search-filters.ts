@@ -21,6 +21,7 @@ import {
   FilterChipGroup,
   type FilterChipOption,
 } from '@shared/components/filter-chip-group/filter-chip-group';
+import { uniqueId } from '@shared/utils/unique-id';
 
 type TriState = 'any' | 'yes' | 'no';
 
@@ -70,6 +71,13 @@ const AGE_MAX_LIMIT = 99;
 })
 export class SearchFilters {
   private readonly searchService = inject(ProfileSearchService);
+
+  protected readonly ids = {
+    city: uniqueId('filter-city'),
+    budget: uniqueId('filter-budget'),
+    age: uniqueId('filter-age'),
+    availableFrom: uniqueId('filter-available-from'),
+  };
 
   readonly typeOptions = TYPE_OPTIONS;
   readonly scheduleOptions = SCHEDULE_OPTIONS;

@@ -14,7 +14,7 @@
             ? 'bg-primary text-white border-primary shadow-sm'
             : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
         "
-        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 outline-none group"
+        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         aria-label="Seleccionar opción: Busco piso"
         [aria-pressed]="isLookingForFlat()"
         (keydown.enter)="setType('looking_for_flat')"
@@ -48,7 +48,7 @@
             ? 'bg-primary text-white border-primary shadow-sm'
             : 'bg-white border-gray-border text-gray-500 hover:border-gray-400'
         "
-        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 outline-none group"
+        class="relative p-8 rounded-4xl border cursor-pointer transition-all duration-200 group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         aria-label="Seleccionar opción: Tengo piso"
         [aria-pressed]="isLookingForRoommate()"
         (keydown.enter)="setType('looking_for_roommate')"
