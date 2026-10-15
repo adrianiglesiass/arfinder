@@ -20,6 +20,13 @@ export class ProfileDeckCard {
 
   readonly photoPrev = output<Event>();
   readonly photoNext = output<Event>();
+  readonly opened = output<void>();
+
+  protected open(event: Event): void {
+    // The parent card also opens the profile on click; stop here so it only happens once.
+    event.stopPropagation();
+    this.opened.emit();
+  }
 
   protected readonly photos = computed(() => this.profile().photo_urls ?? []);
   protected readonly secondaryPhotos = computed(() => this.photos().slice(1));

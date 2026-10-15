@@ -14,6 +14,7 @@
     <div class="flex-1 min-h-0 flex items-center justify-center">
       <app-empty-state
         icon="error"
+        [alert]="true"
         title="No pudimos cargar los perfiles"
         message="Revisa tu conexión e inténtalo de nuevo."
       >
@@ -74,15 +75,12 @@
             [style.cursor]="card.pos === 0 ? 'grab' : 'default'"
             [class.touch-pan-y]="card.pos === 0"
             [class.deck-enter]="card.pos === 0 && entering()"
-            [attr.role]="card.pos === 0 ? 'button' : null"
-            [attr.tabindex]="card.pos === 0 ? 0 : null"
-            [attr.aria-label]="card.pos === 0 ? 'Ver perfil de ' + card.profile.name : null"
+            [attr.inert]="card.pos === 0 ? null : ''"
+            [attr.aria-label]="'Perfil de ' + card.profile.name"
             (pointerdown)="card.pos === 0 ? onPointerDown($event) : null"
             (pointermove)="card.pos === 0 ? onPointerMove($event) : null"
-            (pointerup)="card.pos === 0 ? onPointerUp() : null"
-            (pointercancel)="card.pos === 0 ? onPointerUp() : null"
-            (click)="card.pos === 0 ? openProfile(card.profile) : null"
-            (keyup.enter)="card.pos === 0 ? openProfile(card.profile) : null"
+            (pointerup)="card.pos === 0 ? onPointerUp($event, card.profile) : null"
+            (pointercancel)="card.pos === 0 ? endDrag() : null"
             (mouseenter)="prefetch(card.profile)"
           >
             <app-profile-deck-card
@@ -91,6 +89,7 @@
               [photoIndex]="photoIndex()"
               (photoPrev)="photoPrev(card.profile, $event)"
               (photoNext)="photoNext(card.profile, $event)"
+              (opened)="openProfile(card.profile)"
             />
           </article>
         }
@@ -106,10 +105,20 @@
       </app-icon-button>
     </div>
 
-    <div
-      class="shrink-0 mt-3 text-center text-[11px] font-bold uppercase tracking-[0.22em] text-gray-400 tabular-nums"
-    >
-      {{ position() }} / {{ total() }}
+    <div class="shrink-0 mt-3 h-10 flex items-center justify-center gap-2">
+      @if (loadMoreError()) {
+        <span class="text-xs font-medium text-gray-500" role="alert">
+          No pudimos cargar más perfiles.
+        </span>
+        <app-button variant="secondary" size="sm" (click)="retryLoadMore()">
+          <i class="pi pi-refresh text-xs"></i>
+          Reintentar
+        </app-button>
+      } @else {
+        <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-gray-400 tabular-nums">
+          {{ position() }} / {{ total() }}
+        </span>
+      }
     </div>
   }
 </div>

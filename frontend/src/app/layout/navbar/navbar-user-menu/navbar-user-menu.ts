@@ -32,6 +32,13 @@ export class NavbarUserMenu {
       },
     },
     {
+      label: 'Bloqueados',
+      icon: 'pi pi-ban',
+      command: async () => {
+        await this.router.navigate([ROUTES.BLOCKED]);
+      },
+    },
+    {
       separator: true,
     },
     {

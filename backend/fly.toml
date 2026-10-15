@@ -14,6 +14,14 @@ primary_region = "fra"
   auto_start_machines = true
   min_machines_running = 0
 
+  # Without this block Fly applies soft_limit = 20 and NO hard_limit, so the proxy
+  # never sheds load. Sizing rationale (single uvicorn process, 40-thread pool,
+  # 40 DB connections, WebSockets assumed to count): specs/fix-abuse-cost-ceiling.md #55.
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 50
+    hard_limit = 100
+
   [[http_service.checks]]
     interval = "30s"
     timeout = "5s"

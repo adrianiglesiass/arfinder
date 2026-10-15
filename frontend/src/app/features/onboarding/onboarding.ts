@@ -29,6 +29,7 @@ import { StepLifestyle } from '@shared/components/profile-form/step-lifestyle/st
 import { StepObjective } from '@shared/components/profile-form/step-objective/step-objective';
 import { StepProfile } from '@shared/components/profile-form/step-profile/step-profile';
 import { isLocalPhoto } from '@shared/utils/photo.utils';
+import { isProfileBasicsValid } from '@shared/utils/profile-limits';
 
 import { StepPhotos } from '@features/onboarding/components/step-photos/step-photos';
 
@@ -70,6 +71,7 @@ export default class Onboarding implements OnInit {
 
   showExitConfirm = signal(false);
   isExiting = signal(false);
+  isSubmitting = signal(false);
 
   form = signal<Partial<ProfileCreate>>({
     name: '',
@@ -142,10 +144,7 @@ export default class Onboarding implements OnInit {
   isFirstStep = computed(() => this.currentStep() === 1);
   isLastStep = computed(() => this.currentStep() === this.totalSteps);
 
-  isStep1Valid = computed(() => {
-    const f = this.form();
-    return !!(f.name?.trim() && f.age && f.city?.trim());
-  });
+  isStep1Valid = computed(() => isProfileBasicsValid(this.form()));
 
   isCurrentStepValid = computed(() => {
     if (this.currentStep() === 1) return this.isStep1Valid();
@@ -198,6 +197,8 @@ export default class Onboarding implements OnInit {
       this.currentStep.update((step) => step + 1);
       this.animateHeightAfterTransition();
     } else {
+      if (this.isSubmitting()) return;
+      this.isSubmitting.set(true);
       try {
         await this.profileService.saveOnboarding(this.form() as ProfileCreate);
 
@@ -225,7 +226,7 @@ export default class Onboarding implements OnInit {
           }
         }
 
-        this.router.navigate(['']);
+        await this.router.navigate(['']);
       } catch (error: unknown) {
         console.error('Error in onboarding:', error);
         const { general } = this.errorService.processError(error as HttpErrorResponse);
@@ -235,11 +236,14 @@ export default class Onboarding implements OnInit {
           detail: general || 'Ocurrió un error inesperado al guardar tus datos.',
           life: 5000,
         });
+      } finally {
+        this.isSubmitting.set(false);
       }
     }
   }
 
   prevStep() {
+    if (this.isSubmitting()) return;
     this.showErrors.set(false);
     if (this.currentStep() > 1) {
       this.lockHeightBeforeTransition();
@@ -250,7 +254,7 @@ export default class Onboarding implements OnInit {
   }
 
   openExitConfirm(): void {
-    if (this.isExiting()) return;
+    if (this.isExiting() || this.isSubmitting()) return;
     this.showExitConfirm.set(true);
   }
 

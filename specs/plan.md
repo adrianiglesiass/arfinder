@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-09-plan
-estado: done
+estado: in-progress
 stack: ambos
 fecha: 2026-09-10
 ---
@@ -46,6 +46,51 @@ fecha: 2026-09-10
 | F3 | Favoritos | frontend+backend | feature | ✅ done → PR #294 (mergeado) |
 | F4 | Bloqueo de usuarios | frontend+backend | feature | ✅ done → PR #295 (mergeado) |
 | F5 | Reportes de usuarios | frontend+backend | feature | ✅ done → PR #296 (mergeado) |
+| 16 | Botón de bloquear fuera de estilo y sin feedback en el detalle | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 17 | Diálogo de reporte atrapado en la barra móvil (`backdrop-filter`): recortado y sin scroll | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 18 | `/bloqueados` inalcanzable en móvil (F4 prometió el menú de usuario y no se hizo) | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 19 | La tarjeta pierde el hover al ir al corazón; en el deck el corazón inicia un arrastre | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 20 | No se puede marcar favorito desde el detalle de perfil | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 21 | Corazón con visitante anónimo: toggle optimista y revert silencioso por 401 | frontend | profile-actions-ux | ✅ done → PR #299 |
+| 22 | Rate limit **global** para todo el sitio (un solo bucket) y clave de IP falsificable por `X-Forwarded-For` | backend | prod-critical | ✅ done → PR #300 |
+| 23 | Mensajes que superan 8000 bytes en `pg_notify` (emojis, comillas) se pierden con un 500 | backend | prod-critical | ✅ done → PR #300 |
+| 24 | El WebSocket retiene una conexión del pool toda su vida; `get_current_user` bloquea el event loop | backend | prod-critical | ✅ done → PR #300 |
+| 25 | Un fallo transitorio al refrescar el token (red, 5xx) cierra la sesión para siempre | frontend | prod-critical | ✅ done → PR #300 |
+| 26 | Diálogo de reporte colgado si falla la recarga de bloqueados tras reportar (regresión de #299) | frontend | release-blockers | ✅ done → PR #301 |
+| 27 | Toast de 400px cortado en móviles de 360px | frontend | release-blockers | ✅ done → PR #301 |
+| 28 | Tras bloquear, el corazón sigue marcado y el perfil sigue en la búsqueda ya cargada | frontend | release-blockers | ✅ done → PR #301 |
+| 29 | `profile-detail` sin tests de la orquestación de bloqueo y reporte (la spec afirmaba lo contrario) | frontend | release-blockers | ✅ done → PR #301 |
+| 30 | El detalle no reinicia su estado al cambiar de `:id` (diálogo abierto reporta al perfil nuevo) | frontend | release-blockers | ✅ done → PR #301 |
+| 31 | El banner de la PWA tapa la barra de acciones móvil (misma posición y z-index) | frontend | release-blockers | ✅ done → PR #301 |
+| 32 | `name`/`city` de 101–150 caracteres dan 500 (schema 150, columna 100) | backend | backend-integrity | ✅ done → PR #302 |
+| 33 | `PATCH /profiles/me` con `null` en campos obligatorios da 500 | backend | backend-integrity | ✅ done → PR #302 |
+| 34 | La exclusión por bloqueo en búsqueda y favoritos se corta en 200 usuarios | backend | backend-integrity | ✅ done → PR #302 |
+| 35 | Reportar no es atómico: si falla el bloqueo, el reintento da 409 y nunca se bloquea | backend | backend-integrity | ✅ done → PR #302 |
+| 36 | Tras borrar la cuenta, la caché de tokens (120 s) recrea el usuario local | backend | backend-integrity | ✅ done → PR #302 |
+| 37 | Subida de fotos sin tope de tamaño previo al buffer ni de número de fotos | backend | backend-integrity | ✅ done → PR #302 |
+| 38 | Crear conversación, bloquear, reportar y favorito sin rate limit | backend | backend-integrity | ✅ done → PR #302 |
+| 39 | `GET /profiles/me/photos` captura `HTTPException` en vez de `ProfileNotFoundError` | backend | backend-integrity | ✅ done → PR #302 |
+| 40 | Los filtros de Explorar se pierden al abrir un perfil; el deck vuelve a la tarjeta 1 | frontend | frontend-state | ✅ done → PR #303 |
+| 41 | La búsqueda cacheada no reacciona al login/logout (tu propio perfil aparece) | frontend | frontend-state | ✅ done → PR #303 |
+| 42 | Las fotos subidas en `/perfil` no aparecen hasta recargar | frontend | frontend-state | ✅ done → PR #303 |
+| 43 | Carreras en toggles optimistas (refresh vs toggle, doble toque) y favorito imposible tras desbloquear | frontend | frontend-state | ✅ done → PR #303 |
+| 44 | Mensajes: `ngOnInit` sigue tras destruirse; un envío en vuelo se cuela en otra conversación | frontend | frontend-state | ✅ done → PR #303 |
+| 45 | Errores silenciados que se muestran como estado vacío o "fin de resultados" | frontend | frontend-state | ✅ done → PR #303 |
+| 46 | Diálogos sin gestión de foco ni Escape; diálogo de reporte sin pie fijo | frontend | ux-a11y | ✅ done → PR #306 |
+| 47 | El código OTP desborda a 360px | frontend | ux-a11y | ✅ done → PR #306 |
+| 48 | Doble envío en el último paso del onboarding | frontend | ux-a11y | ✅ done → PR #306 |
+| 49 | Editar perfil: errores de validación invisibles, cambios perdidos sin aviso, borrar foto sin confirmar; `maxlength` de nombre y ciudad | frontend | ux-a11y | ✅ done → PR #306 |
+| 50 | Accesibilidad: botón de enviar sin nombre, filtros sin label, foco visible eliminado, deck anidado | frontend | ux-a11y | ✅ done → PR #306 |
+| 51 | Textos y consistencia visual (mayúsculas, clases de tema inexistentes, color fijo) | frontend | ux-a11y | ✅ done → PR #306 |
+| F6 | El bloqueo corta el chat y el acceso al perfil (hoy el bloqueado puede seguir escribiendo) | frontend+backend | feature | ✅ done → PR #307 |
+| 52 | Filtro de presupuesto invertido para quien ofrece habitación | frontend+backend | budget-filter | ✅ done → PR #308 |
+| 53 | Tokens inválidos sin caché: cada bearer aleatorio dispara una llamada saliente a InsForge | backend | abuse-cost-ceiling | ✅ done → PR #304 |
+| 54 | WebSocket sin límites de conexión por usuario/IP, suscripciones ni tasa de mensajes | backend | abuse-cost-ceiling | ✅ done → PR #304 |
+| 55 | `fly.toml` sin `[http_service.concurrency]`: el proxy no desecha carga | backend | abuse-cost-ceiling | ✅ done → PR #305 |
+| 56 | Rutas de lectura (`GET /profiles/{id}`, conversaciones, mensajes, `/auth/me`) sin rate limit | backend | abuse-cost-ceiling | ✅ done → PR #304 |
+| 57 | `/docs`, `/redoc` y `/openapi.json` públicos en producción | backend | abuse-cost-ceiling | ✅ done → PR #304 |
+| 58 | ~~Subidas a Cloudinary sin transformación~~ **Descartado**: el ancho de banda ya se optimiza en la URL (`app.config.ts`) y la transformación en la subida rompería `extract_public_id_from_url`/`destroy` | backend | abuse-cost-ceiling | ↩️ descartado |
+| 59 | Sin techo de gasto: nada corta el despliegue si el egress se dispara (Fly no tiene alertas ni límite) | infra | abuse-cost-ceiling | ✅ done → PR #305 |
 
 ## Fases (orden de ejecución)
 1. ✅ **fix/critical-issues** → PR #288 (mergeado).
@@ -56,16 +101,38 @@ fecha: 2026-09-10
 6. ✅ **feat/available-from-filter** → PR #293 (mergeado).
 7. ✅ **feat/favorites** → PR #294 (mergeado).
 8. ✅ **feat/user-block** → PR #295 (mergeado).
-9. ✅ **feat/reports** → PR #296 (mergeado). Última fase del backlog.
+9. ✅ **feat/reports** → PR #296 (mergeado).
+10. ✅ **fix/profile-actions-ux** → PR #299. Bugs visuales reportados tras la release v1.4.0.
+11. ✅ **fix/prod-critical** → PR #300. #22–#25.
+12. ✅ **fix/release-blockers** → PR #301. #26–#31.
+13. ✅ **fix/backend-integrity** → PR #302. #32–#39.
+14. ✅ **fix/abuse-cost-ceiling** → PR #304 + PR #305. #53–#59. Techo de coste y endurecimiento
+    anti-abuso (spec: [`fix-abuse-cost-ceiling.md`](fix-abuse-cost-ceiling.md)): backend (#53,
+    #54, #56, #57) en #304; concurrencia del proxy de Fly (#55) y watchdog de egress (#59) en #305;
+    #58 descartado con evidencia. Insertada fuera de orden a petición del usuario: sin Cloudflare
+    ni dominio propio, la única garantía de factura es el código más el watchdog.
+15. ✅ **fix/frontend-state** → PR #303. #40–#45.
+16. ✅ **fix/ux-a11y** → PR #306. #46–#51.
+17. ✅ **feat/block-cuts-messaging** → PR #307. F6.
+18. ✅ **fix/budget-filter-direction** → PR #308. #52.
+19. ⏳ Release (merge commit con `--subject "release: vX.Y.Z"` + tag). RAMA SIGUIENTE.
 
 ## Estado del backlog
-- **Backlog completo**: los 15 hallazgos de auditoría, el saneamiento de arquitectura y las 5
-  features (F1–F5) están mergeados en `develop` (#288–#296). No queda trabajo planificado.
-- `develop` está por delante de `main`. La release se hace por PR `develop` → `main` + tag, según
-  el flujo de ramas del proyecto; queda pendiente de decisión del equipo, no es parte de F5.
-- Siguientes candidatos naturales (sin spec, no comprometidos): panel de moderación para los
-  reportes de F5 (hoy solo consultables por SQL, requiere concepto de admin en `User`) y gating de
-  mensajería para bloqueados, que F4 dejó explícitamente como no-goal.
+- Release v1.4.0 en `main`. Antes de la siguiente, una auditoría con cinco agentes (code-reviewer,
+  ui-ux-reviewer, backend, frontend y producto) dejó la PR #299 **BLOQUEADA** y encontró bugs
+  graves ya en producción: hallazgos #22–#52, repartidos en las fases 11–17. Criterio del usuario:
+  arreglar **todos los bugs confirmados** antes de subir a `main`.
+- Cada hallazgo marcado "reportado" se verifica al escribir su spec; si no se reproduce leyendo el
+  código, se descarta y se deja constancia en la spec de su fase.
+- Lección de la fase 12: coordinar stores inyectándolos directamente puede crear servicios con efectos
+  en su constructor (una búsqueda no pedida). Para avisar de cambios entre stores se usa `BlockEvents`.
+- **Revisión obligatoria antes de cada PR** (SDD fase 6): agente con las instrucciones de
+  `.opencode/agent/code-reviewer.md`, y `ui-ux-reviewer.md` si toca UI. La PR #299 se saltó este paso.
+- Features fuera de esta tanda, por orden: pausar perfil, notificaciones push de mensajes, deck con
+  memoria (descartar / me interesa / interés mutuo), moderación con rol de admin, actividad reciente,
+  alertas de búsqueda guardada.
+- Candidatos técnicos: `<app-navbar>` / `navbar-links` (código muerto) y el parámetro `redirect` al
+  ir a login, que nadie lee.
 
 ## Entorno local (LEER antes de verificar)
 - Postgres de dev en 5432 y de test en 5433 (`docker compose up -d db-test` desde `backend/`).
@@ -89,3 +156,6 @@ fecha: 2026-09-10
   registradas en el Resultado de `specs/feat-user-block.md`.
 - `#296 incluyó`: F5 reportes de usuarios, que reutiliza `block_service` para bloquear al
   reportado. Ojo con `MessageService` de PrimeNG: es **por componente**, no global.
+- `#299 incluyó`: hallazgos #16–#21. Lección: un diálogo `fixed` no puede renderizarse dentro de
+  un ancestro con `backdrop-filter` (como `MobileActionBar`), porque ese ancestro pasa a ser su
+  bloque contenedor; los diálogos viven en la raíz de la página.

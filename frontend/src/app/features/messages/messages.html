@@ -26,7 +26,24 @@
       </div>
 
       <div class="flex-1 overflow-y-auto">
-        @if (conversations().length === 0) {
+        @if (conversationsError() && conversations().length === 0) {
+          <div class="flex flex-col items-center justify-center gap-3 p-8 text-center" role="alert">
+            <span class="material-symbols-rounded text-4xl text-gray-200">error</span>
+            <div>
+              <p class="text-sm font-medium text-gray-600">No pudimos cargar tus conversaciones.</p>
+              <p class="text-xs text-gray-400 mt-1">Revisa tu conexión e inténtalo de nuevo.</p>
+            </div>
+            <app-button
+              variant="secondary"
+              size="sm"
+              (click)="retryConversations()"
+              [loading]="retryingConversations()"
+            >
+              <i class="pi pi-refresh text-xs"></i>
+              Reintentar
+            </app-button>
+          </div>
+        } @else if (conversations().length === 0) {
           <div class="flex flex-col items-center justify-center p-8 text-center">
             <span class="material-symbols-rounded text-4xl text-gray-200 mb-2"
               >chat_bubble_outline</span
@@ -54,7 +71,8 @@
       </div>
     </aside>
 
-    <main
+    <section
+      aria-label="Conversación"
       class="flex-1 flex-col bg-white h-full min-w-0 min-h-0"
       [class]="chatActive() ? 'flex' : 'hidden md:flex'"
     >
@@ -70,6 +88,24 @@
           class="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 py-3 space-y-1.5"
           #messagesContainer
         >
+          @if (chatError()) {
+            <div
+              class="flex flex-col items-center justify-center gap-3 py-10 text-center"
+              role="alert"
+            >
+              <span class="material-symbols-rounded text-4xl text-gray-200">error</span>
+              <div>
+                <p class="text-sm font-medium text-gray-600">
+                  No pudimos cargar esta conversación.
+                </p>
+                <p class="text-xs text-gray-400 mt-1">Revisa tu conexión e inténtalo de nuevo.</p>
+              </div>
+              <app-button variant="secondary" size="sm" (click)="retryChat()">
+                <i class="pi pi-refresh text-xs"></i>
+                Reintentar
+              </app-button>
+            </div>
+          }
           @if (hasMoreMessages()) {
             <div #topSentinel aria-hidden="true" class="h-1 w-full"></div>
           }
@@ -89,8 +125,37 @@
           }
         </div>
 
-        <app-message-composer [(value)]="newMessage" (send)="sendMessage()" />
+        @if (messagingBlocked()) {
+          <div
+            class="px-4 md:px-6 py-3 border-t border-hairline bg-gray-50 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-6"
+            role="status"
+            data-testid="messaging-blocked"
+          >
+            <p class="flex items-start justify-center gap-2 text-sm text-gray-600 text-center">
+              <i class="pi pi-ban text-xs mt-1" aria-hidden="true"></i>
+              @if (blockedByMe()) {
+                <span>
+                  Has bloqueado a {{ headerInfo()?.name }}. Para volver a escribir, desbloquea desde
+                  <a
+                    [routerLink]="[profileDetailRoute, headerInfo()?.profile_id]"
+                    class="font-medium text-primary underline underline-offset-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    >su perfil</a
+                  >.
+                </span>
+              } @else {
+                <span>No puedes enviar mensajes en esta conversación.</span>
+              }
+            </p>
+          </div>
+        } @else {
+          @if (sendError()) {
+            <p class="px-4 pt-2 text-xs font-medium text-red-600" role="alert">
+              No pudimos enviar el mensaje. Inténtalo de nuevo.
+            </p>
+          }
+          <app-message-composer [(value)]="newMessage" (send)="sendMessage()" />
+        }
       }
-    </main>
+    </section>
   }
 </div>

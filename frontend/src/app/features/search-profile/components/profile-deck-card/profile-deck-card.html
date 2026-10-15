@@ -118,10 +118,12 @@
     }
   </div>
 
-  <div
-    class="mt-6 inline-flex items-center gap-2 text-white text-[11px] font-bold uppercase tracking-[0.18em]"
+  <button
+    type="button"
+    (click)="open($event)"
+    class="pointer-events-auto mt-6 inline-flex items-center gap-2 text-white text-[11px] font-bold uppercase tracking-[0.18em] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
   >
     Ver perfil completo
-    <i class="pi pi-arrow-right text-[11px]"></i>
-  </div>
+    <i class="pi pi-arrow-right text-[11px]" aria-hidden="true"></i>
+  </button>
 </div>

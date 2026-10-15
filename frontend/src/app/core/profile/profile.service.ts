@@ -158,6 +158,15 @@ export class ProfileService {
     return this.profilesById().get(id) ?? null;
   }
 
+  forgetProfileById(id: number): void {
+    if (!this.profilesById().has(id)) return;
+    this.profilesById.update((map) => {
+      const next = new Map(map);
+      next.delete(id);
+      return next;
+    });
+  }
+
   fetchProfileById(id: number): Promise<ProfileResponse> {
     const existing = this.inflight.get(id);
     if (existing) return existing;
@@ -223,7 +232,19 @@ export class ProfileService {
   }
 
   async addPhoto(file: File): Promise<ProfilePhotoResponse> {
-    return await this.authApi.uploadPhoto(file);
+    const photo = await this.authApi.uploadPhoto(file);
+    const me = this.currentProfile();
+    if (me) {
+      const updated = {
+        ...me,
+        photos: [...me.photos.filter((p) => p.id !== photo.id), photo].sort(
+          (a, b) => a.order - b.order
+        ),
+      };
+      this.currentProfile.set(updated);
+      this.hydrateProfiles([updated]);
+    }
+    return photo;
   }
 
   async updateProfile(data: ProfileUpdate): Promise<ProfileResponse> {

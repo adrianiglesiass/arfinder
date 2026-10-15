@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { Button } from '@shared/components/button/button';
+import { ModalDialog } from '@shared/directives/modal-dialog';
+import { uniqueId } from '@shared/utils/unique-id';
 
 @Component({
   selector: 'app-confirm-destructive-dialog',
-  imports: [Button],
+  imports: [Button, ModalDialog],
   templateUrl: './confirm-destructive-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -15,9 +17,13 @@ export class ConfirmDestructiveDialog {
     'Tu perfil dejará de aparecer en las búsquedas y se borrarán tus fotos, conversaciones y mensajes. Esta acción no se puede deshacer.'
   );
   readonly confirmLabel = input<string>('Eliminar cuenta');
+  readonly confirmIcon = input<string>('pi pi-trash');
 
   readonly dismissed = output<void>();
   readonly confirmed = output<void>();
+
+  protected readonly titleId = uniqueId('confirm-dialog-title');
+  protected readonly descriptionId = uniqueId('confirm-dialog-description');
 
   onCancel(): void {
     if (this.isDeleting()) return;

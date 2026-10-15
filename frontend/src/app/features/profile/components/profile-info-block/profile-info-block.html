@@ -12,16 +12,23 @@
   </div>
 
   @if (showSendMessageButton()) {
-    <div class="hidden md:block mt-6">
-      <app-button
-        size="sm"
-        (click)="onSendMessage()"
-        [loading]="sendingMessage()"
-        [disabled]="sendingMessage()"
-      >
-        <i class="pi pi-send text-xs"></i>
-        Enviar mensaje
-      </app-button>
+    <div class="hidden md:flex items-center gap-2 mt-6">
+      @if (canSendMessage()) {
+        <app-button
+          size="sm"
+          (click)="onSendMessage()"
+          [loading]="sendingMessage()"
+          [disabled]="sendingMessage()"
+        >
+          <i class="pi pi-send text-xs"></i>
+          Enviar mensaje
+        </app-button>
+      } @else {
+        <p class="text-xs text-gray-500">
+          Has bloqueado este perfil. Para escribir, desbloquea desde el menú.
+        </p>
+      }
+      <ng-content select="[profileActions]" />
     </div>
   }
 

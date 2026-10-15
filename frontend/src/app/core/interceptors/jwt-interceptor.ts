@@ -48,12 +48,13 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => err);
       }
 
-      return from(authService.forceRefreshToken()).pipe(
-        switchMap((newToken) => {
-          if (!newToken) {
-            void authService.invalidateSession();
+      return from(authService.refreshSessionToken()).pipe(
+        switchMap((outcome) => {
+          if (outcome.token === null) {
+            if (!outcome.transient) void authService.invalidateSession();
             return throwError(() => err);
           }
+          const newToken = outcome.token;
           const retryReq = req.clone({
             setHeaders: {
               Authorization: `Bearer ${newToken}`,

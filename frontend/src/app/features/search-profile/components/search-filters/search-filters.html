@@ -22,10 +22,13 @@
   </header>
 
   <div class="flex flex-col gap-2">
-    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
+    <label
+      [for]="ids.city"
+      class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+    >
       Ciudad
-    </span>
-    <app-city-autocomplete [city]="city()" (citySelected)="setCity($event)" />
+    </label>
+    <app-city-autocomplete [inputId]="ids.city" [city]="city()" (citySelected)="setCity($event)" />
   </div>
 
   <app-filter-chip-group
@@ -44,38 +47,47 @@
 
   <div class="flex flex-col gap-3">
     <div class="flex items-center justify-between ml-1">
-      <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-        Presupuesto máximo
+      <span
+        [id]="ids.budget"
+        class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]"
+      >
+        {{ budgetText().label }}
       </span>
       <span class="text-xs font-bold text-primary tabular-nums">
         @if (budgetDisplay()) {
           {{ budgetDisplay() }} €
         } @else {
-          Sin límite
+          {{ budgetText().unset }}
         }
       </span>
     </div>
+    @if (!profileType()) {
+      <p class="text-[11px] text-gray-400 font-medium ml-1 -mt-1">{{ budgetText().hint }}</p>
+    }
     <div class="px-1">
       <p-slider
-        inputId="budgetSlider"
+        [ariaLabelledBy]="ids.budget"
         [ngModel]="budgetSliderValue()"
         (ngModelChange)="onBudgetSlide($event)"
         (onSlideEnd)="commitBudget()"
-        [min]="budgetMin"
-        [max]="budgetMaxLimit"
+        [min]="budgetRangeMin"
+        [max]="budgetRangeMax"
         [step]="budgetStep"
         class="w-full"
       />
     </div>
   </div>
 
-  <div class="flex flex-col gap-3">
-    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
+  <div class="flex flex-col gap-3" role="group" [attr.aria-labelledby]="ids.age">
+    <span
+      [id]="ids.age"
+      class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+    >
       Edad
     </span>
     <div class="flex items-center gap-2">
       <p-inputnumber
-        inputId="ageMin"
+        ariaLabel="Edad mínima"
         [ngModel]="ageMin()"
         (ngModelChange)="setAgeMin($event)"
         [min]="ageMinLimit"
@@ -85,7 +97,7 @@
       />
       <span class="text-gray-400 font-bold select-none">–</span>
       <p-inputnumber
-        inputId="ageMax"
+        ariaLabel="Edad máxima"
         [ngModel]="ageMax()"
         (ngModelChange)="setAgeMax($event)"
         [min]="ageMinLimit"
@@ -97,13 +109,16 @@
   </div>
 
   <div class="flex flex-col gap-3">
-    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">
+    <label
+      [for]="ids.availableFrom"
+      class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1"
+    >
       Disponible desde
-    </span>
+    </label>
     <input
       pInputText
       type="date"
-      inputId="availableFrom"
+      [id]="ids.availableFrom"
       [ngModel]="availableFrom()"
       (ngModelChange)="setAvailableFrom($event)"
       class="w-full rounded-2xl py-3 px-4 border border-gray-border transition-colors duration-200 shadow-none bg-white font-medium"

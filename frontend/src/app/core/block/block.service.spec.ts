@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 
 import type { ProfileSummary } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { type BlockChange, BlockEvents } from '@core/block/block-events';
 
 import { BlockService } from './block.service';
 
@@ -27,6 +28,8 @@ describe('BlockService — toggle optimista', () => {
     unblock: ReturnType<typeof vi.fn>;
     getMyBlocked: ReturnType<typeof vi.fn>;
   };
+  let changes: BlockChange[];
+  let currentUserFn: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     api = {
@@ -34,6 +37,8 @@ describe('BlockService — toggle optimista', () => {
       unblock: vi.fn(() => Promise.resolve()),
       getMyBlocked: vi.fn(() => Promise.resolve([])),
     };
+    changes = [];
+    currentUserFn = vi.fn(() => null);
 
     await TestBed.configureTestingModule({
       providers: [
@@ -41,16 +46,18 @@ describe('BlockService — toggle optimista', () => {
         { provide: BlockApiService, useValue: api },
         {
           provide: AuthService,
-          useValue: { currentUser: vi.fn(() => null) } as unknown as AuthService,
+          useValue: { currentUser: currentUserFn } as unknown as AuthService,
         },
       ],
     }).compileComponents();
 
     service = TestBed.runInInjectionContext(() => TestBed.inject(BlockService));
+    TestBed.inject(BlockEvents).changes$.subscribe((change) => changes.push(change));
   });
 
   it('bloquea un usuario de forma optimista', async () => {
-    await service.toggle(42);
+    const ok = await service.toggle(42);
+    expect(ok).toBe(true);
     expect(service.blockedIds().has(42)).toBe(true);
     expect(api.block).toHaveBeenCalledWith(42);
   });
@@ -64,7 +71,8 @@ describe('BlockService — toggle optimista', () => {
 
   it('revierte el cambio si la API falla', async () => {
     api.block = vi.fn(() => Promise.reject(new Error('boom')));
-    await service.toggle(42);
+    const ok = await service.toggle(42);
+    expect(ok).toBe(false);
     expect(service.blockedIds().has(42)).toBe(false);
     expect(api.block).toHaveBeenCalledWith(42);
   });
@@ -78,5 +86,66 @@ describe('BlockService — toggle optimista', () => {
 
     expect(service.blockedIds().has(42)).toBe(true);
     expect(service.profiles().map((p) => p.id)).toEqual([42]);
+  });
+
+  it('al bloquear con éxito avisa del cambio a los demás stores', async () => {
+    await service.toggle(42);
+    expect(changes).toEqual([{ profileId: 42, blocked: true }]);
+  });
+
+  it('al desbloquear con éxito avisa del cambio', async () => {
+    service.blockedIds.set(new Set([42]));
+    await service.toggle(42);
+    expect(changes).toEqual([{ profileId: 42, blocked: false }]);
+  });
+
+  it('si la API falla, no avisa de nada', async () => {
+    api.block = vi.fn(() => Promise.reject(new Error('boom')));
+    await service.toggle(42);
+    expect(changes).toEqual([]);
+  });
+
+  it('markBlocked marca el bloqueo al instante y avisa', () => {
+    service.markBlocked(42);
+    expect(service.blockedIds().has(42)).toBe(true);
+    expect(changes).toEqual([{ profileId: 42, blocked: true }]);
+  });
+
+  it('ignora un segundo toggle sobre el mismo perfil mientras hay uno en vuelo', async () => {
+    let finish!: () => void;
+    api.block = vi.fn(() => new Promise<void>((resolve) => (finish = resolve)));
+
+    const first = service.toggle(42);
+    const second = await service.toggle(42);
+    finish();
+
+    expect(second).toBe(false);
+    expect(await first).toBe(true);
+    expect(api.block).toHaveBeenCalledTimes(1);
+    expect(api.unblock).not.toHaveBeenCalled();
+  });
+
+  it('un refresh que empezó antes de un toggle no lo deshace', async () => {
+    currentUserFn.mockReturnValue({ id: 1 });
+    let finishStale!: (list: ProfileSummary[]) => void;
+    api.getMyBlocked = vi
+      .fn()
+      .mockReturnValueOnce(new Promise((resolve) => (finishStale = resolve)))
+      .mockResolvedValueOnce([blockedProfile]);
+
+    const refreshing = service.refresh();
+    await service.toggle(42);
+    finishStale([]);
+    await refreshing;
+
+    expect(service.blockedIds().has(42)).toBe(true);
+  });
+
+  it('un refresh fallido marca el error sin rechazar', async () => {
+    currentUserFn.mockReturnValue({ id: 1 });
+    api.getMyBlocked = vi.fn(() => Promise.reject(new Error('red')));
+
+    await expect(service.refresh()).resolves.toBeUndefined();
+    expect(service.error()).toBe(true);
   });
 });

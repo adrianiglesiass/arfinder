@@ -1,5 +1,6 @@
 import logging
 
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.repositories import profile_photo_repository
@@ -9,11 +10,14 @@ from app.core.exceptions.profile import ProfileNotFoundError
 from app.core.exceptions.photo import (
     PhotoAccessDeniedError,
     ImageUploadFailedError,
+    PhotoLimitReachedError,
     PhotoOrderConflictError,
     PhotoReorderValidationError,
 )
 
 logger = logging.getLogger(__name__)
+
+MAX_PHOTOS_PER_PROFILE = 6
 
 
 def _get_profile_or_404(db: Session, user_id: int):
@@ -30,13 +34,28 @@ def _get_photo_or_403(photo, profile):
 
 
 async def upload(db: Session, user_id: int, file) -> object:
-    profile = _get_profile_or_404(db, user_id)
+    profile = await run_in_threadpool(_get_profile_or_404, db, user_id)
+    current = await run_in_threadpool(
+        profile_photo_repository.count_photos, db, profile.id
+    )
+    if current >= MAX_PHOTOS_PER_PROFILE:
+        raise PhotoLimitReachedError()
     try:
         secure_url = await upload_image(file, user_id)
     except Exception:
         logger.exception("image upload failed for user_id=%s", user_id)
         raise ImageUploadFailedError()
-    return profile_photo_repository.create_profile_photo(db, profile.id, secure_url)
+    try:
+        return await run_in_threadpool(
+            profile_photo_repository.create_profile_photo,
+            db,
+            profile.id,
+            secure_url,
+            max_photos=MAX_PHOTOS_PER_PROFILE,
+        )
+    except PhotoLimitReachedError:
+        await run_in_threadpool(delete_image, secure_url)
+        raise
 
 
 def list_for_user(db: Session, user_id: int):

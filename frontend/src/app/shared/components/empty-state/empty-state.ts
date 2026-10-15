@@ -9,4 +9,5 @@ export class EmptyState {
   readonly icon = input.required<string>();
   readonly title = input.required<string>();
   readonly message = input<string>();
+  readonly alert = input(false);
 }

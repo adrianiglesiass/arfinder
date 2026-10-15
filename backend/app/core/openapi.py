@@ -14,3 +14,6 @@ PROTECTED = {
     404: {"description": "Not found"},
 }
 SERVICE_UNAVAILABLE = {503: {"description": "External service unavailable"}}
+MESSAGING_BLOCKED = {
+    403: {"description": "Messaging is not allowed: a block exists between the users"}
+}

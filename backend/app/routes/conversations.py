@@ -3,8 +3,12 @@ from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
 from app.core.dependencies import get_current_user
-from app.core.openapi import PROTECTED
-from app.core.rate_limit import message_rate_limiter
+from app.core.openapi import MESSAGING_BLOCKED, PROTECTED
+from app.core.rate_limit import (
+    action_rate_limiter,
+    message_rate_limiter,
+    read_rate_limiter,
+)
 from app.core.realtime import manager as realtime_manager
 from app.db.database import get_db
 from app.models.user import User
@@ -22,7 +26,13 @@ from app.services.conversation_service import (
 router = APIRouter(prefix="/conversations", tags=["conversations"], responses=PROTECTED)
 
 
-@router.post("", response_model=ConversationResponse, status_code=201)
+@router.post(
+    "",
+    response_model=ConversationResponse,
+    status_code=201,
+    responses=MESSAGING_BLOCKED,
+    dependencies=[Depends(action_rate_limiter)],
+)
 async def create_or_get_conversation(
     body: ConversationCreate,
     db: Session = Depends(get_db),
@@ -47,7 +57,11 @@ async def create_or_get_conversation(
     return response
 
 
-@router.get("", response_model=list[ConversationResponse])
+@router.get(
+    "",
+    response_model=list[ConversationResponse],
+    dependencies=[Depends(read_rate_limiter)],
+)
 def list_conversations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -55,7 +69,11 @@ def list_conversations(
     return list_my_conversation_responses(db, current_user.id)
 
 
-@router.get("/{conversation_id}", response_model=ConversationResponse)
+@router.get(
+    "/{conversation_id}",
+    response_model=ConversationResponse,
+    dependencies=[Depends(read_rate_limiter)],
+)
 def get_conversation(
     conversation_id: int,
     db: Session = Depends(get_db),
@@ -65,7 +83,11 @@ def get_conversation(
     return build_conversation_response(db, conversation, current_user.id)
 
 
-@router.get("/{conversation_id}/messages", response_model=list[MessageResponse])
+@router.get(
+    "/{conversation_id}/messages",
+    response_model=list[MessageResponse],
+    dependencies=[Depends(read_rate_limiter)],
+)
 def get_conversation_messages(
     conversation_id: int,
     limit: int = Query(default=50, ge=1, le=100),
@@ -78,7 +100,11 @@ def get_conversation_messages(
     )
 
 
-@router.patch("/{conversation_id}/read", status_code=204)
+@router.patch(
+    "/{conversation_id}/read",
+    status_code=204,
+    dependencies=[Depends(read_rate_limiter)],
+)
 def mark_as_read(
     conversation_id: int,
     db: Session = Depends(get_db),
@@ -90,7 +116,10 @@ def mark_as_read(
 
 
 @router.post(
-    "/{conversation_id}/messages", response_model=MessageResponse, status_code=201
+    "/{conversation_id}/messages",
+    response_model=MessageResponse,
+    status_code=201,
+    responses=MESSAGING_BLOCKED,
 )
 def send_new_message(
     conversation_id: int,
@@ -107,6 +136,7 @@ def send_new_message(
     "/with/{recipient_user_id}/messages",
     response_model=MessageResponse,
     status_code=201,
+    responses=MESSAGING_BLOCKED,
 )
 async def send_message_lazy(
     recipient_user_id: int,

@@ -55,6 +55,7 @@ def search_profiles(
     limit: int = 20,
     exclude_user_id: int | None = None,
     exclude_user_ids: list[int] | None = None,
+    budget_min: int | None = None,
 ) -> list[Profile]:
 
     q = db.query(Profile).options(joinedload(Profile.photos))
@@ -67,6 +68,8 @@ def search_profiles(
         q = q.filter(Profile.city.ilike(f"%{city}%"))
     if budget_max is not None:
         q = q.filter(Profile.max_budget <= budget_max)
+    if budget_min is not None:
+        q = q.filter(Profile.max_budget >= budget_min)
     if has_pets is not None:
         q = q.filter(Profile.has_pets == has_pets)
     if is_smoker is not None:

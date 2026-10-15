@@ -1,9 +1,14 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { effect, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FavoritesApiService } from '@infrastructure/api/favorites/favorites.api.service';
 
 import type { ProfileSummary } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { BlockEvents } from '@core/block/block-events';
+
+const MAX_REFRESH_ATTEMPTS = 3;
 
 @Injectable({
   providedIn: 'root',
@@ -15,11 +20,18 @@ export class FavoritesService {
   readonly favoriteIds = signal<ReadonlySet<number>>(new Set());
   readonly profiles = signal<ProfileSummary[]>([]);
   readonly isLoading = signal(false);
+  readonly error = signal(false);
 
   private initializing: Promise<void> | null = null;
+  private readonly pending = new Set<number>();
+  private version = 0;
   private currentUserId: number | null = null;
 
   constructor() {
+    inject(BlockEvents)
+      .changes$.pipe(takeUntilDestroyed())
+      .subscribe(({ profileId, blocked }) => void this.syncWithBlock(profileId, blocked));
+
     effect(() => {
       const user = this.auth.currentUser();
       const id = user?.id ?? null;
@@ -37,9 +49,16 @@ export class FavoritesService {
     this.initializing = (async () => {
       this.isLoading.set(true);
       try {
-        const list = await this.api.getMyFavorites();
-        this.profiles.set(list);
-        this.favoriteIds.set(new Set(list.map((p) => p.id)));
+        for (let attempt = 1; attempt <= MAX_REFRESH_ATTEMPTS; attempt++) {
+          const startedAt = this.version;
+          const list = await this.api.getMyFavorites();
+          if (this.version !== startedAt && attempt < MAX_REFRESH_ATTEMPTS) continue;
+          this.applyServerList(list);
+          break;
+        }
+        this.error.set(false);
+      } catch {
+        this.error.set(true);
       } finally {
         this.isLoading.set(false);
         this.initializing = null;
@@ -49,6 +68,9 @@ export class FavoritesService {
   }
 
   async toggle(profileId: number): Promise<void> {
+    if (this.pending.has(profileId)) return;
+    this.pending.add(profileId);
+    this.version++;
     const wasFavorite = this.favoriteIds().has(profileId);
     const removedProfile = this.profiles().find((p) => p.id === profileId);
 
@@ -57,14 +79,51 @@ export class FavoritesService {
     try {
       if (wasFavorite) await this.api.unfavorite(profileId);
       else await this.api.favorite(profileId);
-    } catch {
+    } catch (err) {
+      if (!wasFavorite && err instanceof HttpErrorResponse && err.status === 409) return;
       this.applyFavorite(profileId, wasFavorite);
       if (wasFavorite && removedProfile) {
         this.profiles.update((list) =>
           list.some((p) => p.id === removedProfile.id) ? list : [removedProfile, ...list]
         );
       }
+    } finally {
+      this.pending.delete(profileId);
+      this.version++;
     }
+  }
+
+  private applyServerList(list: ProfileSummary[]): void {
+    const current = this.favoriteIds();
+    const ids = new Set(list.map((p) => p.id));
+    const profiles = list.filter((p) => !this.pending.has(p.id) || current.has(p.id));
+    for (const id of this.pending) {
+      if (!current.has(id)) {
+        ids.delete(id);
+        continue;
+      }
+      ids.add(id);
+      const existing = this.profiles().find((p) => p.id === id);
+      if (existing && !profiles.some((p) => p.id === id)) profiles.unshift(existing);
+    }
+    this.profiles.set(profiles);
+    this.favoriteIds.set(ids);
+  }
+
+  private async syncWithBlock(profileId: number, blocked: boolean): Promise<void> {
+    if (blocked) this.forget(profileId);
+    await this.refresh();
+    if (blocked) this.forget(profileId);
+  }
+
+  private forget(profileId: number): void {
+    this.favoriteIds.update((set) => {
+      if (!set.has(profileId)) return set;
+      const next = new Set(set);
+      next.delete(profileId);
+      return next;
+    });
+    this.profiles.update((list) => list.filter((p) => p.id !== profileId));
   }
 
   private bootstrap(): Promise<void> {

@@ -1,9 +1,11 @@
 <button
   type="button"
   (click)="toggle($event)"
+  (pointerdown)="$event.stopPropagation()"
   [attr.aria-label]="isFavorite() ? 'Quitar de favoritos' : 'Guardar en favoritos'"
   [attr.aria-pressed]="isFavorite()"
-  class="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-transform duration-200 active:scale-90 cursor-pointer hover:scale-105"
+  class="inline-flex items-center justify-center rounded-full transition-all duration-200 active:scale-90 cursor-pointer"
+  [class]="appearanceClasses()"
 >
   <i
     class="text-[18px]"

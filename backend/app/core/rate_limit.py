@@ -1,23 +1,104 @@
-from app.core.config import settings
-import asyncio
-from fastapi import Depends, HTTPException, Request, status
-from pyrate_limiter import Duration, Limiter, Rate
+import ipaddress
+import os
+import threading
+import time
+from collections import OrderedDict, deque
+from collections.abc import Callable, Mapping
 
+from fastapi import Depends, HTTPException, Request, status
+from starlette.datastructures import Address
+
+from app.core.config import settings
 from app.core.dependencies import get_current_user
 from app.models.user import User
 
-auth_rate = Rate(60, Duration.MINUTE)
-limiter = Limiter(auth_rate)
+WINDOW_SECONDS = 60.0
+REQUESTS_PER_WINDOW = 60
+MESSAGES_PER_WINDOW = 120
+ACTIONS_PER_WINDOW = 30
+SAFETY_ACTIONS_PER_WINDOW = 20
+READS_PER_WINDOW = 240
+MAX_TRACKED_KEYS = 10_000
+IPV6_PREFIX = 64
 
-message_rate = Rate(120, Duration.MINUTE)
-message_limiter = Limiter(message_rate)
+
+class SlidingWindowLimiter:
+    def __init__(
+        self,
+        limit: int,
+        window_seconds: float = WINDOW_SECONDS,
+        max_keys: int = MAX_TRACKED_KEYS,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self._limit = limit
+        self._window = window_seconds
+        self._max_keys = max_keys
+        self._clock = clock
+        self._hits: OrderedDict[str, deque[float]] = OrderedDict()
+        self._lock = threading.Lock()
+
+    def try_acquire(self, key: str) -> bool:
+        now = self._clock()
+        cutoff = now - self._window
+        with self._lock:
+            hits = self._hits.get(key)
+            if hits is None:
+                while len(self._hits) >= self._max_keys:
+                    self._hits.popitem(last=False)
+                hits = deque()
+                self._hits[key] = hits
+            else:
+                self._hits.move_to_end(key)
+            while hits and hits[0] <= cutoff:
+                hits.popleft()
+            if len(hits) >= self._limit:
+                return False
+            hits.append(now)
+            return True
+
+    def tracked_keys(self) -> int:
+        with self._lock:
+            return len(self._hits)
 
 
-async def _try_acquire(lim: Limiter, key: str) -> bool:
-    acquired = lim.try_acquire(key, blocking=False)
-    if asyncio.iscoroutine(acquired) or asyncio.isfuture(acquired):
-        acquired = await acquired
-    return bool(acquired)
+limiter = SlidingWindowLimiter(REQUESTS_PER_WINDOW)
+message_limiter = SlidingWindowLimiter(MESSAGES_PER_WINDOW)
+action_limiter = SlidingWindowLimiter(ACTIONS_PER_WINDOW)
+safety_limiter = SlidingWindowLimiter(SAFETY_ACTIONS_PER_WINDOW)
+read_limiter = SlidingWindowLimiter(READS_PER_WINDOW)
+
+
+def _normalize_ip(raw: str) -> str:
+    try:
+        address = ipaddress.ip_address(raw.strip())
+    except ValueError:
+        return raw.strip()
+    if address.version == 6:
+        return str(ipaddress.ip_network(f"{address}/{IPV6_PREFIX}", strict=False))
+    return str(address)
+
+
+def resolve_client_key(headers: Mapping[str, str], client: Address | None) -> str:
+    """Clave de cliente compartida por HTTP y WebSocket.
+
+    Lee `Fly-Client-IP` solo detrás del proxy de Fly; fuera de él —o si la
+    cabecera no es una IP válida— usa el host del socket, para que un valor
+    arbitrario no multiplique claves de rate limit. Las IPv6 se normalizan a su
+    red /64 para que una sola máquina no multiplique claves.
+    """
+    fly_ip = headers.get("fly-client-ip") if os.getenv("FLY_APP_NAME") else None
+    socket_host = client.host if client else "unknown"
+    raw = fly_ip or socket_host
+    try:
+        ipaddress.ip_address(raw.strip())
+    except ValueError:
+        # Fly-Client-IP no parsea (o el host no lo es): clave por el socket.
+        raw = socket_host
+    return f"ip:{_normalize_ip(raw)}"
+
+
+def client_key(request: Request) -> str:
+    return resolve_client_key(request.headers, request.client)
 
 
 def _too_many() -> HTTPException:
@@ -32,8 +113,7 @@ async def rate_limiter(request: Request):
     if settings.ENVIRONMENT == "testing":
         return
 
-    client_ip = request.client.host if request.client else "unknown"
-    if not await _try_acquire(limiter, client_ip):
+    if not limiter.try_acquire(client_key(request)):
         raise _too_many()
 
 
@@ -41,6 +121,34 @@ async def message_rate_limiter(current_user: User = Depends(get_current_user)) -
     if settings.ENVIRONMENT == "testing":
         return current_user
 
-    if not await _try_acquire(message_limiter, f"user:{current_user.id}"):
+    if not message_limiter.try_acquire(f"user:{current_user.id}"):
+        raise _too_many()
+    return current_user
+
+
+async def action_rate_limiter(current_user: User = Depends(get_current_user)) -> User:
+    if settings.ENVIRONMENT == "testing":
+        return current_user
+
+    if not action_limiter.try_acquire(f"user:{current_user.id}"):
+        raise _too_many()
+    return current_user
+
+
+async def safety_rate_limiter(current_user: User = Depends(get_current_user)) -> User:
+    if settings.ENVIRONMENT == "testing":
+        return current_user
+
+    if not safety_limiter.try_acquire(f"user:{current_user.id}"):
+        raise _too_many()
+    return current_user
+
+
+async def read_rate_limiter(current_user: User = Depends(get_current_user)) -> User:
+    """Presupuesto por usuario para rutas de lectura (240/min, spec #56)."""
+    if settings.ENVIRONMENT == "testing":
+        return current_user
+
+    if not read_limiter.try_acquire(f"user:{current_user.id}"):
         raise _too_many()
     return current_user

@@ -4,6 +4,7 @@ import { SwUpdate } from '@angular/service-worker';
 import { filter } from 'rxjs';
 
 import { STORAGE_KEYS } from '@core/constants/storage-keys';
+import { MobileActionBarState } from '@core/layout/mobile-action-bar.state';
 
 import { Button } from '@shared/components/button/button';
 
@@ -18,6 +19,8 @@ import { Button } from '@shared/components/button/button';
 })
 export class PwaBanner {
   private readonly swUpdate = inject(SwUpdate);
+
+  protected readonly aboveActionBar = inject(MobileActionBarState).isVisible;
 
   protected readonly showUpdate = signal(false);
   protected readonly showInstall = signal(false);

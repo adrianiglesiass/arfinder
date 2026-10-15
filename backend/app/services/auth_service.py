@@ -14,7 +14,7 @@ from app.core.exceptions.auth import (
     AccountDeletionError,
     InvalidCredentialsError,
 )
-from app.core.security import insforge
+from app.core.security import forget_user_sessions, insforge
 
 logger = logging.getLogger(__name__)
 
@@ -57,5 +57,6 @@ async def delete_user(db: Session, user: User):
                 insforge_id,
             )
             raise AccountDeletionError() from None
+        await forget_user_sessions(insforge_id)
 
     await run_in_threadpool(_delete_user_record, db, user.id)

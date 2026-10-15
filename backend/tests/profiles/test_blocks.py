@@ -164,3 +164,122 @@ def test_block_error_codes(client, db, auth_headers, other_profile):
     my_profile = _make_profile(db, me.id, "Yo", "Sevilla")
     res = client.post(f"/profiles/{my_profile.id}/block", headers=auth_headers)
     assert res.json()["code"] == "CANNOT_BLOCK_SELF"
+
+
+def test_exclusion_is_not_capped_at_200_blocks(db, create_test_user):
+    from app.models.block import UserBlock
+    from app.services import block_service
+
+    target = create_test_user(email="target@test.com")
+    blockers = [create_test_user(email=f"blocker{i}@test.com") for i in range(201)]
+    db.add_all(
+        UserBlock(blocker_user_id=b.id, blocked_user_id=target.id) for b in blockers
+    )
+    db.commit()
+
+    excluded = block_service.excluded_user_ids(db, target.id)
+
+    assert len(excluded) == 201
+    assert {b.id for b in blockers} == set(excluded)
+
+
+def test_blocked_listing_keeps_its_limit(db, create_test_user):
+    from app.models.block import UserBlock
+    from app.repositories import block_repository
+
+    blocker = create_test_user(email="many@test.com")
+    targets = [create_test_user(email=f"t{i}@test.com") for i in range(201)]
+    db.add_all(
+        UserBlock(blocker_user_id=blocker.id, blocked_user_id=t.id) for t in targets
+    )
+    db.commit()
+
+    assert len(block_repository.list_blocked_user_ids(db, blocker.id)) == 200
+
+
+BLOCKED_HEADERS = {"Authorization": "Bearer token_other@test.com"}
+
+
+def _my_profile(db):
+    from app.repositories import user_repository
+
+    me = user_repository.get_user_by_email(db, "test@test.com")
+    return _make_profile(db, me.id, "Yo", "Sevilla")
+
+
+def test_blocked_user_gets_404_on_blocker_profile(
+    client, db, auth_headers, other_profile
+):
+    my_profile = _my_profile(db)
+    client.post(f"/profiles/{other_profile.id}/block", headers=auth_headers)
+
+    hidden = client.get(f"/profiles/{my_profile.id}", headers=BLOCKED_HEADERS)
+    missing = client.get("/profiles/999999", headers=BLOCKED_HEADERS)
+
+    assert hidden.status_code == 404
+    assert hidden.json()["code"] == missing.json()["code"]
+    assert hidden.json()["detail"] == f"Profile not found for user {my_profile.id}"
+    assert missing.json()["detail"] == "Profile not found for user 999999"
+
+
+def test_blocker_still_sees_blocked_profile(client, db, auth_headers, other_profile):
+    _my_profile(db)
+    client.post(f"/profiles/{other_profile.id}/block", headers=auth_headers)
+
+    res = client.get(f"/profiles/{other_profile.id}", headers=auth_headers)
+
+    assert res.status_code == 200
+    assert res.headers["Cache-Control"] == "private, no-store"
+    assert "Authorization" in res.headers["Vary"]
+
+
+def test_mutual_block_lets_both_blockers_see_each_other(
+    client, db, auth_headers, other_profile
+):
+    my_profile = _my_profile(db)
+    client.post(f"/profiles/{other_profile.id}/block", headers=auth_headers)
+    client.post(f"/profiles/{my_profile.id}/block", headers=BLOCKED_HEADERS)
+
+    assert (
+        client.get(f"/profiles/{other_profile.id}", headers=auth_headers).status_code
+        == 200
+    )
+    assert (
+        client.get(f"/profiles/{my_profile.id}", headers=BLOCKED_HEADERS).status_code
+        == 200
+    )
+
+
+def test_anonymous_profile_detail_stays_public(client, db, auth_headers, other_profile):
+    my_profile = _my_profile(db)
+    client.post(f"/profiles/{other_profile.id}/block", headers=auth_headers)
+
+    res = client.get(f"/profiles/{my_profile.id}")
+
+    assert res.status_code == 200
+    assert res.headers["Cache-Control"] == "public, max-age=60"
+    assert "Authorization" in res.headers["Vary"]
+
+
+def test_unblock_restores_profile_detail(client, db, auth_headers, other_profile):
+    my_profile = _my_profile(db)
+    client.post(f"/profiles/{other_profile.id}/block", headers=auth_headers)
+    assert (
+        client.get(f"/profiles/{my_profile.id}", headers=BLOCKED_HEADERS).status_code
+        == 404
+    )
+
+    client.delete(f"/profiles/{other_profile.id}/block", headers=auth_headers)
+
+    assert (
+        client.get(f"/profiles/{my_profile.id}", headers=BLOCKED_HEADERS).status_code
+        == 200
+    )
+
+
+def test_own_profile_detail_is_visible(client, db, auth_headers):
+    my_profile = _my_profile(db)
+    assert (
+        client.get(f"/profiles/{my_profile.id}", headers=auth_headers).status_code
+        == 200
+    )

@@ -1,4 +1,5 @@
 <div
+  [attr.role]="alert() ? 'alert' : null"
   class="w-full max-w-md mx-auto flex flex-col items-center justify-center text-center px-6 py-16 border border-gray-border rounded-3xl animate-fade-in"
 >
   <span class="material-symbols-rounded text-5xl text-gray-300 mb-4">{{ icon() }}</span>

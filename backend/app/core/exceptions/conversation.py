@@ -23,3 +23,9 @@ class CannotMessageYourselfError(AppError):
 
     def __init__(self):
         super().__init__()
+
+
+class MessagingBlockedError(AppError):
+    status_code = 403
+    code = "MESSAGING_BLOCKED"
+    default_detail = "No puedes enviar mensajes a esta persona."

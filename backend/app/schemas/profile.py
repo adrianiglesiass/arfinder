@@ -22,9 +22,9 @@ class TypeEnum(str, Enum):
 class ProfileCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    name: str = Field(..., max_length=150)
+    name: str = Field(..., max_length=100)
     age: int = Field(..., ge=18, le=120)
-    city: str = Field(..., max_length=150)
+    city: str = Field(..., max_length=100)
     bio: Optional[str] = Field(None, max_length=2000)
     max_budget: Optional[int] = Field(None, ge=0, le=1000000)
     has_pets: bool = False
@@ -39,17 +39,17 @@ class ProfileCreate(BaseModel):
 class ProfileUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    name: Optional[str] = Field(None, max_length=150)
-    age: Optional[int] = Field(None, ge=18, le=120)
-    city: Optional[str] = Field(None, max_length=150)
+    name: str = Field(None, max_length=100)
+    age: int = Field(None, ge=18, le=120)
+    city: str = Field(None, max_length=100)
     bio: Optional[str] = Field(None, max_length=2000)
     max_budget: Optional[int] = Field(None, ge=0, le=1000000)
-    has_pets: Optional[bool] = None
-    is_smoker: Optional[bool] = None
+    has_pets: bool = None
+    is_smoker: bool = None
     schedule: Optional[ScheduleEnum] = None
     gender: Optional[str] = Field(None, max_length=50)
     available_from: Optional[date] = None
-    type: Optional[TypeEnum] = None
+    type: TypeEnum = None
     room_description: Optional[str] = Field(None, max_length=3000)
 
 

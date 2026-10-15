@@ -434,6 +434,11 @@ export interface components {
        * @default 0
        */
       unread_count: number;
+      /**
+       * Can Message
+       * @default true
+       */
+      can_message: boolean;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -595,25 +600,25 @@ export interface components {
     /** ProfileUpdate */
     ProfileUpdate: {
       /** Name */
-      name?: string | null;
+      name?: string;
       /** Age */
-      age?: number | null;
+      age?: number;
       /** City */
-      city?: string | null;
+      city?: string;
       /** Bio */
       bio?: string | null;
       /** Max Budget */
       max_budget?: number | null;
       /** Has Pets */
-      has_pets?: boolean | null;
+      has_pets?: boolean;
       /** Is Smoker */
-      is_smoker?: boolean | null;
+      is_smoker?: boolean;
       schedule?: components['schemas']['ScheduleEnum'] | null;
       /** Gender */
       gender?: string | null;
       /** Available From */
       available_from?: string | null;
-      type?: components['schemas']['TypeEnum'] | null;
+      type?: components['schemas']['TypeEnum'];
       /** Room Description */
       room_description?: string | null;
     };
@@ -755,6 +760,7 @@ export interface operations {
       query?: {
         city?: string | null;
         budget_max?: number | null;
+        budget_min?: number | null;
         has_pets?: boolean | string | null;
         is_smoker?: boolean | string | null;
         schedule?: components['schemas']['ScheduleEnum'] | null;
@@ -1414,6 +1420,13 @@ export interface operations {
         };
         content?: never;
       };
+      /** @description Conflict — resource already exists */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description File too large */
       413: {
         headers: {
@@ -1768,6 +1781,13 @@ export interface operations {
         };
         content?: never;
       };
+      /** @description Messaging is not allowed: a block exists between the users */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Not found */
       404: {
         headers: {
@@ -1931,6 +1951,13 @@ export interface operations {
         };
         content?: never;
       };
+      /** @description Messaging is not allowed: a block exists between the users */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Not found */
       404: {
         headers: {
@@ -2032,6 +2059,13 @@ export interface operations {
       };
       /** @description Not authenticated */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Messaging is not allowed: a block exists between the users */
+      403: {
         headers: {
           [name: string]: unknown;
         };

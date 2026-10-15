@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
 from app.core.openapi import PROTECTED
+from app.core.rate_limit import read_rate_limiter
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.message import MessageResponse
@@ -11,7 +12,11 @@ from app.services import message_service
 router = APIRouter(prefix="/messages", tags=["messages"], responses=PROTECTED)
 
 
-@router.patch("/{message_id}/read", response_model=MessageResponse)
+@router.patch(
+    "/{message_id}/read",
+    response_model=MessageResponse,
+    dependencies=[Depends(read_rate_limiter)],
+)
 def mark_as_read(
     message_id: int,
     db: Session = Depends(get_db),

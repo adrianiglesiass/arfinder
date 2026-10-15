@@ -5,6 +5,7 @@ from app.core.exceptions.conversation import (
     CannotMessageYourselfError,
     ConversationAccessDeniedError,
     ConversationNotFoundError,
+    MessagingBlockedError,
 )
 from app.core.exceptions.user import UserNotFoundError
 from app.models.conversation import Conversation
@@ -18,6 +19,7 @@ from app.repositories.conversation_repository import (
 )
 from app.repositories.message_repository import create_message
 from app.schemas.conversation import ConversationResponse, ParticipantSummary
+from app.services import block_service
 
 
 def get_or_create_conversation(
@@ -32,6 +34,8 @@ def get_or_create_conversation(
     existing = get_conversation_between_users(db, current_user_id, other_user_id)
     if existing:
         return existing
+
+    ensure_can_message(db, current_user_id, other_user_id)
 
     try:
         return create_conversation(db, current_user_id, other_user_id)
@@ -48,6 +52,11 @@ def get_or_create_conversation(
         return conversation
 
 
+def ensure_can_message(db: Session, user_id: int, other_user_id: int) -> None:
+    if block_service.is_blocked_between(db, user_id, other_user_id):
+        raise MessagingBlockedError()
+
+
 def create_or_get_conversation_with_status(
     db: Session, current_user_id: int, other_user_id: int
 ) -> tuple[Conversation, bool]:
@@ -59,6 +68,7 @@ def create_or_get_conversation_with_status(
 def send_message_to_user(
     db: Session, current_user_id: int, recipient_user_id: int, content: str
 ) -> Message:
+    ensure_can_message(db, current_user_id, recipient_user_id)
     conversation = get_or_create_conversation(db, current_user_id, recipient_user_id)
     return create_message(db, conversation.id, current_user_id, content)
 
@@ -113,6 +123,11 @@ def build_conversation_responses(
     unread_counts = message_repository.get_unread_counts_for_conversations(
         db, conversation_ids, current_user_id
     )
+    blocked_user_ids = (
+        set(block_service.excluded_user_ids(db, current_user_id))
+        if conversations
+        else set()
+    )
 
     def _last_activity(conv: Conversation):
         last = last_messages.get(conv.id)
@@ -128,9 +143,15 @@ def build_conversation_responses(
             other_user=_get_other_user_summary(conv, current_user_id, db),
             last_message=last_messages.get(conv.id),
             unread_count=unread_counts.get(conv.id, 0),
+            can_message=other_participant_id(conv, current_user_id)
+            not in blocked_user_ids,
         )
         for conv in ordered
     ]
+
+
+def other_participant_id(conv: Conversation, current_user_id: int) -> int:
+    return conv.user2_id if conv.user1_id == current_user_id else conv.user1_id
 
 
 def _get_other_user_summary(

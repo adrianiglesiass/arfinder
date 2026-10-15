@@ -1,9 +1,11 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ConversationApiService } from '@infrastructure/api/conversation/conversation.api.service';
 
 import type { ConversationResponse, MessageResponse } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { BlockEvents } from '@core/block/block-events';
 import { RealtimeService } from '@core/realtime/realtime.service';
 
 const RECENT_IDS_LIMIT = 200;
@@ -17,6 +19,7 @@ export class ConversationStore {
   private readonly auth = inject(AuthService);
 
   readonly conversations = signal<ConversationResponse[]>([]);
+  readonly error = signal(false);
   readonly totalUnread = computed(() =>
     this.conversations().reduce((sum, c) => sum + (c.unread_count ?? 0), 0)
   );
@@ -28,6 +31,10 @@ export class ConversationStore {
   private readonly recentMessageIdsSet = new Set<number>();
 
   constructor() {
+    inject(BlockEvents)
+      .changes$.pipe(takeUntilDestroyed())
+      .subscribe(({ profileId, blocked }) => void this.syncWithBlock(profileId, blocked));
+
     effect(() => {
       const user = this.auth.currentUser();
       const id = user?.id ?? null;
@@ -52,8 +59,9 @@ export class ConversationStore {
         this.conversations.set(list);
         const ids = list.map((c) => c.id);
         if (ids.length) await this.realtime.subscribeConversations(ids);
+        this.error.set(false);
       } catch {
-        //
+        this.error.set(true);
       } finally {
         this.initializing = null;
       }
@@ -69,6 +77,12 @@ export class ConversationStore {
   markConversationOpened(conversationId: number): void {
     this.conversations.update((list) =>
       list.map((c) => (c.id === conversationId ? { ...c, unread_count: 0 } : c))
+    );
+  }
+
+  markMessagingBlocked(conversationId: number): void {
+    this.conversations.update((list) =>
+      list.map((c) => (c.id === conversationId ? { ...c, can_message: false } : c))
     );
   }
 
@@ -90,6 +104,16 @@ export class ConversationStore {
       next.unshift(updated);
       return next;
     });
+  }
+
+  private async syncWithBlock(profileId: number, blocked: boolean): Promise<void> {
+    if (blocked) {
+      this.conversations.update((list) =>
+        list.map((c) => (c.other_user?.profile_id === profileId ? { ...c, can_message: false } : c))
+      );
+    }
+    await this.initializing;
+    await this.refresh();
   }
 
   private bootstrap(): Promise<void> {
