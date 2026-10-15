@@ -59,6 +59,7 @@ class _PhotoReorder(BaseModel):
 def search(
     city: Optional[str] = Query(None),
     budget_max: Optional[int] = Query(None),
+    budget_min: Optional[int] = Query(None),
     has_pets: Optional[bool | str] = Query(None),
     is_smoker: Optional[bool | str] = Query(None),
     schedule: Optional[ScheduleEnum] = Query(None),
@@ -96,6 +97,7 @@ def search(
         limit,
         exclude_user_id=current_user.id if current_user else None,
         exclude_user_ids=excluded,
+        budget_min=budget_min,
     )
 
 

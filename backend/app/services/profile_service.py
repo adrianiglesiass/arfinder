@@ -94,6 +94,7 @@ def search_profiles(
     limit: int = 20,
     exclude_user_id: int | None = None,
     exclude_user_ids: list[int] | None = None,
+    budget_min: int | None = None,
 ) -> list[ProfileSummary]:
     profiles = profile_repository.search_profiles(
         db,
@@ -111,6 +112,7 @@ def search_profiles(
         limit,
         exclude_user_id=exclude_user_id,
         exclude_user_ids=exclude_user_ids,
+        budget_min=budget_min,
     )
 
     return build_profile_summaries(profiles)
