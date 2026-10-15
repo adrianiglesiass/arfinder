@@ -91,6 +91,9 @@ fecha: 2026-09-10
 | 57 | `/docs`, `/redoc` y `/openapi.json` públicos en producción | backend | abuse-cost-ceiling | ✅ done → PR #304 |
 | 58 | ~~Subidas a Cloudinary sin transformación~~ **Descartado**: el ancho de banda ya se optimiza en la URL (`app.config.ts`) y la transformación en la subida rompería `extract_public_id_from_url`/`destroy` | backend | abuse-cost-ceiling | ↩️ descartado |
 | 59 | Sin techo de gasto: nada corta el despliegue si el egress se dispara (Fly no tiene alertas ni límite) | infra | abuse-cost-ceiling | ✅ done → PR #305 |
+| 60 | El detalle de perfil dice "Presupuesto máximo" también en perfiles que ofrecen habitación | frontend | budget-followups | ✅ done → PR #310 |
+| 61 | Sin tipo elegido, el importe del filtro se aplica a los dos tipos de perfil (el mínimo de quien ofrece oculta habitaciones baratas) | frontend | budget-followups | ✅ done → PR #310 |
+| 62 | Perfiles públicos para anónimos: un usuario bloqueado puede ver el perfil cerrando sesión. Fuera de alcance: que los perfiles sean públicos es una decisión de producto, no un bug | frontend+backend | decisión de producto | ⏸️ decisión de producto |
 
 ## Fases (orden de ejecución)
 1. ✅ **fix/critical-issues** → PR #288 (mergeado).
@@ -115,7 +118,8 @@ fecha: 2026-09-10
 16. ✅ **fix/ux-a11y** → PR #306. #46–#51.
 17. ✅ **feat/block-cuts-messaging** → PR #307. F6.
 18. ✅ **fix/budget-filter-direction** → PR #308. #52.
-19. ⏳ Release (merge commit con `--subject "release: vX.Y.Z"` + tag). RAMA SIGUIENTE.
+19. ✅ **Release v1.5.0** → PR #309 (tag v1.5.0, desplegado en producción el 2026-10-15).
+20. ✅ **fix/budget-followups** → PR #310. #60–#61.
 
 ## Estado del backlog
 - Release v1.4.0 en `main`. Antes de la siguiente, una auditoría con cinco agentes (code-reviewer,
