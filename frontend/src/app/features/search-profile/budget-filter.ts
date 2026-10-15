@@ -7,19 +7,28 @@ import type { ProfileSearchFilters, TypeEnum } from '@core/api/api.models';
  * - `min`: seekers who can pay at least X (`budget_min`).
  */
 export type BudgetDirection = 'min' | 'max';
-export type BudgetParam = 'budget_min' | 'budget_max';
 
 /** Slider range; the profile form uses the same bounds. */
 export const BUDGET_RANGE = { min: 200, max: 1500, step: 50 } as const;
 
-export const BUDGET_PARAM: Record<BudgetDirection, BudgetParam> = {
-  min: 'budget_min',
-  max: 'budget_max',
-};
+interface BudgetText {
+  label: string;
+  unset: string;
+  /** Shown when no type is chosen: the list mixes both kinds of profile. */
+  hint: string;
+}
 
-export const BUDGET_TEXT: Record<BudgetDirection, { label: string; unset: string }> = {
-  min: { label: 'Presupuesto mínimo', unset: 'Sin mínimo' },
-  max: { label: 'Precio máximo', unset: 'Sin límite' },
+export const BUDGET_TEXT: Record<BudgetDirection, BudgetText> = {
+  min: {
+    label: 'Presupuesto mínimo',
+    unset: 'Sin mínimo',
+    hint: 'Pensado para perfiles que buscan piso',
+  },
+  max: {
+    label: 'Precio máx. habitación',
+    unset: 'Sin límite',
+    hint: 'Pensado para habitaciones en alquiler',
+  },
 };
 
 /** The slider end that means "no filter": the cheapest end for `min`, the dearest for `max`. */
@@ -33,7 +42,7 @@ export const normalizeBudget = (direction: BudgetDirection, value: number): numb
 };
 
 export const budgetChipLabel = (direction: BudgetDirection, value: number): string =>
-  direction === 'min' ? `Presupuesto desde ${value} €` : `Hasta ${value} €`;
+  direction === 'min' ? `Presupuesto desde ${value} €` : `Precio hasta ${value} €`;
 
 /** Who is listed: the chosen type or, without one, the opposite of the viewer's own type. */
 const listedType = (filterType: TypeEnum | null, viewerType: TypeEnum | null): TypeEnum | null => {

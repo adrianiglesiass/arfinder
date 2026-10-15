@@ -14,7 +14,10 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Slider } from 'primeng/slider';
 
 import type { ProfileSearchFilters, ScheduleEnum, TypeEnum } from '@core/api/api.models';
-import { ProfileSearchService } from '@core/profile-search/profile-search.service';
+import {
+  type FilterPatch,
+  ProfileSearchService,
+} from '@core/profile-search/profile-search.service';
 import { ProfileService } from '@core/profile/profile.service';
 
 import { CityAutocomplete } from '@shared/components/city-autocomplete/city-autocomplete';
@@ -25,7 +28,6 @@ import {
 import { uniqueId } from '@shared/utils/unique-id';
 
 import {
-  BUDGET_PARAM,
   BUDGET_RANGE,
   BUDGET_TEXT,
   type BudgetDirection,
@@ -37,6 +39,7 @@ import {
 } from '@features/search-profile/budget-filter';
 
 type TriState = 'any' | 'yes' | 'no';
+type BudgetPatch = Pick<FilterPatch, 'budget_min' | 'budget_max'>;
 
 const TRI_STATE_OPTIONS: FilterChipOption<TriState>[] = [
   { label: 'Cualquiera', value: 'any' },
@@ -95,8 +98,8 @@ export class SearchFilters {
   readonly triStateOptions = TRI_STATE_OPTIONS;
   readonly genderOptions = GENDER_OPTIONS;
 
-  readonly budgetMin = BUDGET_RANGE.min;
-  readonly budgetMaxLimit = BUDGET_RANGE.max;
+  readonly budgetRangeMin = BUDGET_RANGE.min;
+  readonly budgetRangeMax = BUDGET_RANGE.max;
   readonly budgetStep = BUDGET_RANGE.step;
 
   readonly ageMinLimit = AGE_MIN_LIMIT;
@@ -198,9 +201,10 @@ export class SearchFilters {
   }
 
   /** Sets the param of `direction` and clears the other one: both are never sent together. */
-  private budgetPatch(direction: BudgetDirection, value: number | null) {
-    const other: BudgetDirection = direction === 'min' ? 'max' : 'min';
-    return { [BUDGET_PARAM[direction]]: value, [BUDGET_PARAM[other]]: null };
+  private budgetPatch(direction: BudgetDirection, value: number | null): BudgetPatch {
+    return direction === 'min'
+      ? { budget_min: value, budget_max: null }
+      : { budget_max: value, budget_min: null };
   }
 
   private sliderValueFromFilters(): number {

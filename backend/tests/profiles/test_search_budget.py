@@ -100,4 +100,4 @@ def test_budget_min_combines_with_type_and_city(
 
 def test_budget_min_rejects_non_numeric_values(client, auth_headers):
     res = client.get("/profiles?budget_min=abc", headers=auth_headers)
-    assert res.status_code in (400, 422)
+    assert res.status_code == 422

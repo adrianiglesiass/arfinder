@@ -19,7 +19,7 @@ import { ROUTES } from '@core/constants/routes';
 const SCHEDULE_VALUES: ReadonlySet<string> = new Set(['morning', 'afternoon', 'night', 'flexible']);
 const TYPE_VALUES: ReadonlySet<string> = new Set(['looking_for_flat', 'looking_for_roommate']);
 
-type FilterPatch = {
+export type FilterPatch = {
   [K in keyof ProfileSearchFilters]?: ProfileSearchFilters[K] | null;
 };
 
@@ -113,7 +113,8 @@ export class ProfileSearchService {
         if (value === null || value === undefined || value === '') delete next[key];
         else next[key] = value;
       }
-      return next as ProfileSearchFilters;
+      // Same values keep the same object, so a no-op patch triggers no search.
+      return this.sameFilters(next, current) ? current : (next as ProfileSearchFilters);
     });
   }
 
@@ -264,9 +265,11 @@ export class ProfileSearchService {
       out.budget_max = Number(budget_max);
     }
 
+    // Only one budget direction applies at a time; the minimum wins if a link carries both.
     const budget_min = params.get('budget_min');
     if (budget_min !== null && !Number.isNaN(Number(budget_min))) {
       out.budget_min = Number(budget_min);
+      delete out.budget_max;
     }
 
     const has_pets = params.get('has_pets');

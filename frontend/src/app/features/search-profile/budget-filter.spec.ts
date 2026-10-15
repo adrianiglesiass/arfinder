@@ -63,7 +63,7 @@ describe('budget-filter — sentido del filtro de presupuesto', () => {
   });
 
   it('el chip dice hacia dónde compara', () => {
-    expect(budgetChipLabel('max', 600)).toBe('Hasta 600 €');
+    expect(budgetChipLabel('max', 600)).toBe('Precio hasta 600 €');
     expect(budgetChipLabel('min', 600)).toBe('Presupuesto desde 600 €');
   });
 });

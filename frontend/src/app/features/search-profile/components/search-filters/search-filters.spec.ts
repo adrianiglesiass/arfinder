@@ -107,7 +107,7 @@ describe('SearchFilters — controles del panel de filtros', () => {
 
     it('quien busca piso filtra por precio máximo de la habitación', () => {
       viewerIs('looking_for_flat');
-      expect(budgetLabel()).toBe('Precio máximo');
+      expect(budgetLabel()).toBe('Precio máx. habitación');
 
       component.onBudgetSlide(600);
       component.commitBudget();
@@ -155,6 +155,37 @@ describe('SearchFilters — controles del panel de filtros', () => {
         budget_max: null,
       });
       expect(updateFilter).not.toHaveBeenCalled();
+    });
+
+    it('si el perfil propio llega tarde, el slider pasa al extremo neutro del nuevo sentido', () => {
+      expect(component.budgetSliderValue()).toBe(1500);
+
+      viewerIs('looking_for_roommate');
+
+      expect(component.budgetSliderValue()).toBe(200);
+      expect(fixture.nativeElement.textContent).toContain('Sin mínimo');
+    });
+
+    it('sin tipo elegido explica a qué perfiles va dirigido el filtro', () => {
+      viewerIs('looking_for_roommate');
+      expect(fixture.nativeElement.textContent).toContain('Pensado para perfiles que buscan piso');
+
+      filters.set({ profile_type: 'looking_for_flat' });
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).not.toContain('Pensado para');
+    });
+
+    it('un importe en el extremo neutro del nuevo sentido deja de filtrar', () => {
+      filters.set({ budget_max: 200 });
+      fixture.detectChanges();
+
+      component.setType('looking_for_flat');
+
+      expect(updateFilters).toHaveBeenCalledWith({
+        profile_type: 'looking_for_flat',
+        budget_min: null,
+        budget_max: null,
+      });
     });
 
     it('cambiar de tipo sin importe, o sin cambiar de sentido, solo cambia el tipo', () => {

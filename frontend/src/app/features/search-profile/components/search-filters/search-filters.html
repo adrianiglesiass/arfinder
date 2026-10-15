@@ -61,14 +61,17 @@
         }
       </span>
     </div>
+    @if (!profileType()) {
+      <p class="text-[11px] text-gray-400 font-medium ml-1 -mt-1">{{ budgetText().hint }}</p>
+    }
     <div class="px-1">
       <p-slider
         [ariaLabelledBy]="ids.budget"
         [ngModel]="budgetSliderValue()"
         (ngModelChange)="onBudgetSlide($event)"
         (onSlideEnd)="commitBudget()"
-        [min]="budgetMin"
-        [max]="budgetMaxLimit"
+        [min]="budgetRangeMin"
+        [max]="budgetRangeMax"
         [step]="budgetStep"
         class="w-full"
       />
