@@ -479,11 +479,11 @@ export default class Messages implements OnInit {
     } catch (err) {
       if (epoch !== this.selectionEpoch || this.destroyed) return;
       this.removeOptimistic(tempId);
-      this.newMessage.set(content);
       if (hasErrorCode(err, MESSAGING_BLOCKED)) {
         this.markMessagingBlocked(conv);
         return;
       }
+      this.newMessage.set(content);
       this.failedContent = content;
       this.sendError.set(true);
       setTimeout(() => this.composer()?.fitHeight());

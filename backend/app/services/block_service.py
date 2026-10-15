@@ -39,6 +39,11 @@ def is_blocked_between(db: Session, user_a_id: int, user_b_id: int) -> bool:
 
 
 def get_visible_profile(db: Session, profile_id: int, viewer_id: int | None) -> Profile:
+    """Perfil público salvo para quien su dueño ha bloqueado (404, como inexistente).
+
+    Vive aquí y no en profile_service porque block_service ya depende de
+    profile_service (spec feat-block-cuts-messaging, punto 6).
+    """
     profile = profile_service.get_public_profile(db, profile_id)
     if viewer_id is None or viewer_id == profile.user_id:
         return profile

@@ -258,6 +258,7 @@ def test_anonymous_profile_detail_stays_public(client, db, auth_headers, other_p
 
     assert res.status_code == 200
     assert res.headers["Cache-Control"] == "public, max-age=60"
+    assert "Authorization" in res.headers["Vary"]
 
 
 def test_unblock_restores_profile_detail(client, db, auth_headers, other_profile):

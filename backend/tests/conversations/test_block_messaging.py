@@ -219,3 +219,18 @@ def test_is_conversation_blocked_detects_both_directions(
     block_repository.add(db, blocker_user.id, blocked_user.id)
 
     assert block_repository.is_conversation_blocked(db, conversation.id) is True
+
+
+def test_unblock_restores_creating_conversations(client, db, me, other):
+    other_profile_id = profile_repository.get_profile_by_user_id(db, other.id).id
+    client.post(f"/profiles/{other_profile_id}/block", headers=ME_HEADERS)
+    body = {"other_user_id": other.id}
+    assert (
+        client.post("/conversations", json=body, headers=ME_HEADERS).status_code == 403
+    )
+
+    client.delete(f"/profiles/{other_profile_id}/block", headers=ME_HEADERS)
+
+    created = client.post("/conversations", json=body, headers=ME_HEADERS)
+    assert created.status_code == 201
+    assert created.json()["can_message"] is True

@@ -411,7 +411,7 @@ describe('Messages — ciclo de vida y envíos', () => {
       ]);
       expect(composer(fixture)).toBeNull();
       expect(notice(fixture)?.textContent).toContain(
-        'Ya no puedes enviar mensajes en esta conversación.'
+        'No puedes enviar mensajes en esta conversación.'
       );
     });
 
@@ -449,6 +449,7 @@ describe('Messages — ciclo de vida y envíos', () => {
 
       expect(markMessagingBlocked).toHaveBeenCalledWith(1);
       expect(component.messages()).toEqual([]);
+      expect(component.newMessage()).toBe('');
       expect((component as unknown as { sendError: () => boolean }).sendError()).toBe(false);
       expect(component.messagingBlocked()).toBe(true);
       expect(notice(fixture)).not.toBeNull();

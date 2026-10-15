@@ -17,6 +17,9 @@ def _notify(event: str, payload: dict) -> str:
 def broadcast(monkeypatch):
     mock = AsyncMock()
     monkeypatch.setattr(realtime.manager, "broadcast", mock)
+    monkeypatch.setattr(
+        realtime.manager, "has_subscribers", AsyncMock(return_value=True)
+    )
     return mock
 
 
@@ -122,3 +125,17 @@ def test_is_conversation_blocked_reads_from_database(db, create_test_user):
     block_repository.add(db, blocked.id, blocker.id)
 
     assert realtime._is_conversation_blocked(conversation.id) is True
+
+
+def test_without_local_subscribers_the_block_is_not_checked(monkeypatch, broadcast):
+    def fail(_id):
+        raise AssertionError("no debería consultar la BD")
+
+    monkeypatch.setattr(
+        realtime.manager, "has_subscribers", AsyncMock(return_value=False)
+    )
+    monkeypatch.setattr(realtime, "_is_conversation_blocked", fail)
+
+    asyncio.run(realtime.listener._dispatch(_notify("message_read", {"id": 12})))
+
+    broadcast.assert_not_awaited()

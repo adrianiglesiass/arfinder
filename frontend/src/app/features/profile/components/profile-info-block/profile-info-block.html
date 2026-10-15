@@ -23,6 +23,10 @@
           <i class="pi pi-send text-xs"></i>
           Enviar mensaje
         </app-button>
+      } @else {
+        <p class="text-xs text-gray-500">
+          Has bloqueado este perfil. Para escribir, desbloquea desde el menú.
+        </p>
       }
       <ng-content select="[profileActions]" />
     </div>

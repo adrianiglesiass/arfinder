@@ -124,6 +124,10 @@ class ConnectionManager:
                 else:
                     self._by_ip.pop(client_key, None)
 
+    async def has_subscribers(self, conversation_id: int) -> bool:
+        async with self._lock:
+            return bool(self._by_conversation.get(conversation_id))
+
     async def broadcast(self, conversation_id: int, message: dict[str, Any]) -> None:
         async with self._lock:
             targets = list(self._by_conversation.get(conversation_id, set()))
@@ -308,6 +312,8 @@ class PostgresNotifyListener:
         if conversation_id is None or not event:
             return
 
+        if not await manager.has_subscribers(conversation_id):
+            return
         if not await _should_deliver(conversation_id):
             return
 

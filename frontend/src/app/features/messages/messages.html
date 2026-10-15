@@ -138,12 +138,12 @@
                   Has bloqueado a {{ headerInfo()?.name }}. Para volver a escribir, desbloquea desde
                   <a
                     [routerLink]="[profileDetailRoute, headerInfo()?.profile_id]"
-                    class="font-medium text-primary hover:underline"
+                    class="font-medium text-primary underline underline-offset-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     >su perfil</a
                   >.
                 </span>
               } @else {
-                <span>Ya no puedes enviar mensajes en esta conversación.</span>
+                <span>No puedes enviar mensajes en esta conversación.</span>
               }
             </p>
           </div>
