@@ -1,9 +1,11 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ConversationApiService } from '@infrastructure/api/conversation/conversation.api.service';
 
 import type { ConversationResponse, MessageResponse } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { BlockEvents } from '@core/block/block-events';
 import { RealtimeService } from '@core/realtime/realtime.service';
 
 const RECENT_IDS_LIMIT = 200;
@@ -29,6 +31,10 @@ export class ConversationStore {
   private readonly recentMessageIdsSet = new Set<number>();
 
   constructor() {
+    inject(BlockEvents)
+      .changes$.pipe(takeUntilDestroyed())
+      .subscribe(({ profileId, blocked }) => void this.syncWithBlock(profileId, blocked));
+
     effect(() => {
       const user = this.auth.currentUser();
       const id = user?.id ?? null;
@@ -74,6 +80,12 @@ export class ConversationStore {
     );
   }
 
+  markMessagingBlocked(conversationId: number): void {
+    this.conversations.update((list) =>
+      list.map((c) => (c.id === conversationId ? { ...c, can_message: false } : c))
+    );
+  }
+
   upsertConversationPreview(conversationId: number, message: MessageResponse): void {
     this.rememberMessageId(message.id);
     this.conversations.update((list) => {
@@ -92,6 +104,16 @@ export class ConversationStore {
       next.unshift(updated);
       return next;
     });
+  }
+
+  private async syncWithBlock(profileId: number, blocked: boolean): Promise<void> {
+    if (blocked) {
+      this.conversations.update((list) =>
+        list.map((c) => (c.other_user?.profile_id === profileId ? { ...c, can_message: false } : c))
+      );
+    }
+    await this.initializing;
+    await this.refresh();
   }
 
   private bootstrap(): Promise<void> {

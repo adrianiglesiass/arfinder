@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -49,6 +50,7 @@ describe('ProfileDetail', () => {
   let profiles: {
     peekProfileById: ReturnType<typeof vi.fn>;
     fetchProfileById: ReturnType<typeof vi.fn>;
+    forgetProfileById: ReturnType<typeof vi.fn>;
   };
   let blocks: {
     blockedIds: ReturnType<typeof signal<ReadonlySet<number>>>;
@@ -67,6 +69,7 @@ describe('ProfileDetail', () => {
     profiles = {
       peekProfileById: vi.fn(() => null),
       fetchProfileById: vi.fn((id: number) => Promise.resolve(makeProfile(id, `Perfil ${id}`))),
+      forgetProfileById: vi.fn(),
     };
     blocks = {
       blockedIds: signal<ReadonlySet<number>>(new Set()),
@@ -263,6 +266,52 @@ describe('ProfileDetail', () => {
       await pendingBlock;
 
       expect(component.activeDialog()).toBe('report');
+    });
+  });
+
+  describe('perfil no disponible y bloqueo de mensajes', () => {
+    const notFound = () => new HttpErrorResponse({ status: 404, statusText: 'Not Found' });
+
+    it('un 404 descarta la copia en caché y muestra que el perfil no está disponible', async () => {
+      profiles.peekProfileById.mockReturnValueOnce(makeProfile(9, 'En caché'));
+      profiles.fetchProfileById.mockRejectedValueOnce(notFound());
+
+      await open('9');
+
+      expect(profiles.forgetProfileById).toHaveBeenCalledWith(9);
+      expect(component.profile()).toBeNull();
+      expect(component.error()).toBe('Este perfil no está disponible');
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('Este perfil no está disponible');
+    });
+
+    it('un error de red con caché conserva el perfil cacheado', async () => {
+      profiles.peekProfileById.mockReturnValueOnce(makeProfile(9, 'En caché'));
+      profiles.fetchProfileById.mockRejectedValueOnce(new Error('red'));
+
+      await open('9');
+
+      expect(component.profile()?.name).toBe('En caché');
+      expect(component.error()).toBeNull();
+    });
+
+    it('oculta el botón de mensaje si he bloqueado el perfil y lo recupera al desbloquear', async () => {
+      const hasMessageButton = () =>
+        Array.from(fixture.nativeElement.querySelectorAll('app-button') as NodeListOf<HTMLElement>)
+          .map((el) => el.textContent ?? '')
+          .some((text) => text.includes('Mensaje') || text.includes('Enviar mensaje'));
+      fixture.detectChanges();
+      expect(hasMessageButton()).toBe(true);
+
+      blocks.blockedIds.set(new Set([8]));
+      fixture.detectChanges();
+      expect(component.canSendMessage()).toBe(false);
+      expect(hasMessageButton()).toBe(false);
+      expect(fixture.nativeElement.querySelector('app-profile-actions-menu')).not.toBeNull();
+
+      blocks.blockedIds.set(new Set());
+      fixture.detectChanges();
+      expect(hasMessageButton()).toBe(true);
     });
   });
 });

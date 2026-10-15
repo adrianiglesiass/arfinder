@@ -23,6 +23,7 @@
         <app-profile-info-block
           [profile]="p"
           [showSendMessageButton]="showSendMessageButton()"
+          [canSendMessage]="canSendMessage()"
           [sendingMessage]="sendingMessage()"
           (sendMessage)="sendMessage()"
         >
@@ -57,15 +58,17 @@
               (reportRequested)="openDialog('report')"
             />
           }
-          <app-button
-            size="sm"
-            (click)="sendMessage()"
-            [loading]="sendingMessage()"
-            [disabled]="sendingMessage()"
-          >
-            <i class="pi pi-send text-xs"></i>
-            Mensaje
-          </app-button>
+          @if (canSendMessage()) {
+            <app-button
+              size="sm"
+              (click)="sendMessage()"
+              [loading]="sendingMessage()"
+              [disabled]="sendingMessage()"
+            >
+              <i class="pi pi-send text-xs"></i>
+              Mensaje
+            </app-button>
+          }
         </div>
       </app-mobile-action-bar>
     }

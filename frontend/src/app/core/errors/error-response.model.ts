@@ -1,3 +1,5 @@
+import { HttpErrorResponse } from '@angular/common/http';
+
 export interface ErrorResponse {
   code?: string;
   detail: string | FieldValidationError[] | FastApiValidationError[];
@@ -37,6 +39,12 @@ export function isFastApiError(error: unknown): error is { detail: FastApiValida
 
 export function isErrorResponse(error: unknown): error is ErrorResponse {
   return typeof error === 'object' && error !== null && 'detail' in error;
+}
+
+export function hasErrorCode(error: unknown, code: string): boolean {
+  return (
+    error instanceof HttpErrorResponse && isErrorResponse(error.error) && error.error.code === code
+  );
 }
 
 export interface InsForgeErrorLike {
