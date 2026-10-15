@@ -166,12 +166,18 @@ describe('SearchFilters — controles del panel de filtros', () => {
       expect(fixture.nativeElement.textContent).toContain('Sin mínimo');
     });
 
-    it('sin tipo elegido explica a qué perfiles va dirigido el filtro', () => {
+    it('sin tipo elegido avisa del tipo que se elegirá al fijar el importe', () => {
       viewerIs('looking_for_roommate');
-      expect(fixture.nativeElement.textContent).toContain('Pensado para perfiles que buscan piso');
+      expect(fixture.nativeElement.textContent).toContain(
+        'Al fijarlo verás solo perfiles que buscan piso'
+      );
+
+      viewerIs('looking_for_flat');
+      expect(fixture.nativeElement.textContent).toContain('Al fijarlo verás solo habitaciones');
 
       filters.set({ profile_type: 'looking_for_flat' });
       fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).not.toContain('Al fijarlo');
       expect(fixture.nativeElement.textContent).not.toContain('Pensado para');
     });
 
