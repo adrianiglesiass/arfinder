@@ -158,6 +158,15 @@ export class ProfileService {
     return this.profilesById().get(id) ?? null;
   }
 
+  forgetProfileById(id: number): void {
+    if (!this.profilesById().has(id)) return;
+    this.profilesById.update((map) => {
+      const next = new Map(map);
+      next.delete(id);
+      return next;
+    });
+  }
+
   fetchProfileById(id: number): Promise<ProfileResponse> {
     const existing = this.inflight.get(id);
     if (existing) return existing;

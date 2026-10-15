@@ -15,6 +15,7 @@ import { SCHEDULE_LABELS, TYPE_LABELS } from '@features/profile/profile-labels';
 export class ProfileInfoBlock {
   readonly profile = input.required<ProfileResponse>();
   readonly showSendMessageButton = input<boolean>(false);
+  readonly canSendMessage = input<boolean>(true);
   readonly sendingMessage = input<boolean>(false);
 
   readonly sendMessage = output<void>();

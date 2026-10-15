@@ -12,7 +12,7 @@ from app.core.config import settings
 from app.core.exceptions.realtime import TooManySocketsError
 from app.core.rate_limit import SlidingWindowLimiter
 from app.db.database import SessionLocal
-from app.repositories import message_repository
+from app.repositories import block_repository, message_repository
 
 logger = logging.getLogger("app.realtime")
 logger.setLevel(logging.INFO)
@@ -124,6 +124,10 @@ class ConnectionManager:
                 else:
                     self._by_ip.pop(client_key, None)
 
+    async def has_subscribers(self, conversation_id: int) -> bool:
+        async with self._lock:
+            return bool(self._by_conversation.get(conversation_id))
+
     async def broadcast(self, conversation_id: int, message: dict[str, Any]) -> None:
         async with self._lock:
             targets = list(self._by_conversation.get(conversation_id, set()))
@@ -167,6 +171,27 @@ def _load_message_content(message_id: object) -> str | None:
     with SessionLocal() as db:
         message = message_repository.get_message(db, message_id)
         return message.content if message else None
+
+
+def _is_conversation_blocked(conversation_id: int) -> bool:
+    with SessionLocal() as db:
+        return block_repository.is_conversation_blocked(db, conversation_id)
+
+
+async def _should_deliver(conversation_id: int) -> bool:
+    """Descarta eventos entre usuarios bloqueados (spec feat-block-cuts-messaging).
+
+    Fail-open: la garantía principal está al escribir (no se crean mensajes con
+    bloqueo); un fallo puntual de BD no debe cortar el tiempo real de todos.
+    """
+    try:
+        blocked = await asyncio.to_thread(_is_conversation_blocked, conversation_id)
+    except Exception as e:
+        logger.error(
+            f"[realtime] could not check block for conversation {conversation_id}: {e}"
+        )
+        return True
+    return not blocked
 
 
 async def _restore_omitted_content(event: str, data: object) -> object | None:
@@ -285,6 +310,11 @@ class PostgresNotifyListener:
         data = payload.get("payload")
         conversation_id = _parse_conversation_id(channel)
         if conversation_id is None or not event:
+            return
+
+        if not await manager.has_subscribers(conversation_id):
+            return
+        if not await _should_deliver(conversation_id):
             return
 
         data = await _restore_omitted_content(event, data)

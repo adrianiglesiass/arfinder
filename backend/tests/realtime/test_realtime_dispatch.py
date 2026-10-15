@@ -17,6 +17,9 @@ def _notify(event: str, payload: dict) -> str:
 def broadcast(monkeypatch):
     mock = AsyncMock()
     monkeypatch.setattr(realtime.manager, "broadcast", mock)
+    monkeypatch.setattr(
+        realtime.manager, "has_subscribers", AsyncMock(return_value=True)
+    )
     return mock
 
 
@@ -82,3 +85,57 @@ def test_load_message_content_reads_from_database(db, create_test_user):
     assert realtime._load_message_content(message.id) == long_text
     assert realtime._load_message_content(999999) is None
     assert realtime._load_message_content("12") is None
+
+
+def test_events_of_blocked_conversation_are_dropped(monkeypatch, broadcast):
+    monkeypatch.setattr(realtime, "_is_conversation_blocked", lambda _id: True)
+
+    asyncio.run(realtime.listener._dispatch(_notify("message_read", {"id": 12})))
+
+    broadcast.assert_not_awaited()
+
+
+def test_events_are_delivered_again_after_unblock(monkeypatch, broadcast):
+    monkeypatch.setattr(realtime, "_is_conversation_blocked", lambda _id: False)
+
+    asyncio.run(realtime.listener._dispatch(_notify("message_read", {"id": 12})))
+
+    broadcast.assert_awaited_once()
+
+
+def test_block_check_failure_does_not_break_the_listener(monkeypatch, broadcast):
+    def boom(_id):
+        raise RuntimeError("pool agotado")
+
+    monkeypatch.setattr(realtime, "_is_conversation_blocked", boom)
+
+    asyncio.run(realtime.listener._dispatch(_notify("message_read", {"id": 12})))
+
+    broadcast.assert_awaited_once()
+
+
+def test_is_conversation_blocked_reads_from_database(db, create_test_user):
+    from app.repositories import block_repository
+
+    blocker = create_test_user(email="blocker@test.com")
+    blocked = create_test_user(email="blocked@test.com")
+    conversation = get_or_create_conversation(db, blocker.id, blocked.id)
+    assert realtime._is_conversation_blocked(conversation.id) is False
+
+    block_repository.add(db, blocked.id, blocker.id)
+
+    assert realtime._is_conversation_blocked(conversation.id) is True
+
+
+def test_without_local_subscribers_the_block_is_not_checked(monkeypatch, broadcast):
+    def fail(_id):
+        raise AssertionError("no debería consultar la BD")
+
+    monkeypatch.setattr(
+        realtime.manager, "has_subscribers", AsyncMock(return_value=False)
+    )
+    monkeypatch.setattr(realtime, "_is_conversation_blocked", fail)
+
+    asyncio.run(realtime.listener._dispatch(_notify("message_read", {"id": 12})))
+
+    broadcast.assert_not_awaited()

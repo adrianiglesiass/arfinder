@@ -114,12 +114,14 @@ export default class ProfileDetail {
       if (!this.isCurrentProfile(id)) return;
       this.profile.set(data);
     } catch (err) {
-      if (cached || !this.isCurrentProfile(id)) return;
+      if (!this.isCurrentProfile(id)) return;
       if (err instanceof HttpErrorResponse && err.status === 404) {
-        this.error.set('Perfil no encontrado');
-      } else {
-        this.error.set('Error al cargar el perfil');
+        this.profileService.forgetProfileById(id);
+        this.profile.set(null);
+        this.error.set('Este perfil no está disponible');
+        return;
       }
+      if (!cached) this.error.set('Error al cargar el perfil');
     } finally {
       if (this.isCurrentProfile(id)) this.isLoading.set(false);
     }
@@ -206,6 +208,8 @@ export default class ProfileDetail {
     const p = this.profile();
     return p !== null && this.blocks.blockedIds().has(p.id);
   });
+
+  readonly canSendMessage = computed(() => !this.isProfileBlocked());
 
   readonly showSafetyActions = computed(() => {
     return this.authService.currentUser() !== null && !this.isOwnProfile();

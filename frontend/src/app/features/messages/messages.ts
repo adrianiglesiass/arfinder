@@ -19,8 +19,10 @@ import { ConversationApiService } from '@infrastructure/api/conversation/convers
 
 import type { ConversationResponse, MessageResponse } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { BlockService } from '@core/block/block.service';
 import { ROUTES } from '@core/constants/routes';
 import { ConversationStore } from '@core/conversations/conversation.store';
+import { hasErrorCode } from '@core/errors';
 import { RealtimeService } from '@core/realtime/realtime.service';
 
 import { Button } from '@shared/components/button/button';
@@ -33,6 +35,7 @@ import { MessageComposer } from '@features/messages/components/message-composer/
 import type { ChatHeader, DraftRecipient } from '@features/messages/messages.types';
 
 const PAGE_SIZE = 50;
+const MESSAGING_BLOCKED = 'MESSAGING_BLOCKED';
 
 @Component({
   selector: 'app-messages',
@@ -73,6 +76,7 @@ export default class Messages implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly realtimeService = inject(RealtimeService);
   private readonly store = inject(ConversationStore);
+  private readonly blocks = inject(BlockService);
   protected readonly conversationsError = this.store.error;
   private readonly destroyRef = inject(DestroyRef);
 
@@ -90,6 +94,23 @@ export default class Messages implements OnInit {
     const id = this.authService.currentUser()?.id;
     return typeof id === 'number' ? id : null;
   });
+
+  private readonly draftBlocked = signal(false);
+
+  readonly blockedByMe = computed(() => {
+    const profileId = this.headerInfo()?.profile_id;
+    return profileId != null && this.blocks.blockedIds().has(profileId);
+  });
+
+  readonly messagingBlocked = computed(() => {
+    if (this.blockedByMe()) return true;
+    const selected = this.selectedConversation();
+    if (!selected) return this.draftBlocked();
+    const current = this.conversations().find((c) => c.id === selected.id) ?? selected;
+    return current.can_message === false;
+  });
+
+  protected readonly profileDetailRoute = ROUTES.PROFILE_DETAIL;
 
   readonly chatActive = computed(
     () => this.selectedConversation() !== null || this.draftRecipient() !== null
@@ -303,6 +324,7 @@ export default class Messages implements OnInit {
     this.store.setActiveConversation(null);
     this.selectedConversation.set(null);
     this.draftRecipient.set(null);
+    this.draftBlocked.set(false);
     this.messages.set([]);
     this.hasMoreMessages.set(false);
     this.isLoadingOlder.set(false);
@@ -330,6 +352,7 @@ export default class Messages implements OnInit {
     this.containerScrollCleanup = null;
     this.isAtBottom.set(true);
     this.draftRecipient.set(null);
+    this.draftBlocked.set(false);
     this.selectedConversation.set(conv);
     this.messages.set([]);
     this.hasMoreMessages.set(false);
@@ -409,7 +432,7 @@ export default class Messages implements OnInit {
 
   async sendMessage(): Promise<void> {
     const content = this.newMessage().trim();
-    if (!content) return;
+    if (!content || this.messagingBlocked()) return;
 
     const conv = this.selectedConversation();
     const draft = this.draftRecipient();
@@ -453,11 +476,15 @@ export default class Messages implements OnInit {
       } else {
         await this.adoptNewConversation(real, draft!, epoch);
       }
-    } catch {
+    } catch (err) {
       if (epoch !== this.selectionEpoch || this.destroyed) return;
       this.removeOptimistic(tempId);
-      this.failedContent = content;
+      if (hasErrorCode(err, MESSAGING_BLOCKED)) {
+        this.markMessagingBlocked(conv);
+        return;
+      }
       this.newMessage.set(content);
+      this.failedContent = content;
       this.sendError.set(true);
       setTimeout(() => this.composer()?.fitHeight());
     }
@@ -540,12 +567,22 @@ export default class Messages implements OnInit {
         is_read: real.is_read,
       },
       unread_count: 0,
+      can_message: true,
     };
     this.draftRecipient.set(null);
     this.selectedConversation.set(fallback);
     this.store.setActiveConversation(fallback.id);
     this.location.go(`${ROUTES.MESSAGES}/${fallback.id}`);
     void this.realtimeService.subscribeConversation(fallback.id);
+  }
+
+  private markMessagingBlocked(conv: ConversationResponse | null): void {
+    if (!conv) {
+      this.draftBlocked.set(true);
+      return;
+    }
+    this.store.markMessagingBlocked(conv.id);
+    this.selectedConversation.update((c) => (c?.id === conv.id ? { ...c, can_message: false } : c));
   }
 
   private replaceOptimistic(tempId: number, real: MessageResponse): void {

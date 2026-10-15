@@ -23,6 +23,7 @@
         <app-profile-info-block
           [profile]="p"
           [showSendMessageButton]="showSendMessageButton()"
+          [canSendMessage]="canSendMessage()"
           [sendingMessage]="sendingMessage()"
           (sendMessage)="sendMessage()"
         >
@@ -44,7 +45,9 @@
     </div>
 
     @if (showSendMessageButton()) {
-      <app-mobile-action-bar [label]="'¿Te encaja ' + p.name + '?'">
+      <app-mobile-action-bar
+        [label]="isProfileBlocked() ? 'Has bloqueado a ' + p.name : '¿Te encaja ' + p.name + '?'"
+      >
         <div class="flex items-center gap-2">
           @if (!isProfileBlocked()) {
             <app-favorite-button [profileId]="p.id" appearance="outline" />
@@ -57,15 +60,17 @@
               (reportRequested)="openDialog('report')"
             />
           }
-          <app-button
-            size="sm"
-            (click)="sendMessage()"
-            [loading]="sendingMessage()"
-            [disabled]="sendingMessage()"
-          >
-            <i class="pi pi-send text-xs"></i>
-            Mensaje
-          </app-button>
+          @if (canSendMessage()) {
+            <app-button
+              size="sm"
+              (click)="sendMessage()"
+              [loading]="sendingMessage()"
+              [disabled]="sendingMessage()"
+            >
+              <i class="pi pi-send text-xs"></i>
+              Mensaje
+            </app-button>
+          }
         </div>
       </app-mobile-action-bar>
     }
@@ -91,8 +96,10 @@
     }
   } @else if (error()) {
     <div class="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-4 text-center">
-      <span class="material-symbols-rounded text-6xl text-gray-300">person_off</span>
-      <p class="text-gray-500 font-medium">{{ error() }}</p>
+      <span class="material-symbols-rounded text-6xl text-gray-300" aria-hidden="true"
+        >person_off</span
+      >
+      <p class="text-gray-500 font-medium" role="status">{{ error() }}</p>
       <app-back-link [link]="exploreRoute" label="Volver a explorar" variant="link" />
     </div>
   } @else if (isLoading()) {

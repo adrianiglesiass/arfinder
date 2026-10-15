@@ -125,12 +125,36 @@
           }
         </div>
 
-        @if (sendError()) {
-          <p class="px-4 pt-2 text-xs font-medium text-red-600" role="alert">
-            No pudimos enviar el mensaje. Inténtalo de nuevo.
-          </p>
+        @if (messagingBlocked()) {
+          <div
+            class="px-4 md:px-6 py-3 border-t border-hairline bg-gray-50 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-6"
+            role="status"
+            data-testid="messaging-blocked"
+          >
+            <p class="flex items-start justify-center gap-2 text-sm text-gray-600 text-center">
+              <i class="pi pi-ban text-xs mt-1" aria-hidden="true"></i>
+              @if (blockedByMe()) {
+                <span>
+                  Has bloqueado a {{ headerInfo()?.name }}. Para volver a escribir, desbloquea desde
+                  <a
+                    [routerLink]="[profileDetailRoute, headerInfo()?.profile_id]"
+                    class="font-medium text-primary underline underline-offset-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    >su perfil</a
+                  >.
+                </span>
+              } @else {
+                <span>No puedes enviar mensajes en esta conversación.</span>
+              }
+            </p>
+          </div>
+        } @else {
+          @if (sendError()) {
+            <p class="px-4 pt-2 text-xs font-medium text-red-600" role="alert">
+              No pudimos enviar el mensaje. Inténtalo de nuevo.
+            </p>
+          }
+          <app-message-composer [(value)]="newMessage" (send)="sendMessage()" />
         }
-        <app-message-composer [(value)]="newMessage" (send)="sendMessage()" />
       }
     </section>
   }
