@@ -43,7 +43,10 @@
       title="Aún no tienes favoritos"
       message="Toca el corazón en cualquier perfil para guardarlo aquí y revisarlo cuando quieras."
     >
-      <a [routerLink]="exploreLink" class="text-sm font-bold text-primary hover:text-primary-light">
+      <a
+        [routerLink]="exploreLink"
+        class="text-sm font-bold text-primary hover:underline underline-offset-4"
+      >
         Explorar perfiles
       </a>
     </app-empty-state>
