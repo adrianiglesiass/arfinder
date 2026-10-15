@@ -434,6 +434,11 @@ export interface components {
        * @default 0
        */
       unread_count: number;
+      /**
+       * Can Message
+       * @default true
+       */
+      can_message: boolean;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -1775,6 +1780,13 @@ export interface operations {
         };
         content?: never;
       };
+      /** @description Messaging is not allowed: a block exists between the users */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Not found */
       404: {
         headers: {
@@ -1938,6 +1950,13 @@ export interface operations {
         };
         content?: never;
       };
+      /** @description Messaging is not allowed: a block exists between the users */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
       /** @description Not found */
       404: {
         headers: {
@@ -2039,6 +2058,13 @@ export interface operations {
       };
       /** @description Not authenticated */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Messaging is not allowed: a block exists between the users */
+      403: {
         headers: {
           [name: string]: unknown;
         };
