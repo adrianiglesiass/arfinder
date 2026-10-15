@@ -760,6 +760,7 @@ export interface operations {
       query?: {
         city?: string | null;
         budget_max?: number | null;
+        budget_min?: number | null;
         has_pets?: boolean | string | null;
         is_smoker?: boolean | string | null;
         schedule?: components['schemas']['ScheduleEnum'] | null;

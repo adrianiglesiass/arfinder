@@ -14,7 +14,11 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Slider } from 'primeng/slider';
 
 import type { ProfileSearchFilters, ScheduleEnum, TypeEnum } from '@core/api/api.models';
-import { ProfileSearchService } from '@core/profile-search/profile-search.service';
+import {
+  type FilterPatch,
+  ProfileSearchService,
+} from '@core/profile-search/profile-search.service';
+import { ProfileService } from '@core/profile/profile.service';
 
 import { CityAutocomplete } from '@shared/components/city-autocomplete/city-autocomplete';
 import {
@@ -23,7 +27,19 @@ import {
 } from '@shared/components/filter-chip-group/filter-chip-group';
 import { uniqueId } from '@shared/utils/unique-id';
 
+import {
+  BUDGET_RANGE,
+  BUDGET_TEXT,
+  type BudgetDirection,
+  budgetDirection,
+  budgetDirectionFor,
+  budgetNeutral,
+  budgetValue,
+  normalizeBudget,
+} from '@features/search-profile/budget-filter';
+
 type TriState = 'any' | 'yes' | 'no';
+type BudgetPatch = Pick<FilterPatch, 'budget_min' | 'budget_max'>;
 
 const TRI_STATE_OPTIONS: FilterChipOption<TriState>[] = [
   { label: 'Cualquiera', value: 'any' },
@@ -49,10 +65,6 @@ const GENDER_OPTIONS: FilterChipOption<string>[] = [
   { label: 'Prefiero no decirlo', value: 'Prefiero no decirlo' },
 ];
 
-const BUDGET_MIN = 200;
-const BUDGET_MAX = 1500;
-const BUDGET_STEP = 50;
-
 const AGE_MIN_LIMIT = 18;
 const AGE_MAX_LIMIT = 99;
 
@@ -71,6 +83,8 @@ const AGE_MAX_LIMIT = 99;
 })
 export class SearchFilters {
   private readonly searchService = inject(ProfileSearchService);
+  private readonly profileService = inject(ProfileService);
+  private readonly viewerType = computed(() => this.profileService.currentProfile()?.type ?? null);
 
   protected readonly ids = {
     city: uniqueId('filter-city'),
@@ -84,9 +98,9 @@ export class SearchFilters {
   readonly triStateOptions = TRI_STATE_OPTIONS;
   readonly genderOptions = GENDER_OPTIONS;
 
-  readonly budgetMin = BUDGET_MIN;
-  readonly budgetMaxLimit = BUDGET_MAX;
-  readonly budgetStep = BUDGET_STEP;
+  readonly budgetRangeMin = BUDGET_RANGE.min;
+  readonly budgetRangeMax = BUDGET_RANGE.max;
+  readonly budgetStep = BUDGET_RANGE.step;
 
   readonly ageMinLimit = AGE_MIN_LIMIT;
   readonly ageMaxLimit = AGE_MAX_LIMIT;
@@ -101,17 +115,17 @@ export class SearchFilters {
   readonly ageMax = computed(() => this.toNumber(this.filters().age_max));
   readonly availableFrom = computed(() => this.filters().available_from ?? '');
   readonly gender = computed(() => this.filters().gender ?? null);
-  readonly budgetMax = computed(() => this.filters().budget_max ?? null);
-  readonly budgetSliderValue = signal<number>(this.filters().budget_max ?? BUDGET_MAX);
-  readonly budgetDisplay = computed(() => {
-    const v = this.budgetSliderValue();
-    return v >= BUDGET_MAX ? null : v;
-  });
+  readonly budgetDirection = computed(() => budgetDirection(this.filters(), this.viewerType()));
+  readonly budgetText = computed(() => BUDGET_TEXT[this.budgetDirection()]);
+  readonly budgetSliderValue = signal<number>(this.sliderValueFromFilters());
+  readonly budgetDisplay = computed(() =>
+    normalizeBudget(this.budgetDirection(), this.budgetSliderValue())
+  );
   readonly city = computed(() => this.filters().city ?? '');
 
   constructor() {
     effect(() => {
-      const next = this.filters().budget_max ?? BUDGET_MAX;
+      const next = this.sliderValueFromFilters();
       if (next !== untracked(() => this.budgetSliderValue())) {
         this.budgetSliderValue.set(next);
       }
@@ -124,7 +138,18 @@ export class SearchFilters {
   );
 
   setType(value: TypeEnum | null) {
-    this.searchService.updateFilter('profile_type', value);
+    const amount = budgetValue(this.filters());
+    const from = this.budgetDirection();
+    const to = budgetDirectionFor(value, this.viewerType());
+    if (amount === null || from === to) {
+      this.searchService.updateFilter('profile_type', value);
+      return;
+    }
+    // Same reference rent, compared the other way round for the newly listed profiles.
+    this.searchService.updateFilters({
+      profile_type: value,
+      ...this.budgetPatch(to, normalizeBudget(to, amount)),
+    });
   }
 
   setSchedule(value: ScheduleEnum | null) {
@@ -165,13 +190,25 @@ export class SearchFilters {
   }
 
   commitBudget() {
-    const value = this.budgetSliderValue();
-    const normalized = value >= BUDGET_MAX ? null : value;
-    this.searchService.updateFilter('budget_max', normalized);
+    const direction = this.budgetDirection();
+    this.searchService.updateFilters(
+      this.budgetPatch(direction, normalizeBudget(direction, this.budgetSliderValue()))
+    );
   }
 
   reset() {
     this.searchService.reset();
+  }
+
+  /** Sets the param of `direction` and clears the other one: both are never sent together. */
+  private budgetPatch(direction: BudgetDirection, value: number | null): BudgetPatch {
+    return direction === 'min'
+      ? { budget_min: value, budget_max: null }
+      : { budget_max: value, budget_min: null };
+  }
+
+  private sliderValueFromFilters(): number {
+    return budgetValue(this.filters()) ?? budgetNeutral(this.budgetDirection());
   }
 
   private boolToTriState(value: ProfileSearchFilters['has_pets']): TriState {

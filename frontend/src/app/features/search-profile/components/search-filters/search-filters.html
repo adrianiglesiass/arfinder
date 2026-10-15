@@ -51,24 +51,27 @@
         [id]="ids.budget"
         class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]"
       >
-        Presupuesto máximo
+        {{ budgetText().label }}
       </span>
       <span class="text-xs font-bold text-primary tabular-nums">
         @if (budgetDisplay()) {
           {{ budgetDisplay() }} €
         } @else {
-          Sin límite
+          {{ budgetText().unset }}
         }
       </span>
     </div>
+    @if (!profileType()) {
+      <p class="text-[11px] text-gray-400 font-medium ml-1 -mt-1">{{ budgetText().hint }}</p>
+    }
     <div class="px-1">
       <p-slider
         [ariaLabelledBy]="ids.budget"
         [ngModel]="budgetSliderValue()"
         (ngModelChange)="onBudgetSlide($event)"
         (onSlideEnd)="commitBudget()"
-        [min]="budgetMin"
-        [max]="budgetMaxLimit"
+        [min]="budgetRangeMin"
+        [max]="budgetRangeMax"
         [step]="budgetStep"
         class="w-full"
       />

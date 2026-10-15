@@ -83,7 +83,7 @@ fecha: 2026-09-10
 | 50 | Accesibilidad: botón de enviar sin nombre, filtros sin label, foco visible eliminado, deck anidado | frontend | ux-a11y | ✅ done → PR #306 |
 | 51 | Textos y consistencia visual (mayúsculas, clases de tema inexistentes, color fijo) | frontend | ux-a11y | ✅ done → PR #306 |
 | F6 | El bloqueo corta el chat y el acceso al perfil (hoy el bloqueado puede seguir escribiendo) | frontend+backend | feature | ✅ done → PR #307 |
-| 52 | Filtro de presupuesto invertido para quien ofrece habitación | frontend+backend | budget-filter | ⏳ |
+| 52 | Filtro de presupuesto invertido para quien ofrece habitación | frontend+backend | budget-filter | ✅ done → PR #308 |
 | 53 | Tokens inválidos sin caché: cada bearer aleatorio dispara una llamada saliente a InsForge | backend | abuse-cost-ceiling | ✅ done → PR #304 |
 | 54 | WebSocket sin límites de conexión por usuario/IP, suscripciones ni tasa de mensajes | backend | abuse-cost-ceiling | ✅ done → PR #304 |
 | 55 | `fly.toml` sin `[http_service.concurrency]`: el proxy no desecha carga | backend | abuse-cost-ceiling | ✅ done → PR #305 |
@@ -114,8 +114,8 @@ fecha: 2026-09-10
 15. ✅ **fix/frontend-state** → PR #303. #40–#45.
 16. ✅ **fix/ux-a11y** → PR #306. #46–#51.
 17. ✅ **feat/block-cuts-messaging** → PR #307. F6.
-18. ⏳ **fix/budget-filter-direction** — #52. RAMA SIGUIENTE.
-19. ⏳ Release (merge commit con `--subject "release: vX.Y.Z"` + tag).
+18. ✅ **fix/budget-filter-direction** → PR #308. #52.
+19. ⏳ Release (merge commit con `--subject "release: vX.Y.Z"` + tag). RAMA SIGUIENTE.
 
 ## Estado del backlog
 - Release v1.4.0 en `main`. Antes de la siguiente, una auditoría con cinco agentes (code-reviewer,
