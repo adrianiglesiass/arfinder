@@ -51,13 +51,13 @@
         [id]="ids.budget"
         class="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]"
       >
-        Presupuesto máximo
+        {{ budgetText().label }}
       </span>
       <span class="text-xs font-bold text-primary tabular-nums">
         @if (budgetDisplay()) {
           {{ budgetDisplay() }} €
         } @else {
-          Sin límite
+          {{ budgetText().unset }}
         }
       </span>
     </div>

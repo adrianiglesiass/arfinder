@@ -23,6 +23,7 @@ import { IconButton } from '@shared/components/icon-button/icon-button';
 import { ModalDialog } from '@shared/directives/modal-dialog';
 
 import { SCHEDULE_LABELS, TYPE_LABELS } from '@features/profile/profile-labels';
+import { budgetChipLabel } from '@features/search-profile/budget-filter';
 import { ProfileDeck } from '@features/search-profile/components/profile-deck/profile-deck';
 import { ProfileGrid } from '@features/search-profile/components/profile-grid/profile-grid';
 import { SearchFilters } from '@features/search-profile/components/search-filters/search-filters';
@@ -108,7 +109,10 @@ export default class SearchProfile implements AfterViewInit, OnDestroy {
     const chips: ActiveChip[] = [];
     if (f.city) chips.push({ key: 'city', label: f.city });
     if (f.profile_type) chips.push({ key: 'profile_type', label: TYPE_LABELS[f.profile_type] });
-    if (f.budget_max) chips.push({ key: 'budget_max', label: `Hasta ${f.budget_max} €` });
+    if (f.budget_max)
+      chips.push({ key: 'budget_max', label: budgetChipLabel('max', f.budget_max) });
+    if (f.budget_min)
+      chips.push({ key: 'budget_min', label: budgetChipLabel('min', f.budget_min) });
     if (f.schedule) chips.push({ key: 'schedule', label: SCHEDULE_LABELS[f.schedule] });
     if (f.has_pets === true) chips.push({ key: 'has_pets', label: 'Acepta mascotas' });
     else if (f.has_pets === false) chips.push({ key: 'has_pets', label: 'Sin mascotas' });

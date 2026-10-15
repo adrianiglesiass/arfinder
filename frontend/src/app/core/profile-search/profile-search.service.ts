@@ -19,6 +19,10 @@ import { ROUTES } from '@core/constants/routes';
 const SCHEDULE_VALUES: ReadonlySet<string> = new Set(['morning', 'afternoon', 'night', 'flexible']);
 const TYPE_VALUES: ReadonlySet<string> = new Set(['looking_for_flat', 'looking_for_roommate']);
 
+type FilterPatch = {
+  [K in keyof ProfileSearchFilters]?: ProfileSearchFilters[K] | null;
+};
+
 const PAGE_SIZE = 24;
 const STALE_AFTER_MS = 2 * 60 * 1000;
 const MAX_REFRESH_PAGES = 4;
@@ -98,14 +102,18 @@ export class ProfileSearchService {
     key: K,
     value: ProfileSearchFilters[K] | null | undefined
   ): void {
+    this.updateFilters({ [key]: value } as FilterPatch);
+  }
+
+  /** Applies several keys in one signal write: one search and one URL update. */
+  updateFilters(patch: FilterPatch): void {
     this.filters.update((current) => {
-      const next = { ...current };
-      if (value === null || value === undefined || (typeof value === 'string' && value === '')) {
-        delete next[key];
-      } else {
-        next[key] = value;
+      const next: Record<string, unknown> = { ...current };
+      for (const [key, value] of Object.entries(patch)) {
+        if (value === null || value === undefined || value === '') delete next[key];
+        else next[key] = value;
       }
-      return next;
+      return next as ProfileSearchFilters;
     });
   }
 
@@ -256,6 +264,11 @@ export class ProfileSearchService {
       out.budget_max = Number(budget_max);
     }
 
+    const budget_min = params.get('budget_min');
+    if (budget_min !== null && !Number.isNaN(Number(budget_min))) {
+      out.budget_min = Number(budget_min);
+    }
+
     const has_pets = params.get('has_pets');
     if (has_pets === 'true') out.has_pets = true;
     else if (has_pets === 'false') out.has_pets = false;
@@ -305,6 +318,7 @@ export class ProfileSearchService {
 
     append('city', filters.city);
     append('budget_max', filters.budget_max);
+    append('budget_min', filters.budget_min);
     append('has_pets', filters.has_pets);
     append('is_smoker', filters.is_smoker);
     append('schedule', filters.schedule);

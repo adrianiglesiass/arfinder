@@ -149,6 +149,28 @@ describe('ProfileSearchService', () => {
 
       expect(service.filters()).toEqual({ city: 'Sevilla' });
     });
+
+    it('lee y escribe budget_min en la URL', async () => {
+      await navigate('/perfil/5');
+      await navigate('/explorar?budget_min=600');
+      expect(service.filters()).toEqual({ budget_min: 600 });
+
+      service.updateFilters({ budget_min: null, budget_max: 700 });
+      await settle();
+
+      expect(service.filters()).toEqual({ budget_max: 700 });
+      expect(location.path()).toBe('/explorar?budget_max=700');
+    });
+
+    it('updateFilters aplica varias claves con una sola búsqueda', async () => {
+      const calls = search.mock.calls.length;
+
+      service.updateFilters({ profile_type: 'looking_for_flat', budget_min: 600 });
+      await settle();
+
+      expect(service.filters()).toEqual({ profile_type: 'looking_for_flat', budget_min: 600 });
+      expect(search.mock.calls.length).toBe(calls + 1);
+    });
   });
 
   describe('recarga y sesión', () => {
