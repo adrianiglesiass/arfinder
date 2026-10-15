@@ -23,6 +23,36 @@ export type FilterPatch = {
   [K in keyof ProfileSearchFilters]?: ProfileSearchFilters[K] | null;
 };
 
+/**
+ * Each budget param only makes sense for one kind of profile: `budget_min` compares seekers'
+ * budgets, `budget_max` rooms' prices. Same rule `budget-filter.ts` uses to pick the direction.
+ */
+const BUDGET_PARAM_TYPE = {
+  budget_min: 'looking_for_flat',
+  budget_max: 'looking_for_roommate',
+} as const satisfies Record<'budget_min' | 'budget_max', TypeEnum>;
+
+/**
+ * Keeps an amount from applying to a mixed list: with an amount and no type, the type implied by
+ * the param is chosen, unless the patch just cleared the type, in which case the amount goes too.
+ */
+const withBudgetType = (
+  filters: ProfileSearchFilters,
+  patch: FilterPatch = {}
+): ProfileSearchFilters => {
+  if (filters.profile_type) return filters;
+  const param =
+    filters.budget_min != null ? 'budget_min' : filters.budget_max != null ? 'budget_max' : null;
+  if (!param) return filters;
+  if ('profile_type' in patch) {
+    const rest = { ...filters };
+    delete rest.budget_min;
+    delete rest.budget_max;
+    return rest;
+  }
+  return { ...filters, profile_type: BUDGET_PARAM_TYPE[param] };
+};
+
 const PAGE_SIZE = 24;
 const STALE_AFTER_MS = 2 * 60 * 1000;
 const MAX_REFRESH_PAGES = 4;
@@ -74,14 +104,13 @@ export class ProfileSearchService {
       .subscribe(() => {
         if (!this.isOnExplore()) return;
         const fromUrl = this.readFromUrl();
-        if (Object.keys(fromUrl).length > 0) {
-          if (!this.sameFilters(fromUrl, this.filters())) {
-            this.filters.set(fromUrl);
-            return;
-          }
-        } else if (this.hasActiveFilters()) {
-          this.writeToUrl(this.filters());
+        if (Object.keys(fromUrl).length > 0 && !this.sameFilters(fromUrl, this.filters())) {
+          this.filters.set(fromUrl);
+          return;
         }
+        // Rewrites a URL that differs from the filters it resolves to (e.g. a budget without its
+        // type) or that lost them; `writeToUrl` does nothing when the query already matches.
+        if (this.hasActiveFilters()) this.writeToUrl(this.filters());
         this.refreshIfStale();
       });
 
@@ -113,8 +142,9 @@ export class ProfileSearchService {
         if (value === null || value === undefined || value === '') delete next[key];
         else next[key] = value;
       }
+      const normalized = withBudgetType(next as ProfileSearchFilters, patch);
       // Same values keep the same object, so a no-op patch triggers no search.
-      return this.sameFilters(next, current) ? current : (next as ProfileSearchFilters);
+      return this.sameFilters(normalized, current) ? current : normalized;
     });
   }
 
@@ -306,7 +336,7 @@ export class ProfileSearchService {
     const available_from = params.get('available_from');
     if (available_from) out.available_from = available_from;
 
-    return out;
+    return withBudgetType(out);
   }
 
   private writeToUrl(filters: ProfileSearchFilters): void {

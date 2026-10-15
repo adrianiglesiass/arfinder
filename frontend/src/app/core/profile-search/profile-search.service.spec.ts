@@ -152,21 +152,25 @@ describe('ProfileSearchService', () => {
 
     it('lee y escribe budget_min en la URL', async () => {
       await navigate('/perfil/5');
-      await navigate('/explorar?budget_min=600');
-      expect(service.filters()).toEqual({ budget_min: 600 });
+      await navigate('/explorar?budget_min=600&profile_type=looking_for_flat');
+      expect(service.filters()).toEqual({ budget_min: 600, profile_type: 'looking_for_flat' });
 
-      service.updateFilters({ budget_min: null, budget_max: 700 });
+      service.updateFilters({
+        profile_type: 'looking_for_roommate',
+        budget_min: null,
+        budget_max: 700,
+      });
       await settle();
 
-      expect(service.filters()).toEqual({ budget_max: 700 });
-      expect(location.path()).toBe('/explorar?budget_max=700');
+      expect(service.filters()).toEqual({ budget_max: 700, profile_type: 'looking_for_roommate' });
+      expect(location.path()).toBe('/explorar?budget_max=700&profile_type=looking_for_roommate');
     });
 
     it('un enlace con los dos importes se queda solo con el mínimo', async () => {
       await navigate('/perfil/5');
-      await navigate('/explorar?budget_min=600&budget_max=900');
+      await navigate('/explorar?budget_min=600&budget_max=900&profile_type=looking_for_flat');
 
-      expect(service.filters()).toEqual({ budget_min: 600 });
+      expect(service.filters()).toEqual({ budget_min: 600, profile_type: 'looking_for_flat' });
     });
 
     it('un cambio que no altera los filtros no lanza otra búsqueda', async () => {
@@ -188,6 +192,93 @@ describe('ProfileSearchService', () => {
 
       expect(service.filters()).toEqual({ profile_type: 'looking_for_flat', budget_min: 600 });
       expect(search.mock.calls.length).toBe(calls + 1);
+    });
+  });
+
+  describe('un importe siempre va con su tipo', () => {
+    it('fijar un mínimo sin tipo elige "Busca piso" con una sola búsqueda', async () => {
+      const calls = search.mock.calls.length;
+
+      service.updateFilters({ budget_min: 600, budget_max: null });
+      await settle();
+
+      expect(service.filters()).toEqual({ budget_min: 600, profile_type: 'looking_for_flat' });
+      expect(search.mock.calls.length).toBe(calls + 1);
+      expect(search).toHaveBeenLastCalledWith(
+        expect.objectContaining({ budget_min: 600, profile_type: 'looking_for_flat' })
+      );
+    });
+
+    it('fijar un precio máximo sin tipo elige "Busca compañero"', async () => {
+      service.updateFilters({ budget_max: 600, budget_min: null });
+      await settle();
+
+      expect(service.filters()).toEqual({ budget_max: 600, profile_type: 'looking_for_roommate' });
+    });
+
+    it('con un tipo ya elegido, fijar el importe no lo cambia', async () => {
+      service.updateFilter('profile_type', 'looking_for_flat');
+      await settle();
+
+      service.updateFilters({ budget_max: 600, budget_min: null });
+      await settle();
+
+      expect(service.filters()).toEqual({ budget_max: 600, profile_type: 'looking_for_flat' });
+    });
+
+    it('quitar el importe conserva el tipo', async () => {
+      service.updateFilters({ budget_min: 600 });
+      await settle();
+
+      service.updateFilters({ budget_min: null, budget_max: null });
+      await settle();
+
+      expect(service.filters()).toEqual({ profile_type: 'looking_for_flat' });
+    });
+
+    it('quitar el tipo con un importe puesto quita también el importe', async () => {
+      service.updateFilters({ city: 'Madrid', budget_min: 600 });
+      await settle();
+
+      service.updateFilter('profile_type', null);
+      await settle();
+
+      expect(service.filters()).toEqual({ city: 'Madrid' });
+    });
+
+    it('un enlace con importe y sin tipo se resuelve al tipo del importe', async () => {
+      await navigate('/perfil/5');
+      await navigate('/explorar?budget_min=600');
+
+      expect(service.filters()).toEqual({ budget_min: 600, profile_type: 'looking_for_flat' });
+      expect(location.path()).toBe('/explorar?budget_min=600&profile_type=looking_for_flat');
+
+      await navigate('/perfil/5');
+      await navigate('/explorar?budget_max=500');
+
+      expect(service.filters()).toEqual({ budget_max: 500, profile_type: 'looking_for_roommate' });
+    });
+
+    it('el mismo enlace sin tipo, con esos filtros ya puestos, también reescribe la URL', async () => {
+      service.updateFilters({ budget_min: 600 });
+      await settle();
+      await navigate('/perfil/5');
+      const calls = search.mock.calls.length;
+
+      await navigate('/explorar?budget_min=600');
+
+      expect(location.path()).toBe('/explorar?budget_min=600&profile_type=looking_for_flat');
+      expect(search.mock.calls.length).toBe(calls);
+    });
+
+    it('quitar el tipo mientras el importe pasa al otro sentido quita los dos importes', async () => {
+      service.updateFilters({ profile_type: 'looking_for_roommate', budget_max: 600 });
+      await settle();
+
+      service.updateFilters({ profile_type: null, budget_min: 600, budget_max: null });
+      await settle();
+
+      expect(service.filters()).toEqual({});
     });
   });
 
