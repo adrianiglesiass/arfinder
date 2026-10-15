@@ -14,7 +14,7 @@ export const BUDGET_RANGE = { min: 200, max: 1500, step: 50 } as const;
 interface BudgetText {
   label: string;
   unset: string;
-  /** Shown when no type is chosen: the list mixes both kinds of profile. */
+  /** Shown when no type is chosen: setting an amount selects the type it applies to. */
   hint: string;
 }
 
@@ -22,12 +22,12 @@ export const BUDGET_TEXT: Record<BudgetDirection, BudgetText> = {
   min: {
     label: 'Presupuesto mínimo',
     unset: 'Sin mínimo',
-    hint: 'Pensado para perfiles que buscan piso',
+    hint: 'Al fijarlo se marca «Busca piso»',
   },
   max: {
     label: 'Precio máx. habitación',
     unset: 'Sin límite',
-    hint: 'Pensado para habitaciones en alquiler',
+    hint: 'Al fijarlo se marca «Busca compañero» (habitaciones)',
   },
 };
 

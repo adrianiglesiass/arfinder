@@ -29,6 +29,13 @@ export class ProfileInfoBlock {
 
   protected readonly isRoommate = computed(() => this.profile().type === 'looking_for_roommate');
 
+  /** `max_budget` is a room's price for room offerers and a seeker's budget otherwise. */
+  protected readonly budgetText = computed(() =>
+    this.isRoommate()
+      ? { label: 'Precio de la habitación', unset: 'Sin indicar', unsetIcon: null }
+      : { label: 'Presupuesto máximo', unset: 'Sin límite', unsetIcon: 'all_inclusive' }
+  );
+
   protected readonly formattedAvailableFrom = computed(() => {
     const date = this.profile().available_from;
     if (!date) return null;
