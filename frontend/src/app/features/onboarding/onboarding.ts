@@ -29,6 +29,7 @@ import { StepLifestyle } from '@shared/components/profile-form/step-lifestyle/st
 import { StepObjective } from '@shared/components/profile-form/step-objective/step-objective';
 import { StepProfile } from '@shared/components/profile-form/step-profile/step-profile';
 import { isLocalPhoto } from '@shared/utils/photo.utils';
+import { isProfileBasicsValid } from '@shared/utils/profile-limits';
 
 import { StepPhotos } from '@features/onboarding/components/step-photos/step-photos';
 
@@ -143,10 +144,7 @@ export default class Onboarding implements OnInit {
   isFirstStep = computed(() => this.currentStep() === 1);
   isLastStep = computed(() => this.currentStep() === this.totalSteps);
 
-  isStep1Valid = computed(() => {
-    const f = this.form();
-    return !!(f.name?.trim() && f.age && f.city?.trim());
-  });
+  isStep1Valid = computed(() => isProfileBasicsValid(this.form()));
 
   isCurrentStepValid = computed(() => {
     if (this.currentStep() === 1) return this.isStep1Valid();

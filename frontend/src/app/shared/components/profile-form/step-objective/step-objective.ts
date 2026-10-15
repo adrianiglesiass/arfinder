@@ -6,6 +6,8 @@ import { TextareaModule } from 'primeng/textarea';
 
 import { ProfileCreate, TypeEnum } from '@core/api/api.models';
 
+import { PROFILE_LIMITS } from '@shared/utils/profile-limits';
+
 @Component({
   selector: 'app-step-objective',
   imports: [FormsModule, SliderModule, TextareaModule],
@@ -17,6 +19,8 @@ export class StepObjective {
   roomDescription = input<string>('');
 
   dataChange = output<Partial<ProfileCreate>>();
+
+  protected readonly limits = PROFILE_LIMITS;
 
   isLookingForFlat = computed(() => this.type() === 'looking_for_flat');
   isLookingForRoommate = computed(() => this.type() === 'looking_for_roommate');

@@ -21,16 +21,20 @@ import {
   ScheduleEnum,
   TypeEnum,
 } from '@core/api/api.models';
+import { AuthService } from '@core/auth/auth.service';
 import { ROUTES } from '@core/constants/routes';
 import { ErrorService } from '@core/errors';
+import { PendingChanges } from '@core/navigation/unsaved-changes.guard';
 import { ProfileService } from '@core/profile/profile.service';
 
 import { Button } from '@shared/components/button/button';
+import { ConfirmDestructiveDialog } from '@shared/components/confirm-destructive-dialog/confirm-destructive-dialog';
 import { EmptyState } from '@shared/components/empty-state/empty-state';
 import { MobileActionBar } from '@shared/components/mobile-action-bar/mobile-action-bar';
 import { StepLifestyle } from '@shared/components/profile-form/step-lifestyle/step-lifestyle';
 import { StepObjective } from '@shared/components/profile-form/step-objective/step-objective';
 import { StepProfile } from '@shared/components/profile-form/step-profile/step-profile';
+import { isProfileBasicsValid } from '@shared/utils/profile-limits';
 
 import { DangerZone } from '@features/profile/edit/danger-zone/danger-zone';
 import { EditSection } from '@features/profile/edit/edit-section/edit-section';
@@ -72,22 +76,27 @@ interface Section {
     DangerZone,
     EditSection,
     EmptyState,
+    ConfirmDestructiveDialog,
   ],
   providers: [MessageService],
   templateUrl: './profile-edit.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(window:beforeunload)': 'onBeforeUnload($event)' },
 })
-export default class ProfileEdit implements OnInit {
+export default class ProfileEdit implements OnInit, PendingChanges {
   private readonly profileService = inject(ProfileService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
   private readonly errorService = inject(ErrorService);
+  private readonly authService = inject(AuthService);
 
   readonly isLoading = signal(true);
   readonly loadError = signal(false);
   readonly isSaving = signal(false);
   readonly showErrors = signal(false);
   readonly activeSection = signal<Section['id']>('photos');
+  readonly showLeaveConfirm = signal(false);
+  private resolveLeave: ((leave: boolean) => void) | null = null;
 
   readonly profile = this.profileService.currentProfile;
 
@@ -129,11 +138,12 @@ export default class ProfileEdit implements OnInit {
 
   readonly isValid = computed(() => {
     const f = this.form();
-    if (!f) return false;
-    return !!(f.name?.trim() && f.age && f.city?.trim());
+    return !!f && isProfileBasicsValid(f);
   });
 
   readonly canSave = computed(() => this.isDirty() && this.isValid() && !this.isSaving());
+  /** Saving is offered whenever there are changes; `save()` reveals the errors if they are invalid. */
+  readonly canTrySave = computed(() => this.isDirty() && !this.isSaving());
 
   constructor() {
     effect(() => {
@@ -275,5 +285,30 @@ export default class ProfileEdit implements OnInit {
 
   goBack(): void {
     this.router.navigate([ROUTES.EXPLORE]);
+  }
+
+  canLeave(): boolean | Promise<boolean> {
+    if (!this.isDirty() || this.authService.currentUser() === null) return true;
+    this.resolveLeave?.(false);
+    this.showLeaveConfirm.set(true);
+    return new Promise<boolean>((resolve) => (this.resolveLeave = resolve));
+  }
+
+  stay(): void {
+    this.settleLeave(false);
+  }
+
+  leaveWithoutSaving(): void {
+    this.settleLeave(true);
+  }
+
+  protected onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.isDirty()) event.preventDefault();
+  }
+
+  private settleLeave(leave: boolean): void {
+    this.showLeaveConfirm.set(false);
+    this.resolveLeave?.(leave);
+    this.resolveLeave = null;
   }
 }

@@ -30,7 +30,7 @@
             Descartar
           </app-button>
         }
-        <app-button size="sm" (click)="save()" [disabled]="!canSave()" [loading]="isSaving()">
+        <app-button size="sm" (click)="save()" [disabled]="!canTrySave()" [loading]="isSaving()">
           <i class="pi pi-check text-xs"></i>
           Guardar
         </app-button>
@@ -165,7 +165,7 @@
 
     @if (isDirty()) {
       <app-mobile-action-bar label="Editando perfil">
-        <app-button size="sm" (click)="save()" [disabled]="!canSave()" [loading]="isSaving()">
+        <app-button size="sm" (click)="save()" [disabled]="!canTrySave()" [loading]="isSaving()">
           <i class="pi pi-check text-xs"></i>
           Guardar
         </app-button>
@@ -173,5 +173,16 @@
     }
   }
 </div>
+
+@if (showLeaveConfirm()) {
+  <app-confirm-destructive-dialog
+    title="¿Salir sin guardar?"
+    description="Tienes cambios sin guardar en tu perfil. Si sales ahora, se perderán."
+    confirmLabel="Salir sin guardar"
+    confirmIcon="pi pi-sign-out"
+    (dismissed)="stay()"
+    (confirmed)="leaveWithoutSaving()"
+  />
+}
 
 <p-toast position="top-right" />

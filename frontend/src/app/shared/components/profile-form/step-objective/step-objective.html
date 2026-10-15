@@ -125,6 +125,7 @@
           <textarea
             pTextarea
             id="roomDescription"
+            [maxlength]="limits.roomDescriptionMaxLength"
             [ngModel]="roomDescription()"
             (ngModelChange)="dataChange.emit({ room_description: $event })"
             class="w-full rounded-2xl min-h-40 py-3 px-4 border border-gray-border shadow-none bg-white font-medium"

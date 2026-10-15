@@ -14,6 +14,9 @@ export class CityAutocomplete {
   protected readonly citySearchService = inject(CitySearchService);
 
   readonly city = input<string>('');
+  readonly inputId = input<string | undefined>(undefined);
+  readonly maxlength = input<number | null>(null);
+  readonly invalid = input(false);
   readonly citySelected = output<string>();
 
   protected readonly value = signal<string>('');
