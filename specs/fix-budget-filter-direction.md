@@ -1,6 +1,6 @@
 ---
 tag: SPECS/2026-10-fix-budget-filter-direction
-estado: approved
+estado: done
 stack: ambos
 fecha: 2026-10-15
 ---
@@ -41,10 +41,13 @@ Un mismo número, "el alquiler de referencia" X, se compara en el sentido que co
      busca habitaciones → `max`.
   3. Sin perfil propio cargado → `max` (comportamiento actual).
   4. Si la URL ya trae `budget_min` o `budget_max`, el panel muestra el sentido de ese parámetro, para no
-     describir un filtro distinto del que se está aplicando.
+     describir un filtro distinto del que se está aplicando. Si trae los dos, se queda solo `budget_min`.
 - **Textos**:
-  - `max`: etiqueta "Precio máximo", sin filtro "Sin límite", chip "Hasta X €".
+  - `max`: etiqueta "Precio máx. habitación", sin filtro "Sin límite", chip "Precio hasta X €".
   - `min`: etiqueta "Presupuesto mínimo", sin filtro "Sin mínimo", chip "Presupuesto desde X €".
+  - Sin tipo elegido la lista mezcla los dos tipos y el filtro se aplica a todos; bajo la etiqueta se indica
+    para quién está pensado: "Pensado para perfiles que buscan piso" (`min`) o "Pensado para habitaciones
+    en alquiler" (`max`).
 - **Slider** (200–1500, paso 50, igual que hoy): en `max` el extremo derecho (1500) significa sin filtro;
   en `min` lo es el extremo izquierdo (200), que es el mínimo que permite el formulario de perfil.
 - **Cambio de sentido**: al cambiar "¿Qué busca?" con un importe puesto, el importe se conserva y pasa al
@@ -80,7 +83,7 @@ Un mismo número, "el alquiler de referencia" X, se compara en el sentido que co
 - DADO quien ofrece habitación en `/explorar` sin tipo elegido CUANDO fija 600 en el slider ENTONCES se
   envía `budget_min=600`, la etiqueta es "Presupuesto mínimo" y el chip "Presupuesto desde 600 €".
 - DADO quien busca piso, o "Busca compañero" elegido, ENTONCES se envía `budget_max`, la etiqueta es
-  "Precio máximo" y el chip "Hasta X €".
+  "Precio máx. habitación" y el chip "Precio hasta X €".
 - DADO un importe puesto CUANDO se cambia "¿Qué busca?" a un tipo con el otro sentido ENTONCES el importe
   pasa al otro parámetro y el anterior desaparece de filtros y URL.
 - DADO el slider en su extremo neutro (200 en `min`, 1500 en `max`) ENTONCES no hay filtro de importe.
@@ -99,7 +102,7 @@ Un mismo número, "el alquiler de referencia" X, se compara en el sentido que co
   sola búsqueda y una sola escritura de URL.
 
 ## Plan de tests
-Backend (`tests/profiles/test_search.py`):
+Backend (`tests/profiles/test_search_budget.py`, nuevo):
 - `budget_min` incluye iguales y mayores, excluye menores; `budget_max` incluye iguales.
 - Perfil sin importe excluido con `budget_min` y con `budget_max`, incluido sin filtro.
 - `budget_min` + `profile_type` + `city` combinados.
@@ -110,3 +113,37 @@ Frontend:
 - `search-filters.spec.ts`: etiqueta y parámetro enviados para quien ofrece y para quien busca; extremo
   neutro en cada sentido; traslado del importe al cambiar el tipo.
 - `profile-search.service.spec.ts`: `budget_min` se lee de la URL.
+- `search-profile.spec.ts` (nuevo): texto de los chips de importe.
+
+## Resultado
+Implementado según "Comportamiento decidido": `budget_min` en backend (route → service → repo), tipos
+regenerados, sentido del filtro en `features/search-profile/budget-filter.ts` y panel, chips y URL
+adaptados.
+
+Revisión (SDD fase 6), dos agentes de solo lectura con las instrucciones de `.opencode/agent/`:
+**code-reviewer → APROBADO CON CAMBIOS MENORES** y **ui-ux-reviewer → APROBADO CON OBSERVACIONES**,
+sin bloqueantes. Cambios aplicados tras la revisión:
+- Un enlace con `budget_min` y `budget_max` a la vez se queda solo con el mínimo (antes se enviaban los dos).
+- `updateFilters` devuelve el mismo objeto si nada cambia: soltar el slider en su extremo neutro sin filtro
+  ya no lanza otra búsqueda.
+- `budgetPatch` tipado con `Pick<FilterPatch, …>`; el rango del slider se llama `budgetRangeMin/Max` para no
+  confundirlo con el parámetro `budget_min`.
+- Copy: "Precio máx. habitación" (alineado con "Precio de la habitación" del formulario), chip
+  "Precio hasta X €" y una línea "Pensado para…" cuando no hay tipo elegido.
+- Tests añadidos: el slider se recoloca si el perfil propio llega tarde; un importe que cae en el extremo
+  neutro deja de filtrar al cambiar de tipo; los dos parámetros en la URL; cambio sin efecto sin búsqueda;
+  chips de `search-profile`; el 422 de un `budget_min` no numérico queda fijado.
+
+Descartado con motivo: `aria-live` en el valor del slider (anunciaría cada paso al arrastrar; la etiqueta
+ya se actualiza con el sentido) y aviso al cambiar de tipo (la etiqueta y el chip ya cambian). Fuera de
+alcance, como seguimiento: el detalle de perfil dice siempre "Presupuesto máximo", también en perfiles que
+ofrecen habitación (`profile-info-block.html`).
+
+Prueba: los tests nuevos ejecutados contra el código de `develop` → backend **5 de 6 fallan** (pasa el de
+control de `budget_max`); en `search-filters.spec.ts` **6 de 7 fallan** (pasa el de control);
+`budget-filter.spec.ts` y los de `updateFilters` no compilan sin el código nuevo.
+
+## Checklist de verificación (tras la revisión)
+- Backend: `ruff check .` sin errores, `ruff format --check .` 119 ficheros, `pytest` **241 passed** (+6).
+- Frontend: `format:check` y `lint` en verde, `test:ci` **177 passed** (25 ficheros, +26), build de
+  producción OK.
