@@ -222,7 +222,11 @@ def get_my_profile(
     return profile_service.get_profile(db, current_user.id)
 
 
-@router.post("/me", response_model=ProfileResponse, responses=UNAUTH)
+@router.post(
+    "/me",
+    response_model=ProfileResponse,
+    responses={**UNAUTH, 403: {"description": "Legal terms not accepted"}},
+)
 def create_my_profile(
     data: ProfileCreate,
     db: Session = Depends(get_db),

@@ -4,7 +4,7 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '@env/environment';
 import { firstValueFrom } from 'rxjs';
 
-import type { UserResponse } from '@core/api/api.models';
+import type { ConsentCreate, UserResponse } from '@core/api/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
@@ -13,6 +13,11 @@ export class AuthApiService {
 
   async getMe(): Promise<UserResponse> {
     return firstValueFrom(this.http.get<UserResponse>(`${this.APIURL}/me`));
+  }
+
+  async acceptTerms(termsVersion: string): Promise<UserResponse> {
+    const body: ConsentCreate = { terms_version: termsVersion, is_adult: true };
+    return firstValueFrom(this.http.post<UserResponse>(`${this.APIURL}/me/consent`, body));
   }
 
   async deleteAccount(): Promise<void> {

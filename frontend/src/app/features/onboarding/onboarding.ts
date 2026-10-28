@@ -18,8 +18,10 @@ import { ToastModule } from 'primeng/toast';
 
 import { ProfileCreate, ProfilePhotoResponse, ScheduleEnum, TypeEnum } from '@core/api/api.models';
 import { AuthService } from '@core/auth/auth.service';
+import { LEGAL_DOCS_VERSION } from '@core/constants/legal-info';
 import { ROUTES } from '@core/constants/routes';
 import { ErrorService } from '@core/errors';
+import { needsTermsConsent } from '@core/legal/terms-consent';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
 import { ProfileService } from '@core/profile/profile.service';
 
@@ -28,6 +30,7 @@ import { ConfirmDestructiveDialog } from '@shared/components/confirm-destructive
 import { StepLifestyle } from '@shared/components/profile-form/step-lifestyle/step-lifestyle';
 import { StepObjective } from '@shared/components/profile-form/step-objective/step-objective';
 import { StepProfile } from '@shared/components/profile-form/step-profile/step-profile';
+import { TermsConsent } from '@shared/components/terms-consent/terms-consent';
 import { isLocalPhoto } from '@shared/utils/photo.utils';
 import { isProfileBasicsValid } from '@shared/utils/profile-limits';
 
@@ -45,6 +48,7 @@ import { StepPhotos } from '@features/onboarding/components/step-photos/step-pho
     DecimalPipe,
     Button,
     ConfirmDestructiveDialog,
+    TermsConsent,
   ],
   providers: [MessageService],
   templateUrl: './onboarding.html',
@@ -68,6 +72,11 @@ export default class Onboarding implements OnInit {
   showErrors = signal(false);
   isReady = signal(false);
   totalSteps = 4;
+
+  termsAccepted = signal(false);
+  readonly needsConsent = computed(() =>
+    needsTermsConsent(this.authService.currentUser(), LEGAL_DOCS_VERSION)
+  );
 
   showExitConfirm = signal(false);
   isExiting = signal(false);
@@ -148,6 +157,7 @@ export default class Onboarding implements OnInit {
 
   isCurrentStepValid = computed(() => {
     if (this.currentStep() === 1) return this.isStep1Valid();
+    if (this.isLastStep() && this.needsConsent()) return this.termsAccepted();
     return true;
   });
 
@@ -200,6 +210,10 @@ export default class Onboarding implements OnInit {
       if (this.isSubmitting()) return;
       this.isSubmitting.set(true);
       try {
+        if (this.needsConsent()) {
+          await this.authService.acceptTerms(LEGAL_DOCS_VERSION);
+        }
+
         await this.profileService.saveOnboarding(this.form() as ProfileCreate);
 
         this.persistenceService.clearAll();

@@ -359,6 +359,12 @@ export class AuthService {
     this.clearSession();
   }
 
+  /** Records acceptance of the legal documents and the 18+ declaration. */
+  async acceptTerms(termsVersion: string): Promise<void> {
+    const user = await this.authApi.acceptTerms(termsVersion);
+    this.currentUser.set(user);
+  }
+
   async deleteAccount(): Promise<void> {
     await this.authApi.deleteAccount();
     this.clearSession();

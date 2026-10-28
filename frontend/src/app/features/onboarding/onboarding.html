@@ -119,6 +119,16 @@
         </div>
       </div>
 
+      @if (isLastStep() && needsConsent()) {
+        <div class="mt-10">
+          <app-terms-consent
+            [accepted]="termsAccepted()"
+            [showError]="showErrors()"
+            (acceptedChange)="termsAccepted.set($event)"
+          />
+        </div>
+      }
+
       <div class="mt-12 flex justify-between items-center pt-8 border-t border-gray-border">
         <app-button
           variant="ghost"

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 from app.models.user import User
 
@@ -24,3 +26,13 @@ def create_user(db: Session, user: User) -> User:
 def delete_user(db: Session, user: User):
     db.delete(user)
     db.commit()
+
+
+def update_terms_consent(
+    db: Session, user: User, accepted_at: datetime, terms_version: str
+) -> User:
+    user.terms_accepted_at = accepted_at
+    user.terms_version = terms_version
+    db.commit()
+    db.refresh(user)
+    return user

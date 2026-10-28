@@ -8,8 +8,8 @@ from app.core.config import settings
 from app.core.rate_limit import rate_limiter, read_rate_limiter
 from app.db.database import get_db
 from app.models.user import User
-from app.schemas.user import UserResponse
-from app.services.auth_service import delete_user
+from app.schemas.user import ConsentCreate, UserResponse
+from app.services.auth_service import delete_user, record_terms_consent
 from app.services.sync_service import cleanup_orphaned_users
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -23,6 +23,15 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 )
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/me/consent", response_model=UserResponse, responses=UNAUTH)
+def accept_terms(
+    payload: ConsentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return record_terms_consent(db, current_user, payload.terms_version)
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT, responses=UNAUTH)

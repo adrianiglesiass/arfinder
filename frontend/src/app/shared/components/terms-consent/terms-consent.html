@@ -1,0 +1,42 @@
+<div class="flex flex-col gap-2">
+  <div class="flex items-start gap-3">
+    <p-checkbox
+      [inputId]="inputId"
+      [binary]="true"
+      [ngModel]="accepted()"
+      (ngModelChange)="acceptedChange.emit(!!$event)"
+      [ariaLabelledBy]="'termsConsentLabel'"
+      [pt]="checkboxPt()"
+    />
+    <label
+      id="termsConsentLabel"
+      [for]="inputId"
+      class="text-sm text-gray-600 font-medium leading-relaxed cursor-pointer"
+    >
+      Confirmo que soy mayor de 18 años y acepto los
+      <a
+        [routerLink]="routes.TERMS"
+        target="_blank"
+        rel="noopener"
+        class="text-primary font-bold underline"
+        >Términos y condiciones</a
+      >
+      y la
+      <a
+        [routerLink]="routes.PRIVACY"
+        target="_blank"
+        rel="noopener"
+        class="text-primary font-bold underline"
+        >Política de privacidad</a
+      >.
+    </label>
+  </div>
+  @if (hasError()) {
+    <span
+      [id]="errorId"
+      class="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-wider animate-fade-in"
+      role="alert"
+      >Debes aceptar para continuar</span
+    >
+  }
+</div>

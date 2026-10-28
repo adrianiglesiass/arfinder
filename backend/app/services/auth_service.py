@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
@@ -60,3 +61,19 @@ async def delete_user(db: Session, user: User):
         await forget_user_sessions(insforge_id)
 
     await run_in_threadpool(_delete_user_record, db, user.id)
+
+
+def record_terms_consent(db: Session, user: User, terms_version: str) -> User:
+    """Store explicit acceptance of the legal documents (Terms, Privacy, 18+).
+
+    Re-accepting overwrites the previous record with the new version and time.
+    """
+    db_user = user_repository.get_user_by_id(db, user.id)
+    if not db_user:
+        raise InvalidCredentialsError()
+    return user_repository.update_terms_consent(
+        db,
+        db_user,
+        accepted_at=datetime.now(timezone.utc),
+        terms_version=terms_version,
+    )
