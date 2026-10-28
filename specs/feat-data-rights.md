@@ -52,12 +52,16 @@ registran contenido privado de conversaciones (fallo de privacidad en los propio
     (revocada tras 1 s), toast de éxito y toast de error con `ErrorService`.
   - `AuthApiService.exportMyData(): Promise<Blob>` + `AuthService.exportMyData`.
   - `api.types.ts` regenerado.
-- **Feedback de review incluido** (commit `6cc1196`): focus trap del diálogo de
-  reconsentimiento con la directiva `ModalDialog` (`appModalDialog`) + ids accesibles
-  (`uniqueId` para `aria-labelledby`/`aria-describedby`), `TermsConsent.focusInput()` con
-  foco automático al bloquear el último paso del onboarding, ajustes de a11y del checkbox,
-  y actualización de la política de privacidad (`docs/legal/privacy_policy.md` +
-  `features/legal/privacy/privacy.html`) para declarar la descarga de datos y las cabeceras.
+- **Feedback de review incluido** (commit "fix: apply review feedback"): focus trap del
+  diálogo de reconsentimiento con la directiva `ModalDialog` (`appModalDialog`), z-index del
+  diálogo por encima del sidebar (`z-[60]`), ids accesibles (`uniqueId` para
+  `aria-labelledby`/`aria-describedby`), `TermsConsent.focusInput()` con foco automático al
+  bloquear el último paso del onboarding, contraste del error de consentimiento a `red-600`,
+  copy del botón de salida ("Salir y cerrar sesión"), `@defer (on immediate)` para el
+  diálogo en `layout.html`, y la política de privacidad (`docs/legal/privacy_policy.md` +
+  `features/legal/privacy/privacy.html`) actualizada para declarar la descarga de datos y
+  reescribir la conservación/borrado en Cloudinary (checklist de `docs/legal/README.md`
+  ampliado en consecuencia).
 
 ## No-goals
 - NO exportación asíncrona por email para volúmenes grandes (el export es síncrono y
@@ -115,8 +119,11 @@ registran contenido privado de conversaciones (fallo de privacidad en los propio
 - Frontend `data-download.spec.ts` (descarga, éxito con toast, error con toast) y
   `infrastructure/api/auth/auth.api.service.spec.ts` (llamada a `GET /auth/me/export` con
   `responseType: blob`).
-- `terms-reconsent-dialog.spec.ts` / `terms-consent.spec.ts` actualizados por los cambios de
-  review (focus trap, ids únicos, `focusInput`).
+- `terms-reconsent-dialog.spec.ts` / `terms-consent.spec.ts` ajustados a los cambios de
+  review (selector del checkbox por tipo en vez de id estático, aserción del copy de salida;
+  el focus trap lo cubre el preexistente `shared/directives/modal-dialog.spec.ts`). El foco
+  automático de `focusInput()` queda cubierto por la guarda de validación del backend y no
+  tiene test de integración propio.
 
 ## Checklist de verificación
 - [x] Backend: `make lint`
@@ -137,6 +144,6 @@ registran contenido privado de conversaciones (fallo de privacidad en los propio
 - Frontend: sección "Tus datos" con `app-data-download` (toast éxito/error) y
   `AuthService.exportMyData`; review-feedback aplicado (focus trap `appModalDialog`,
   `uniqueId`, `focusInput`, política de privacidad actualizada).
-- Commits de la rama `feature/data-rights`: `8d7f034` (fix: no loguear payloads de mensajes),
-  `c65f7c9` (feat: security headers), `b22cd71` (feat: descarga de datos) y `6cc1196`
-  (fix: feedback de review sobre UI legal y export).
+- Commits de la rama `feature/data-rights`: `fix: no loguear payloads de mensajes`,
+  `feat: security headers`, `feat: descarga de datos`, `fix: feedback de review sobre UI
+  legal y export` y `docs(spec): add SDD spec for data rights`.
