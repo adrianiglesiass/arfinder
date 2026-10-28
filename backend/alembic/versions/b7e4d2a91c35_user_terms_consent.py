@@ -1,7 +1,7 @@
 """user_terms_consent
 
 Revision ID: b7e4d2a91c35
-Revises: 3c8f2a4b9e10
+Revises: b2c3d4e5f6a7
 Create Date: 2026-09-16 12:00:00.000000
 
 """
@@ -14,7 +14,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "b7e4d2a91c35"
-down_revision: Union[str, None] = "3c8f2a4b9e10"
+down_revision: Union[str, None] = "b2c3d4e5f6a7"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
