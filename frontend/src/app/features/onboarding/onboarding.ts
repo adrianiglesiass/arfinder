@@ -62,6 +62,7 @@ export default class Onboarding implements OnInit {
   private readonly errorService = inject(ErrorService);
 
   stepPhotos = viewChild(StepPhotos);
+  termsConsent = viewChild(TermsConsent);
   private readonly stepHost = viewChild<ElementRef<HTMLElement>>('stepHost');
 
   lockedHeight = signal<number | null>(null);
@@ -196,6 +197,10 @@ export default class Onboarding implements OnInit {
   async nextStep() {
     if (!this.isCurrentStepValid()) {
       this.showErrors.set(true);
+      // The consent checkbox is the last thing blocking the step: send focus to it.
+      if (this.isLastStep() && this.needsConsent()) {
+        this.termsConsent()?.focusInput();
+      }
       return;
     }
 

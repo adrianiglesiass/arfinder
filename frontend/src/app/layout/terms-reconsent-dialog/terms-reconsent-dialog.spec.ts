@@ -83,7 +83,7 @@ describe('TermsReconsentDialog', () => {
     );
 
     expect(dialog()).not.toBeNull();
-    expect(dialog()?.textContent).toContain('Cerrar sesión');
+    expect(dialog()?.textContent).toContain('Salir y cerrar sesión');
   });
 
   it('requires the checkbox before calling the consent endpoint', async () => {

@@ -9,6 +9,8 @@ import { ProfileService } from '@core/profile/profile.service';
 
 import { Button } from '@shared/components/button/button';
 import { TermsConsent } from '@shared/components/terms-consent/terms-consent';
+import { ModalDialog } from '@shared/directives/modal-dialog';
+import { uniqueId } from '@shared/utils/unique-id';
 
 /**
  * Blocking dialog for users who already have a profile but have not accepted the
@@ -18,7 +20,7 @@ import { TermsConsent } from '@shared/components/terms-consent/terms-consent';
  */
 @Component({
   selector: 'app-terms-reconsent-dialog',
-  imports: [Button, TermsConsent],
+  imports: [Button, TermsConsent, ModalDialog],
   templateUrl: './terms-reconsent-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -26,6 +28,9 @@ export class TermsReconsentDialog {
   private readonly authService = inject(AuthService);
   private readonly profileService = inject(ProfileService);
   private readonly router = inject(Router);
+
+  readonly titleId = uniqueId('terms-reconsent-title');
+  readonly descriptionId = uniqueId('terms-reconsent-description');
 
   readonly accepted = signal(false);
   readonly showError = signal(false);

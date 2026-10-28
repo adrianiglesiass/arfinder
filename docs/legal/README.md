@@ -28,6 +28,8 @@ Every account (email, Google or Apple sign-up) must accept the Terms and conditi
 - [ ] Confirm DPAs and data locations for InsForge (auth and database), Fly.io and Vercel.
 - [ ] Confirm where the production database is hosted and update the recipients table if it differs.
 - [ ] Get a legal review of all documents.
-- [ ] Implement data export (portability) in-app. Until then, the right is exercised by email — keep the policy wording in sync.
-- [x] Delete profile photos from Cloudinary on account deletion (shipped in develop, PR #289).
+- [x] Implement data export (portability) in-app: `GET /auth/me/export` downloads `arfinder-datos.json` from Editar perfil → Tus datos.
+- [x] Delete profile photos from Cloudinary when a photo, the profile or the account is deleted (shipped in develop, PR #289; storage failures are logged and do not block the deletion).
+- [ ] Verify on a real stored `photo_url` that the public_id includes the `arfinder/profiles/<user_id>/` folder (Cloudinary dynamic folders mode may keep the folder out of the public_id); otherwise photo deletion silently skips files. Review logged storage-deletion failures and remove those files manually.
+- [ ] Set `ENVIRONMENT=production` on Fly (`fly.toml` `[env]` or a secret) so HSTS is sent; first confirm the `DEBUG` and `CORS_ORIGINS` secrets pass the production checks and that disabling `/auth/sync-cleanup` in production is intended.
 - [x] Record explicit acceptance of the Terms and Privacy policy plus the 18+ confirmation at sign-up (`user.terms_accepted_at`, `user.terms_version`).

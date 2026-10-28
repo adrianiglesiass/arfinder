@@ -365,6 +365,10 @@ export class AuthService {
     this.currentUser.set(user);
   }
 
+  exportMyData(): Promise<Blob> {
+    return this.authApi.exportMyData();
+  }
+
   async deleteAccount(): Promise<void> {
     await this.authApi.deleteAccount();
     this.clearSession();

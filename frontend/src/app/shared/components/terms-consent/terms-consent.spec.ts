@@ -44,7 +44,7 @@ describe('TermsConsent', () => {
 
   it('marks the checkbox invalid and links it to the error message', () => {
     const invalid: HTMLElement = render(false, true).nativeElement;
-    const invalidInput = invalid.querySelector('#termsConsent');
+    const invalidInput = invalid.querySelector('input[type="checkbox"]');
     const describedBy = invalidInput?.getAttribute('aria-describedby');
 
     expect(invalidInput?.getAttribute('aria-invalid')).toBe('true');
@@ -54,7 +54,7 @@ describe('TermsConsent', () => {
     );
 
     const valid: HTMLElement = render(true, true).nativeElement;
-    const validInput = valid.querySelector('#termsConsent');
+    const validInput = valid.querySelector('input[type="checkbox"]');
     expect(validInput?.getAttribute('aria-invalid')).toBe('false');
     expect(validInput?.hasAttribute('aria-describedby')).toBe(false);
   });
@@ -64,7 +64,7 @@ describe('TermsConsent', () => {
     const emitted: boolean[] = [];
     fixture.componentInstance.acceptedChange.subscribe((value) => emitted.push(value));
 
-    const input: HTMLInputElement = fixture.nativeElement.querySelector('#termsConsent');
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input[type="checkbox"]');
     input.click();
     fixture.detectChanges();
 
