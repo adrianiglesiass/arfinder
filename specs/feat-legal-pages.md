@@ -39,9 +39,9 @@ política de cookies declara.
   "Al continuar aceptas los Términos y la Política de privacidad"), `profile-edit`,
   `sidebar-nav` (visible solo en `xl`) y el propio `legal-page-layout`.
 - **Metadatos legales**: `core/constants/legal-info.ts` con `LEGAL_DOCS_VERSION = '1.0.0'`,
-  `LEGAL_INFO` (responsable, NIF, domicilio, email de contacto con placeholders
-  `[PENDIENTE: ...]` y autoridad supervisora AEPD) — única fuente de verdad del frontend,
-  sincronizada con `docs/legal/*.md`.
+  `LEGAL_INFO` (responsable, NIF, domicilio, email de contacto — datos del responsable
+  rellenados el 2026-10-28 — y autoridad supervisora AEPD) — única fuente de verdad del
+  frontend, sincronizada con `docs/legal/*.md`.
 - **Fuentes self-hosted**: dependencias `@fontsource-variable/plus-jakarta-sans`,
   `@fontsource/playfair-display` y `@fontsource-variable/material-symbols-rounded`;
   imports en `styles.css` (con espejo de la clase `.material-symbols-rounded` que antes
@@ -55,8 +55,8 @@ política de cookies declara.
 - NO modificar el backend ni el contrato de la API (sin regeneración de `api.types.ts`).
 - NO implementar banner de cookies ni consentimiento de analítica (no hay cookies de terceros
   propias más allá de lo declarado).
-- NO rellenar los placeholders `[PENDIENTE: ...]` de `LEGAL_INFO` (datos identificativos del
-  responsable pendientes de definir; ver `docs/legal/README.md`).
+- NO implementar el resto del checklist pre-producción de `docs/legal/README.md` (DPA de
+  Cloudinary, revisión legal, etc. — fuera del alcance de este cambio).
 - NO registrar consentimiento del usuario (queda para `feat-legal-consent`).
 - NO añadir descarga de datos desde la política de privacidad (queda para `feat-data-rights`).
 
@@ -105,7 +105,8 @@ política de cookies declara.
 - 4 páginas legales lazy + `legal-page-layout` + `app-legal-links` en `auth-form`,
   `profile-edit` y `sidebar-nav`; `ROUTES.PRIVACY/TERMS/COOKIES/LEGAL_NOTICE` en
   `core/constants/routes.ts` y `LEGAL_INFO`/`LEGAL_DOCS_VERSION` en
-  `core/constants/legal-info.ts` (placeholders `[PENDIENTE: ...]` para el responsable).
+  `core/constants/legal-info.ts` (`LEGAL_INFO` con los datos del responsable del
+  tratamiento).
 - Fuentes self-hosted vía `@fontsource*` (`styles.css` + `index.html` sin Google Fonts;
   `ngsw-config.json` cachea `/media/**`); contenido fuente en `docs/legal/*.md`.
 - Commits: `a58bfab` (chore: self-host fonts) y `e485507` (feat: páginas legales) de la rama

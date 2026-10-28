@@ -1,15 +1,15 @@
 # Aviso legal
 
-_Última actualización: 16 de septiembre de 2026 · Versión 1.0.0_
+_Última actualización: 28 de octubre de 2026 · Versión 1.0.0_
 
 ## 1. Datos identificativos
 
 En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI), se informa de los datos del titular de Arfinder:
 
-- **Titular:** [PENDIENTE: nombre del responsable]
-- **NIF:** [PENDIENTE: NIF]
-- **Domicilio:** [PENDIENTE: domicilio]
-- **Email de contacto:** [PENDIENTE: email de contacto]
+- **Titular:** Adrian Iglesias Álvarez
+- **NIF:** DNI 54703474K
+- **Domicilio:** Capitán Juan Varela 33, 2.º
+- **Email de contacto:** adrianiglesias010@gmail.com
 
 Arfinder es un proyecto académico sin ánimo de lucro. No realiza actividad comercial, no cobra por sus servicios y no muestra publicidad.
 

@@ -1,15 +1,15 @@
 # Política de privacidad
 
-_Última actualización: 16 de septiembre de 2026 · Versión 1.0.0_
+_Última actualización: 28 de octubre de 2026 · Versión 1.0.0_
 
 Esta política explica cómo se tratan los datos personales de las personas que usan Arfinder, una aplicación para encontrar compañeros de piso y habitaciones compartidas. Se redacta conforme al Reglamento (UE) 2016/679 (RGPD) y a la Ley Orgánica 3/2018 de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD).
 
 ## 1. Responsable del tratamiento
 
-- **Responsable:** [PENDIENTE: nombre del responsable]
-- **NIF:** [PENDIENTE: NIF]
-- **Domicilio:** [PENDIENTE: domicilio]
-- **Email de contacto:** [PENDIENTE: email de contacto]
+- **Responsable:** Adrian Iglesias Álvarez
+- **NIF:** DNI 54703474K
+- **Domicilio:** Capitán Juan Varela 33, 2.º
+- **Email de contacto:** adrianiglesias010@gmail.com
 
 ## 2. Naturaleza del proyecto
 
@@ -81,7 +81,7 @@ Puedes ejercer en cualquier momento tus derechos de:
 - **Portabilidad:** recibir tus datos en un formato estructurado y de uso común.
 - **Oposición:** oponerte al tratamiento basado en interés legítimo.
 
-Salvo la rectificación y la supresión, que puedes realizar desde la aplicación, para ejercer estos derechos escribe a **[PENDIENTE: email de contacto]** indicando el derecho que quieres ejercer y el email de tu cuenta. Responderemos en el plazo de un mes. Podremos pedirte información adicional para verificar tu identidad.
+Salvo la rectificación y la supresión, que puedes realizar desde la aplicación, para ejercer estos derechos escribe a **adrianiglesias010@gmail.com** indicando el derecho que quieres ejercer y el email de tu cuenta. Responderemos en el plazo de un mes. Podremos pedirte información adicional para verificar tu identidad.
 
 Si consideras que no hemos atendido correctamente tus derechos, puedes presentar una reclamación ante la **Agencia Española de Protección de Datos (AEPD)** en [www.aepd.es](https://www.aepd.es).
 

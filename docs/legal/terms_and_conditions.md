@@ -1,12 +1,12 @@
 # Términos y condiciones de uso
 
-_Última actualización: 16 de septiembre de 2026 · Versión 1.0.0_
+_Última actualización: 28 de octubre de 2026 · Versión 1.0.0_
 
 Estos términos regulan el uso de Arfinder, una aplicación para encontrar compañeros de piso y habitaciones compartidas. Al crear una cuenta o usar la aplicación aceptas estos términos y declaras haber leído la [Política de privacidad](privacy_policy.md).
 
 ## 1. Titular del servicio
 
-Arfinder es un proyecto académico sin ánimo de lucro cuyo responsable es [PENDIENTE: nombre del responsable]. Los datos completos del titular figuran en el [Aviso legal](legal_notice.md).
+Arfinder es un proyecto académico sin ánimo de lucro cuyo responsable es Adrian Iglesias Álvarez. Los datos completos del titular figuran en el [Aviso legal](legal_notice.md).
 
 ## 2. Objeto del servicio
 
@@ -60,4 +60,4 @@ Estos términos se rigen por la legislación española. Si eres consumidor, podr
 
 ## 11. Contacto
 
-Para cualquier consulta sobre estos términos escribe a [PENDIENTE: email de contacto].
+Para cualquier consulta sobre estos términos escribe a adrianiglesias010@gmail.com.

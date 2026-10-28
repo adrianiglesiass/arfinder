@@ -1,6 +1,6 @@
 # Política de cookies y almacenamiento local
 
-_Última actualización: 16 de septiembre de 2026 · Versión 1.0.0_
+_Última actualización: 28 de octubre de 2026 · Versión 1.0.0_
 
 Esta política explica qué información guarda Arfinder en tu navegador, conforme al artículo 22.2 de la Ley 34/2002 de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI).
 
@@ -45,4 +45,4 @@ Al cerrar sesión o eliminar tu cuenta se borran los tokens de autenticación y 
 
 ## 5. Contacto
 
-Para cualquier consulta escribe a [PENDIENTE: email de contacto].
+Para cualquier consulta escribe a adrianiglesias010@gmail.com.

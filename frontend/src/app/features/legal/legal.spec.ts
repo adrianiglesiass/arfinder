@@ -67,6 +67,13 @@ describe('Legal pages', () => {
     expect(controller?.textContent).toContain(LEGAL_INFO.controller.taxId);
     expect(controller?.textContent).toContain(LEGAL_INFO.contactEmail);
     expect(element.querySelector('time')?.getAttribute('datetime')).toBe(LEGAL_INFO.lastUpdated);
-    expect(element.textContent).toContain('16 de septiembre de 2026');
+    // Formatted the same way legal-page-layout does, so the assertion tracks lastUpdated.
+    const formattedLastUpdated = new Date(LEGAL_INFO.lastUpdated).toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+    expect(element.textContent).toContain(formattedLastUpdated);
   });
 });

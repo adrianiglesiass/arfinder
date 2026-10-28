@@ -13,11 +13,11 @@ When a document changes, update both the markdown file and the matching page, th
 
 ## Before production
 
-- [ ] Fill in controller data (name, NIF, address, contact email) in `legal-info.ts` and replace every `[PENDIENTE: ...]` placeholder in these documents.
+- [x] Fill in controller data (name, NIF, address, contact email) in `legal-info.ts` and replace every `[PENDIENTE: ...]` placeholder in these documents.
 - [ ] Confirm the Cloudinary account region and sign/accept its DPA; confirm the transfer mechanism (SCCs or Data Privacy Framework).
 - [ ] Confirm DPAs and data locations for InsForge (auth and database), Fly.io and Vercel.
 - [ ] Confirm where the production database is hosted and update the recipients table if it differs.
 - [ ] Get a legal review of all documents.
 - [ ] Implement data export (portability) in-app. Until then, the right is exercised by email — keep the policy wording in sync.
-- [ ] Delete profile photos from Cloudinary on account deletion (pending, later PR). Until then, review the retention wording.
+- [x] Delete profile photos from Cloudinary on account deletion (shipped in develop, PR #289).
 - [ ] Add an age (18+) confirmation at sign-up if required after legal review.
