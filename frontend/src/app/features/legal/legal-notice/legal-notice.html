@@ -1,0 +1,45 @@
+<app-legal-page-layout title="Aviso legal">
+  <h2>1. Datos identificativos</h2>
+  <p>
+    En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad
+    de la Información y de Comercio Electrónico (LSSI), se informa de los datos del titular de
+    {{ legal.appName }}:
+  </p>
+  <ul data-testid="controller-info">
+    <li><strong>Titular:</strong> {{ legal.controller.name }}</li>
+    <li><strong>NIF:</strong> {{ legal.controller.taxId }}</li>
+    <li><strong>Domicilio:</strong> {{ legal.controller.address }}</li>
+    <li><strong>Email de contacto:</strong> {{ legal.contactEmail }}</li>
+  </ul>
+  <p>
+    {{ legal.appName }} es un proyecto académico sin ánimo de lucro. No realiza actividad comercial,
+    no cobra por sus servicios y no muestra publicidad.
+  </p>
+
+  <h2>2. Objeto</h2>
+  <p>
+    {{ legal.appName }} es una aplicación web que ayuda a encontrar compañeros de piso y
+    habitaciones compartidas. El uso de la aplicación se rige por los
+    <a [routerLink]="routes.TERMS">Términos y condiciones</a>, la
+    <a [routerLink]="routes.PRIVACY">Política de privacidad</a> y la
+    <a [routerLink]="routes.COOKIES">Política de cookies y almacenamiento</a>.
+  </p>
+
+  <h2>3. Propiedad intelectual e industrial</h2>
+  <p>
+    El código, el diseño, la marca y los elementos gráficos de {{ legal.appName }} pertenecen a su
+    titular o se usan bajo las licencias correspondientes, incluidas las tipografías e iconos de
+    código abierto (SIL Open Font License y Apache License 2.0). El contenido publicado por los
+    usuarios pertenece a sus autores.
+  </p>
+
+  <h2>4. Responsabilidad</h2>
+  <p>
+    El titular no se hace responsable del contenido publicado por los usuarios ni de los acuerdos
+    que alcancen entre ellos. Si detectas contenido ilícito, escribe a
+    <strong>{{ legal.contactEmail }}</strong> y lo revisaremos con la mayor brevedad posible.
+  </p>
+
+  <h2>5. Legislación aplicable</h2>
+  <p>Este aviso legal se rige por la legislación española.</p>
+</app-legal-page-layout>

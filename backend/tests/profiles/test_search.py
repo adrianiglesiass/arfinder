@@ -1,12 +1,16 @@
+from datetime import datetime, timezone
+
 import pytest
 from datetime import date
+
+from app.core.constants import CURRENT_TERMS_VERSION
 from app.services.profile_service import create_profile
 from app.schemas.profile import ProfileCreate, TypeEnum, ScheduleEnum
 
 
 @pytest.fixture
 def profile_madrid(db, create_test_user):
-    user = create_test_user(email="madrid@test.com")
+    user = create_test_user(email="madrid@test.com", accepted_terms=True)
     return create_profile(
         db,
         user.id,
@@ -26,7 +30,7 @@ def profile_madrid(db, create_test_user):
 
 @pytest.fixture
 def profile_barcelona(db, create_test_user):
-    user = create_test_user(email="barcelona@test.com")
+    user = create_test_user(email="barcelona@test.com", accepted_terms=True)
     return create_profile(
         db,
         user.id,
@@ -214,6 +218,9 @@ def test_search_excludes_own_profile(client, db, profile_barcelona):
     from app.repositories import user_repository
 
     me = user_repository.get_user_by_email(db, "test@test.com")
+    user_repository.update_terms_consent(
+        db, me, datetime.now(timezone.utc), CURRENT_TERMS_VERSION
+    )
     create_profile(
         db,
         me.id,

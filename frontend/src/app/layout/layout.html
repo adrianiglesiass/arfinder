@@ -27,3 +27,9 @@
 
   <app-mobile-nav />
 </div>
+
+<!-- Deferred to keep the dialog (and PrimeNG checkbox) out of the initial bundle. `on immediate`
+     rather than `on idle`: this is a legal gate, so it must appear deterministically. -->
+@defer (on immediate) {
+  <app-terms-reconsent-dialog />
+}

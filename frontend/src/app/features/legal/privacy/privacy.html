@@ -1,0 +1,281 @@
+<app-legal-page-layout title="Política de privacidad">
+  <p>
+    Esta política explica cómo se tratan los datos personales de las personas que usan
+    {{ legal.appName }}, una aplicación para encontrar compañeros de piso y habitaciones
+    compartidas. Se redacta conforme al Reglamento (UE) 2016/679 (RGPD) y a la Ley Orgánica 3/2018
+    de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD).
+  </p>
+
+  <h2>1. Responsable del tratamiento</h2>
+  <ul data-testid="controller-info">
+    <li><strong>Responsable:</strong> {{ legal.controller.name }}</li>
+    <li><strong>NIF:</strong> {{ legal.controller.taxId }}</li>
+    <li><strong>Domicilio:</strong> {{ legal.controller.address }}</li>
+    <li><strong>Email de contacto:</strong> {{ legal.contactEmail }}</li>
+  </ul>
+
+  <h2>2. Naturaleza del proyecto</h2>
+  <p>
+    {{ legal.appName }} es un proyecto académico sin ánimo de lucro. No se cobra por su uso, no se
+    muestra publicidad y los datos no se venden ni se ceden con fines comerciales.
+  </p>
+
+  <h2>3. Datos que tratamos</h2>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Categoría</th>
+          <th scope="col">Datos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Cuenta</td>
+          <td>
+            Email, contraseña (gestionada por el proveedor de autenticación; {{ legal.appName }} no
+            la almacena) o identificador de la cuenta de Google o Apple si te registras con ellas,
+            estado de verificación del email, y fecha y versión en que aceptaste los Términos y
+            condiciones y esta Política de privacidad y confirmaste ser mayor de 18 años.
+          </td>
+        </tr>
+        <tr>
+          <td>Perfil</td>
+          <td>
+            Nombre, edad, ciudad, biografía, presupuesto máximo, si tienes mascotas, si fumas,
+            horario, género (texto libre), fecha de disponibilidad, tipo de perfil (buscas
+            habitación o la ofreces) y descripción de la habitación.
+          </td>
+        </tr>
+        <tr>
+          <td>Fotos</td>
+          <td>Las fotos de perfil que subes.</td>
+        </tr>
+        <tr>
+          <td>Mensajes</td>
+          <td>
+            Conversaciones con otros usuarios: contenido de los mensajes, fecha de envío y estado de
+            lectura.
+          </td>
+        </tr>
+        <tr>
+          <td>Búsqueda de ciudades</td>
+          <td>El texto que escribes al buscar una ciudad.</td>
+        </tr>
+        <tr>
+          <td>Datos técnicos</td>
+          <td>
+            Datos necesarios para mantener la sesión (tokens de autenticación) y preferencias
+            guardadas en tu navegador. Consulta la
+            <a [routerLink]="routes.COOKIES">Política de cookies y almacenamiento</a>.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="mt-3">No usamos herramientas de analítica ni cookies publicitarias.</p>
+
+  <h3>Datos especialmente protegidos</h3>
+  <p>
+    Los campos de texto libre (biografía, género, descripción de la habitación y mensajes) pueden
+    contener lo que tú decidas escribir.
+    <strong>Te recomendamos no incluir datos de categorías especiales</strong> (salud, origen
+    étnico, religión, orientación sexual, opiniones políticas, etc.) ni datos de terceros. Si lo
+    haces, será por tu propia decisión y bajo tu consentimiento explícito.
+  </p>
+
+  <h2>4. Finalidades y bases jurídicas</h2>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Finalidad</th>
+          <th scope="col">Base jurídica</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Crear y gestionar tu cuenta, verificar tu email e iniciar sesión.</td>
+          <td>
+            Ejecución del contrato (art. 6.1.b RGPD): aceptación de los Términos y condiciones.
+          </td>
+        </tr>
+        <tr>
+          <td>Mostrar tu perfil a otros usuarios y permitir buscar perfiles compatibles.</td>
+          <td>Ejecución del contrato (art. 6.1.b RGPD).</td>
+        </tr>
+        <tr>
+          <td>Permitir el envío y la recepción de mensajes entre usuarios.</td>
+          <td>Ejecución del contrato (art. 6.1.b RGPD).</td>
+        </tr>
+        <tr>
+          <td>Autocompletar ciudades a partir del texto que introduces.</td>
+          <td>Ejecución del contrato (art. 6.1.b RGPD).</td>
+        </tr>
+        <tr>
+          <td>
+            Proteger la seguridad del servicio, prevenir abusos y resolver incidencias técnicas.
+          </td>
+          <td>Interés legítimo (art. 6.1.f RGPD) en mantener un servicio seguro.</td>
+        </tr>
+        <tr>
+          <td>Atender las solicitudes de ejercicio de derechos.</td>
+          <td>Cumplimiento de una obligación legal (art. 6.1.c RGPD).</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="mt-3">
+    No se toman decisiones automatizadas con efectos jurídicos sobre ti ni se elaboran perfiles con
+    fines comerciales.
+  </p>
+
+  <h2>5. Visibilidad de tu perfil</h2>
+  <p>
+    Tu perfil (nombre, edad, ciudad, biografía, fotos, presupuesto, mascotas, tabaco, horario,
+    género, disponibilidad, tipo y descripción de la habitación) es visible para otros usuarios de
+    {{ legal.appName }}. Además, la página de detalle de un perfil puede consultarse
+    <strong>sin iniciar sesión</strong> por cualquier persona que conozca su enlace. Tu email no se
+    muestra a otros usuarios.
+  </p>
+  <p>Los mensajes solo son visibles para las dos personas que participan en la conversación.</p>
+
+  <h2>6. Destinatarios y encargados del tratamiento</h2>
+  <p>
+    No cedemos tus datos a terceros salvo obligación legal. Para prestar el servicio usamos los
+    siguientes proveedores, que actúan como encargados del tratamiento o como servicios técnicos
+    necesarios:
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Proveedor</th>
+          <th scope="col">Función</th>
+          <th scope="col">Ubicación / transferencias</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>InsForge</td>
+          <td>
+            Autenticación, verificación de email, inicio de sesión con Google o Apple y base de
+            datos.
+          </td>
+          <td>Región de la Unión Europea (eu-central).</td>
+        </tr>
+        <tr>
+          <td>Fly.io</td>
+          <td>Alojamiento del servidor de la API.</td>
+          <td>
+            Región de Frankfurt (Alemania). Fly.io es una empresa de EE. UU.; ver nota sobre
+            transferencias.
+          </td>
+        </tr>
+        <tr>
+          <td>Vercel</td>
+          <td>Alojamiento y distribución de la aplicación web.</td>
+          <td>Red global que puede implicar tratamiento en EE. UU.</td>
+        </tr>
+        <tr>
+          <td>Cloudinary</td>
+          <td>Almacenamiento y entrega de las fotos de perfil.</td>
+          <td>Puede implicar tratamiento en EE. UU.</td>
+        </tr>
+        <tr>
+          <td>OpenStreetMap Nominatim (OpenStreetMap Foundation)</td>
+          <td>
+            Búsqueda de ciudades. Recibe el texto de búsqueda desde nuestro servidor, no tu
+            dirección IP.
+          </td>
+          <td>Reino Unido (país con decisión de adecuación de la Comisión Europea).</td>
+        </tr>
+        <tr>
+          <td>Google / Apple</td>
+          <td>
+            Solo si eliges iniciar sesión con ellos: te identifican ante
+            {{ legal.appName }} conforme a sus propias políticas de privacidad.
+          </td>
+          <td>Pueden implicar tratamiento en EE. UU.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="mt-3">
+    <strong>Transferencias internacionales.</strong> Cuando un proveedor trate datos fuera del
+    Espacio Económico Europeo (en particular en EE. UU.), la transferencia se ampara en las
+    Cláusulas Contractuales Tipo aprobadas por la Comisión Europea y/o en la certificación del
+    proveedor en el Marco de Privacidad de Datos UE-EE. UU. (Data Privacy Framework), según
+    corresponda.
+  </p>
+
+  <h2>7. Conservación</h2>
+  <p>
+    Conservamos tus datos mientras mantengas tu cuenta. Cuando eliminas la cuenta se borran tu
+    cuenta, tu perfil, tus conversaciones, tus mensajes y tus fotos. Los archivos de las fotos se
+    eliminan automáticamente del proveedor de almacenamiento de imágenes (Cloudinary) en el momento
+    de la supresión, tanto al eliminar la cuenta como al eliminar una foto concreta; si el proveedor
+    no responde, la incidencia se registra para su eliminación posterior. Algunos datos pueden
+    permanecer durante un tiempo limitado en copias de seguridad técnicas de los proveedores hasta
+    su borrado según sus ciclos habituales, o bloqueados cuando lo exija la ley.
+  </p>
+
+  <h2>8. Tus derechos</h2>
+  <p>Puedes ejercer en cualquier momento tus derechos de:</p>
+  <ul>
+    <li>
+      <strong>Acceso:</strong> saber qué datos tratamos sobre ti. Puedes descargar una copia de tus
+      datos desde la aplicación (Editar perfil → Tus datos → Descargar mis datos).
+    </li>
+    <li>
+      <strong>Rectificación:</strong> corregir datos inexactos. Puedes editar tu perfil directamente
+      desde la aplicación.
+    </li>
+    <li>
+      <strong>Supresión:</strong> eliminar tus datos. Puedes eliminar tu cuenta desde la aplicación
+      (Editar perfil → Eliminar cuenta).
+    </li>
+    <li><strong>Limitación del tratamiento.</strong></li>
+    <li>
+      <strong>Portabilidad:</strong> recibir tus datos en un formato estructurado y de uso común.
+      Desde la aplicación (Editar perfil → Tus datos → Descargar mis datos) obtienes un archivo JSON
+      con tu cuenta, tu perfil, las direcciones de tus fotos y tus conversaciones con sus mensajes.
+    </li>
+    <li><strong>Oposición:</strong> oponerte al tratamiento basado en interés legítimo.</li>
+  </ul>
+  <p>
+    Puedes ejercer el acceso, la rectificación, la supresión y la portabilidad directamente desde la
+    aplicación. Para ejercer cualquier derecho por otra vía, o los de limitación y oposición,
+    escribe a <strong>{{ legal.contactEmail }}</strong> indicando el derecho que quieres ejercer y
+    el email de tu cuenta. Responderemos en el plazo de un mes. Podremos pedirte información
+    adicional para verificar tu identidad.
+  </p>
+  <p>
+    Si consideras que no hemos atendido correctamente tus derechos, puedes presentar una reclamación
+    ante la <strong>{{ legal.supervisoryAuthority.name }}</strong> en
+    <a [href]="legal.supervisoryAuthority.url" target="_blank" rel="noopener noreferrer"
+      >www.aepd.es</a
+    >.
+  </p>
+
+  <h2>9. Menores de edad</h2>
+  <p>
+    {{ legal.appName }} está dirigido exclusivamente a personas <strong>mayores de 18 años</strong>.
+    No está permitido registrarse siendo menor de edad. Si detectamos una cuenta de un menor, la
+    eliminaremos.
+  </p>
+
+  <h2>10. Seguridad</h2>
+  <p>
+    Aplicamos medidas técnicas y organizativas razonables para un proyecto de estas características:
+    comunicaciones cifradas mediante HTTPS, autenticación gestionada por un proveedor especializado
+    y acceso restringido a los datos. Ningún sistema es completamente seguro, por lo que te
+    recomendamos usar una contraseña robusta y no compartir información sensible.
+  </p>
+
+  <h2>11. Cambios en esta política</h2>
+  <p>
+    Podemos actualizar esta política. La fecha y la versión indicadas al principio reflejarán la
+    última modificación. Si los cambios son relevantes, lo comunicaremos a través de la aplicación.
+  </p>
+</app-legal-page-layout>

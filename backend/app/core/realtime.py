@@ -302,7 +302,12 @@ class PostgresNotifyListener:
         try:
             payload = json.loads(payload_str)
         except json.JSONDecodeError:
-            logger.warning(f"[realtime] invalid notify payload: {payload_str!r}")
+            # Never log the payload itself: it may carry message content.
+            logger.warning(
+                "[realtime] invalid notify payload on '%s' (length=%d)",
+                NOTIFY_CHANNEL,
+                len(payload_str or ""),
+            )
             return
 
         channel = payload.get("channel")

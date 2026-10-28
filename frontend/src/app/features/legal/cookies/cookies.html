@@ -1,0 +1,93 @@
+<app-legal-page-layout title="Política de cookies y almacenamiento local">
+  <p>
+    Esta política explica qué información guarda {{ legal.appName }} en tu navegador, conforme al
+    artículo 22.2 de la Ley 34/2002 de Servicios de la Sociedad de la Información y de Comercio
+    Electrónico (LSSI).
+  </p>
+
+  <h2>1. Resumen</h2>
+  <ul>
+    <li>{{ legal.appName }} <strong>no usa cookies</strong> propias ni de terceros.</li>
+    <li><strong>No usamos analítica, publicidad ni seguimiento.</strong></li>
+    <li>
+      Usamos el almacenamiento local del navegador (<code>localStorage</code> y
+      <code>sessionStorage</code>) solo para elementos
+      <strong>estrictamente necesarios</strong> para que la aplicación funcione o para recordar una
+      elección que tú has hecho. Por eso no mostramos un banner de consentimiento.
+    </li>
+  </ul>
+
+  <h2>2. Qué guardamos</h2>
+
+  <h3>localStorage (persiste entre visitas hasta que se elimina)</h3>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Clave</th>
+          <th scope="col">Finalidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of localStorageItems; track item.keys) {
+          <tr>
+            <td>
+              <code>{{ item.keys }}</code>
+            </td>
+            <td>{{ item.purpose }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <h3>sessionStorage (se borra al cerrar la pestaña)</h3>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Clave</th>
+          <th scope="col">Finalidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of sessionStorageItems; track item.keys) {
+          <tr>
+            <td>
+              <code>{{ item.keys }}</code>
+            </td>
+            <td>{{ item.purpose }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Service worker</h3>
+  <p>
+    {{ legal.appName }} es una aplicación web progresiva (PWA). El navegador guarda en caché los
+    archivos de la aplicación (código, estilos, iconos y fuentes) para que cargue más rápido y
+    funcione mejor con mala conexión. Esta caché no contiene datos personales.
+  </p>
+
+  <h2>3. Recursos de terceros</h2>
+  <p>
+    Las fuentes tipográficas se sirven desde nuestros propios servidores, por lo que tu navegador no
+    se conecta a Google Fonts. Las fotos de perfil se cargan desde Cloudinary, que recibe la
+    petición técnica de tu navegador (incluida tu dirección IP) para poder entregarlas.
+  </p>
+
+  <h2>4. Cómo borrar estos datos</h2>
+  <p>
+    Al cerrar sesión o eliminar tu cuenta se borran los tokens de autenticación y el progreso del
+    registro inicial, incluidas las fotos pendientes de subir. También puedes borrar todos los datos
+    del sitio desde la configuración de tu navegador; en ese caso tendrás que volver a iniciar
+    sesión.
+  </p>
+
+  <h2>5. Contacto</h2>
+  <p>
+    Para cualquier consulta escribe a <strong>{{ legal.contactEmail }}</strong
+    >. Consulta también la <a [routerLink]="routes.PRIVACY">Política de privacidad</a>.
+  </p>
+</app-legal-page-layout>
