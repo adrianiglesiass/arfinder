@@ -27,7 +27,12 @@ async def me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@router.get("/me/export", response_model=UserDataExport, responses=UNAUTH)
+@router.get(
+    "/me/export",
+    response_model=UserDataExport,
+    responses=UNAUTH,
+    dependencies=[Depends(read_rate_limiter)],
+)
 def export_my_data(
     response: Response,
     db: Session = Depends(get_db),

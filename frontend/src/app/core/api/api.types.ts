@@ -22,6 +22,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/auth/me/export': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Export My Data */
+    get: operations['export_my_data_auth_me_export_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/auth/me/consent': {
     parameters: {
       query?: never;
@@ -467,6 +484,100 @@ export interface components {
        */
       can_message: boolean;
     };
+    /** ExportConversation */
+    ExportConversation: {
+      /** Id */
+      id: number;
+      /** Created At */
+      created_at?: string | null;
+      other_participant: components['schemas']['ExportParticipant'];
+      /**
+       * Messages
+       * @default []
+       */
+      messages: components['schemas']['ExportMessage'][];
+    };
+    /** ExportMessage */
+    ExportMessage: {
+      /** Id */
+      id: number;
+      /** Sender Id */
+      sender_id: number;
+      /** Is Mine */
+      is_mine: boolean;
+      /** Content */
+      content: string;
+      /** Sent At */
+      sent_at?: string | null;
+      /** Is Read */
+      is_read: boolean;
+      /** Read At */
+      read_at?: string | null;
+    };
+    /**
+     * ExportParticipant
+     * @description The other party of a conversation. Only non-contact data is exported.
+     */
+    ExportParticipant: {
+      /** Id */
+      id: number;
+      /** Name */
+      name?: string | null;
+    };
+    /** ExportPhoto */
+    ExportPhoto: {
+      /** Photo Url */
+      photo_url: string;
+      /** Order */
+      order?: number | null;
+      /** Is Main */
+      is_main?: boolean | null;
+      /** Created At */
+      created_at?: string | null;
+    };
+    /** ExportProfile */
+    ExportProfile: {
+      /** Name */
+      name: string;
+      /** Age */
+      age: number;
+      /** City */
+      city: string;
+      /** Bio */
+      bio?: string | null;
+      /** Max Budget */
+      max_budget?: number | null;
+      /** Has Pets */
+      has_pets: boolean;
+      /** Is Smoker */
+      is_smoker: boolean;
+      schedule?: components['schemas']['ScheduleEnum'] | null;
+      /** Gender */
+      gender?: string | null;
+      /** Available From */
+      available_from?: string | null;
+      type: components['schemas']['TypeEnum'];
+      /** Room Description */
+      room_description?: string | null;
+      /**
+       * Photos
+       * @default []
+       */
+      photos: components['schemas']['ExportPhoto'][];
+    };
+    /** ExportUser */
+    ExportUser: {
+      /** Id */
+      id: number;
+      /** Email */
+      email: string;
+      /** Created At */
+      created_at?: string | null;
+      /** Terms Accepted At */
+      terms_accepted_at?: string | null;
+      /** Terms Version */
+      terms_version?: string | null;
+    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -670,6 +781,18 @@ export interface components {
      * @enum {string}
      */
     TypeEnum: 'looking_for_flat' | 'looking_for_roommate';
+    /** UserDataExport */
+    UserDataExport: {
+      /** Generated At */
+      generated_at: string;
+      user: components['schemas']['ExportUser'];
+      profile?: components['schemas']['ExportProfile'] | null;
+      /**
+       * Conversations
+       * @default []
+       */
+      conversations: components['schemas']['ExportConversation'][];
+    };
     /** UserResponse */
     UserResponse: {
       /** Id */
@@ -754,6 +877,72 @@ export interface operations {
       };
     };
   };
+  delete_my_account_auth_me_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  export_my_data_auth_me_export_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['UserDataExport'];
+        };
+      };
+      /** @description Invalid request body or parameters */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not authenticated */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   accept_terms_auth_me_consent_post: {
     parameters: {
       query?: never;
@@ -798,38 +987,6 @@ export interface operations {
         content: {
           'application/json': components['schemas']['HTTPValidationError'];
         };
-      };
-    };
-  };
-  delete_my_account_auth_me_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Invalid request body or parameters */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
       };
     };
   };
@@ -1312,6 +1469,13 @@ export interface operations {
       };
       /** @description Not authenticated */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Legal terms not accepted */
+      403: {
         headers: {
           [name: string]: unknown;
         };

@@ -31,7 +31,16 @@ export class DataDownload {
     this.isDownloading.set(true);
     try {
       const blob = await this.authService.exportMyData();
+      if (blob.size === 0) {
+        throw new Error('empty export payload');
+      }
       this.saveBlob(blob);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Descarga iniciada',
+        detail: `Tu archivo ${DATA_EXPORT_FILENAME} se está descargando.`,
+        life: 5000,
+      });
     } catch (err) {
       const { general } = this.errorService.processError(err as HttpErrorResponse);
       this.messageService.add({

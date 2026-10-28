@@ -68,7 +68,10 @@ describe('DataDownload', () => {
     vi.runAllTimers();
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:arfinder-export');
     expect(component.isDownloading()).toBe(false);
-    expect(addMessage).not.toHaveBeenCalled();
+    expect(addMessage).toHaveBeenCalledOnce();
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ severity: 'success', summary: 'Descarga iniciada' })
+    );
   });
 
   it('shows an error toast when the export fails', async () => {
