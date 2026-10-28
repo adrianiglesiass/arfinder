@@ -72,13 +72,13 @@ def test_accept_terms_rejects_non_current_version(client, auth_headers):
     assert response.status_code == 422
 
 
-def test_me_exposes_consent_fields(client, auth_headers):
-    initial = client.get("/auth/me", headers=auth_headers).json()
+def test_me_exposes_consent_fields(client, no_consent_headers):
+    initial = client.get("/auth/me", headers=no_consent_headers).json()
     assert initial["terms_accepted_at"] is None
     assert initial["terms_version"] is None
 
-    client.post(CONSENT_URL, json=VALID_BODY, headers=auth_headers)
+    client.post(CONSENT_URL, json=VALID_BODY, headers=no_consent_headers)
 
-    me = client.get("/auth/me", headers=auth_headers).json()
+    me = client.get("/auth/me", headers=no_consent_headers).json()
     assert me["terms_version"] == CURRENT_TERMS_VERSION
     assert me["terms_accepted_at"].endswith("Z")

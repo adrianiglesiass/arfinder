@@ -92,9 +92,11 @@ def db():
 
 @pytest.fixture(scope="function")
 def client(db, create_test_user):
-    # Create default user
+    # Create default user. Consents by default so the many HTTP tests that create a
+    # profile through /profiles/me are not blocked by the 403 TERMS_NOT_ACCEPTED guard.
+    # Tests that need a "fresh sign-up" user without consent use `no_consent_headers`.
     default_user = create_test_user(
-        email="test@test.com", insforge_id="default_test_user"
+        email="test@test.com", insforge_id="default_test_user", accepted_terms=True
     )
 
     async def mock_get_current_user(
@@ -139,7 +141,7 @@ def client(db, create_test_user):
 
 @pytest.fixture(scope="function")
 def create_test_user(db):
-    def _create(email: str, insforge_id: str = None, accepted_terms: bool = False):
+    def _create(email: str, insforge_id: str = None, accepted_terms: bool = True):
         user = User(email=email, insforge_id=insforge_id or f"test_{email}")
         if accepted_terms:
             user.terms_accepted_at = datetime.now(timezone.utc)
@@ -161,3 +163,15 @@ def auth_token():
 @pytest.fixture(scope="function")
 def auth_headers(auth_token):
     return {"Authorization": f"Bearer {auth_token}"}
+
+
+@pytest.fixture(scope="function")
+def no_consent_headers(db, create_test_user):
+    """Headers for a freshly signed-up user that has NOT accepted the terms.
+
+    The dependency override resolves the user by email taken from the token, so a
+    dedicated email gives these tests a user without consent, independent of the
+    consenting default user created by the `client` fixture.
+    """
+    create_test_user(email="noconsent@test.com", accepted_terms=False)
+    return {"Authorization": "Bearer token_noconsent@test.com"}

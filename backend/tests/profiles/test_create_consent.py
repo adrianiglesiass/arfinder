@@ -21,14 +21,14 @@ def _profile_data() -> ProfileCreate:
 
 
 def test_create_profile_without_consent_raises(db, create_test_user):
-    user = create_test_user(email="no_consent@test.com")
+    user = create_test_user(email="no_consent@test.com", accepted_terms=False)
 
     with pytest.raises(TermsNotAcceptedError):
         create_profile(db, user.id, _profile_data())
 
 
 def test_create_profile_with_outdated_consent_raises(db, create_test_user):
-    user = create_test_user(email="outdated@test.com")
+    user = create_test_user(email="outdated@test.com", accepted_terms=False)
     user_repository.update_terms_consent(db, user, datetime.now(timezone.utc), "0.0.1")
 
     with pytest.raises(TermsNotAcceptedError):
@@ -43,8 +43,10 @@ def test_create_profile_with_current_consent_succeeds(db, create_test_user):
     assert profile.user_id == user.id
 
 
-def test_create_my_profile_without_consent_returns_403(client, auth_headers):
-    response = client.post("/profiles/me", json=PROFILE_PAYLOAD, headers=auth_headers)
+def test_create_my_profile_without_consent_returns_403(client, no_consent_headers):
+    response = client.post(
+        "/profiles/me", json=PROFILE_PAYLOAD, headers=no_consent_headers
+    )
 
     assert response.status_code == 403
     assert response.json()["code"] == "TERMS_NOT_ACCEPTED"

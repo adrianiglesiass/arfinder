@@ -8,7 +8,11 @@ from app.core.consent import has_accepted_current_terms
 from app.core.exceptions.auth import InvalidCredentialsError, TermsNotAcceptedError
 from app.core.exceptions.profile import ProfileAlreadyExistsError, ProfileNotFoundError
 from app.models.profile import Profile, ScheduleEnum, TypeEnum
-from app.repositories import profile_photo_repository, profile_repository, user_repository
+from app.repositories import (
+    profile_photo_repository,
+    profile_repository,
+    user_repository,
+)
 from app.schemas.profile import ProfileCreate, ProfileSummary, ProfileUpdate
 
 
