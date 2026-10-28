@@ -243,6 +243,8 @@ export default class Onboarding implements OnInit {
               }
             }
           }
+
+          photos.clearPersistedPhotos();
         }
 
         await this.router.navigate(['']);
