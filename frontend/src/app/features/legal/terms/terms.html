@@ -1,0 +1,105 @@
+<app-legal-page-layout title="Términos y condiciones de uso">
+  <p>
+    Estos términos regulan el uso de {{ legal.appName }}, una aplicación para encontrar compañeros
+    de piso y habitaciones compartidas. Al crear una cuenta o usar la aplicación aceptas estos
+    términos y declaras haber leído la <a [routerLink]="routes.PRIVACY">Política de privacidad</a>.
+  </p>
+
+  <h2>1. Titular del servicio</h2>
+  <p>
+    {{ legal.appName }} es un proyecto académico sin ánimo de lucro cuyo responsable es
+    {{ legal.controller.name }}. Los datos completos del titular figuran en el
+    <a [routerLink]="routes.LEGAL_NOTICE">Aviso legal</a>.
+  </p>
+
+  <h2>2. Objeto del servicio</h2>
+  <p>
+    {{ legal.appName }} permite crear un perfil, consultar perfiles de otras personas que buscan u
+    ofrecen habitación y comunicarse con ellas mediante mensajes. {{ legal.appName }}
+    <strong>no es una agencia inmobiliaria</strong>, no interviene en los acuerdos entre usuarios,
+    no verifica la identidad de los usuarios ni la veracidad de los anuncios y no gestiona pagos.
+  </p>
+  <p>
+    El servicio es gratuito y se ofrece con fines académicos, por lo que puede tener interrupciones,
+    cambios o dejar de estar disponible.
+  </p>
+
+  <h2>3. Requisitos de uso</h2>
+  <ul>
+    <li>Debes ser <strong>mayor de 18 años</strong>.</li>
+    <li>Debes proporcionar información veraz y mantenerla actualizada.</li>
+    <li>
+      La cuenta es personal. Eres responsable de custodiar tus credenciales y de la actividad
+      realizada con tu cuenta.
+    </li>
+  </ul>
+
+  <h2>4. Normas de conducta</h2>
+  <p>Al usar {{ legal.appName }} te comprometes a no:</p>
+  <ul>
+    <li>Publicar contenido falso, engañoso, ofensivo, discriminatorio, violento o ilegal.</li>
+    <li>Suplantar a otras personas ni usar fotos o datos de terceros sin su permiso.</li>
+    <li>Acosar, amenazar o enviar mensajes no deseados o publicitarios a otros usuarios.</li>
+    <li>
+      Usar la aplicación con fines comerciales, para recopilar datos de otros usuarios o para
+      actividades fraudulentas.
+    </li>
+    <li>Intentar acceder sin autorización a los sistemas o interferir en su funcionamiento.</li>
+  </ul>
+  <p>Podemos suspender o eliminar las cuentas que incumplan estas normas.</p>
+
+  <h2>5. Contenido de los usuarios</h2>
+  <p>
+    Eres responsable del contenido que publicas (textos, fotos y mensajes) y garantizas que tienes
+    derecho a publicarlo. Nos concedes una licencia gratuita, no exclusiva y limitada a lo necesario
+    para alojar y mostrar ese contenido dentro de {{ legal.appName }} mientras mantengas tu cuenta.
+  </p>
+  <p>
+    Ten en cuenta que tu perfil es visible para otros usuarios y que la página de detalle de un
+    perfil puede consultarse sin iniciar sesión. Te recomendamos no incluir datos especialmente
+    sensibles en los campos de texto libre.
+  </p>
+
+  <h2>6. Relaciones entre usuarios</h2>
+  <p>
+    Los acuerdos de alquiler o convivencia se realizan directamente entre usuarios y bajo su
+    exclusiva responsabilidad. Te recomendamos actuar con prudencia: no realizar pagos por
+    adelantado sin garantías, visitar la vivienda y verificar la identidad de la otra parte.
+  </p>
+
+  <h2>7. Responsabilidad</h2>
+  <p>
+    {{ legal.appName }} se ofrece "tal cual". En la medida permitida por la ley, el titular no
+    responde de la exactitud del contenido publicado por los usuarios, de los acuerdos que alcancen
+    entre ellos ni de los daños derivados de interrupciones del servicio. Nada en estos términos
+    limita los derechos que te reconoce la normativa aplicable.
+  </p>
+
+  <h2>8. Baja</h2>
+  <p>
+    Puedes eliminar tu cuenta en cualquier momento desde la aplicación (Editar perfil → Eliminar
+    cuenta). Al hacerlo se borran tu cuenta, tu perfil, tus conversaciones y tus mensajes. Consulta
+    la
+    <a [routerLink]="routes.PRIVACY">Política de privacidad</a> para más detalles sobre la
+    conservación de los datos.
+  </p>
+
+  <h2>9. Modificaciones</h2>
+  <p>
+    Podemos modificar estos términos. La fecha y la versión indicadas al principio reflejarán la
+    última modificación. Si los cambios son relevantes, lo comunicaremos a través de la aplicación.
+  </p>
+
+  <h2>10. Legislación aplicable</h2>
+  <p>
+    Estos términos se rigen por la legislación española. Si eres consumidor, podrás acudir a los
+    juzgados y tribunales de tu domicilio.
+  </p>
+
+  <h2>11. Contacto</h2>
+  <p>
+    Para cualquier consulta sobre estos términos escribe a
+    <strong>{{ legal.contactEmail }}</strong
+    >.
+  </p>
+</app-legal-page-layout>

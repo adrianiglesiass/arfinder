@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, input, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import { DividerModule } from 'primeng/divider';
 import { InputTextModule } from 'primeng/inputtext';
@@ -12,6 +13,7 @@ import {
   hasUppercase,
   passwordMatch,
 } from '@core/auth/password.validators';
+import { ROUTES } from '@core/constants/routes';
 import type { FieldValidationError } from '@core/errors/error-response.model';
 
 import { Button } from '@shared/components/button/button';
@@ -33,6 +35,7 @@ export type AuthFormFieldErrors = FieldValidationError[];
   selector: 'app-auth-form',
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     InputTextModule,
     MessageModule,
     PasswordModule,
@@ -51,6 +54,7 @@ export class AuthForm {
   readonly submitted = output<AuthFormPayload>();
   readonly socialAuth = output<void>();
   readonly socialAuthApple = output<void>();
+  protected readonly routes = ROUTES;
   isRegisterMode = computed(() => this.mode() === 'register');
   submitLabel = computed(() => (this.mode() === 'login' ? 'Iniciar sesión' : 'Registrarse'));
 

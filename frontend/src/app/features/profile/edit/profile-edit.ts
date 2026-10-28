@@ -32,6 +32,7 @@ import { ProfileService } from '@core/profile/profile.service';
 import { Button } from '@shared/components/button/button';
 import { ConfirmDestructiveDialog } from '@shared/components/confirm-destructive-dialog/confirm-destructive-dialog';
 import { EmptyState } from '@shared/components/empty-state/empty-state';
+import { LegalLinks } from '@shared/components/legal-links/legal-links';
 import { MobileActionBar } from '@shared/components/mobile-action-bar/mobile-action-bar';
 import { StepLifestyle } from '@shared/components/profile-form/step-lifestyle/step-lifestyle';
 import { StepObjective } from '@shared/components/profile-form/step-objective/step-objective';
@@ -79,6 +80,7 @@ interface Section {
     EditSection,
     EmptyState,
     ConfirmDestructiveDialog,
+    LegalLinks,
   ],
   providers: [MessageService],
   templateUrl: './profile-edit.html',

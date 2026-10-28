@@ -1,0 +1,13 @@
+<nav aria-label="Información legal">
+  <ul class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+    @for (item of links; track item.link) {
+      <li>
+        <a
+          [routerLink]="item.link"
+          class="no-underline text-gray-500 hover:text-primary hover:underline transition-colors"
+          >{{ item.label }}</a
+        >
+      </li>
+    }
+  </ul>
+</nav>

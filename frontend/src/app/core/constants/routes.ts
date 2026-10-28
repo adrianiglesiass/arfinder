@@ -11,4 +11,8 @@ export const ROUTES = {
   MESSAGES: '/mensajes',
   FAVORITES: '/favoritos',
   BLOCKED: '/bloqueados',
+  PRIVACY: '/privacidad',
+  TERMS: '/terminos',
+  COOKIES: '/cookies',
+  LEGAL_NOTICE: '/aviso-legal',
 } as const;

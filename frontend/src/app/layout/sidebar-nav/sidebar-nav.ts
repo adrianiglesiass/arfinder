@@ -5,6 +5,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { ConversationStore } from '@core/conversations/conversation.store';
 
 import { ArfinderLogo } from '@shared/components/arfinder-logo/arfinder-logo';
+import { LegalLinks } from '@shared/components/legal-links/legal-links';
 import { NavBadge } from '@shared/components/nav-badge/nav-badge';
 
 import { SidebarUserItem } from './sidebar-user-item/sidebar-user-item';
@@ -19,7 +20,7 @@ interface NavItem {
 
 @Component({
   selector: 'app-sidebar-nav',
-  imports: [RouterLink, RouterLinkActive, ArfinderLogo, SidebarUserItem, NavBadge],
+  imports: [RouterLink, RouterLinkActive, ArfinderLogo, SidebarUserItem, NavBadge, LegalLinks],
   templateUrl: './sidebar-nav.html',
 })
 export class SidebarNav {
