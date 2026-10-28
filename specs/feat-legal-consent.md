@@ -53,7 +53,7 @@ re-aceptación al cambiar los documentos.
     llama a `acceptTerms(LEGAL_DOCS_VERSION)` antes de `saveOnboarding`.
   - `layout/terms-reconsent-dialog/`: diálogo **bloqueante** (no dismissable) para usuarios
     existentes con perfil y sin consentimiento vigente; solo "Aceptar y continuar" o
-    "Cerrar sesión"; montado en `layout` con `@defer (on idle)`.
+    "Cerrar sesión"; montado en `layout` con `@defer`.
 - **Tests**: `backend/tests/auth/test_consent.py`, `backend/tests/profiles/test_create_consent.py`,
   `core/legal/terms-consent.spec.ts`, `shared/components/terms-consent/terms-consent.spec.ts`,
   `layout/terms-reconsent-dialog/terms-reconsent-dialog.spec.ts` y `onboarding.spec.ts`.
@@ -96,7 +96,7 @@ re-aceptación al cambiar los documentos.
   vigente (defensa en profundidad, no confiar en el cliente).
 - **Guardia en el service, no en la ruta**: `create_profile` valida el consentimiento para
   que cualquier llamante quede cubierto.
-- **Diálogo en `layout` con `@defer (on idle)`**: se monta en toda la app autenticada sin
+- **Diálogo en `layout` con `@defer`**: se monta en toda la app autenticada sin
   penalizar el bundle inicial.
 - **Fixtures de test no rotas**: `accepted_terms=True` por defecto en `create_test_user`
   mantiene verdes las suites que solo quieren cubrir su feature; los casos negativos usan
@@ -109,14 +109,17 @@ re-aceptación al cambiar los documentos.
 - Backend (`tests/profiles/test_create_consent.py`): crear perfil sin consentir → 403
   `TERMS_NOT_ACCEPTED`; con `no_consent_headers` + aceptar → 200.
 - Frontend: `terms-consent.spec.ts` (helper de estado), `terms-consent.spec.ts` (shared,
-  estado/error/a11y), `terms-reconsent-dialog.spec.ts` (apertura, aceptar, logout, error),
-  `onboarding.spec.ts` (bloqueo del último paso y envío de consentimiento).
+  estado/error/a11y), `terms-reconsent-dialog.spec.ts` (apertura, aceptar, logout, error).
+  `onboarding.spec.ts` mockea un usuario ya consentido para neutralizar la puerta y poder
+  testear la idempotencia de envío; el bloqueo real del último paso sin consentimiento está
+  cubierto por la guarda 403 del backend (`test_create_consent.py`).
 
 ## Checklist de verificación
 - [x] Backend: `make lint`
 - [x] Backend: `make format-check`
 - [x] Backend: `make test`
-- [x] Backend: `make migrate` (migración `b7e4d2a91c35` aplicada en dev)
+- [x] Backend: `make migrate` (migración `b7e4d2a91c35` verificada con `alembic upgrade
+  head` sobre una DB limpia: un solo head)
 - [x] Frontend: `npm run format:check`
 - [x] Frontend: `npm run lint`
 - [x] Frontend: `npm run test:ci`
