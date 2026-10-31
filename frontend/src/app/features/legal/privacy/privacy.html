@@ -9,8 +9,7 @@
   <h2>1. Responsable del tratamiento</h2>
   <ul data-testid="controller-info">
     <li><strong>Responsable:</strong> {{ legal.controller.name }}</li>
-    <li><strong>NIF:</strong> {{ legal.controller.taxId }}</li>
-    <li><strong>Domicilio:</strong> {{ legal.controller.address }}</li>
+    <li><strong>País:</strong> {{ legal.controller.country }}</li>
     <li><strong>Email de contacto:</strong> {{ legal.contactEmail }}</li>
   </ul>
 
@@ -133,10 +132,10 @@
   <h2>5. Visibilidad de tu perfil</h2>
   <p>
     Tu perfil (nombre, edad, ciudad, biografía, fotos, presupuesto, mascotas, tabaco, horario,
-    género, disponibilidad, tipo y descripción de la habitación) es visible para otros usuarios de
-    {{ legal.appName }}. Además, la página de detalle de un perfil puede consultarse
-    <strong>sin iniciar sesión</strong> por cualquier persona que conozca su enlace. Tu email no se
-    muestra a otros usuarios.
+    género, disponibilidad, tipo y descripción de la habitación) es visible únicamente para usuarios
+    autenticados de {{ legal.appName }}. Para consultar un perfil —incluida la página de detalle a
+    la que apunta un enlace— es necesario haber iniciado sesión: no existe ninguna consulta pública
+    de perfiles sin sesión. Tu email no se muestra a otros usuarios.
   </p>
   <p>Los mensajes solo son visibles para las dos personas que participan en la conversación.</p>
 
@@ -159,8 +158,8 @@
         <tr>
           <td>InsForge</td>
           <td>
-            Autenticación, verificación de email, inicio de sesión con Google o Apple y base de
-            datos.
+            Autenticación, verificación de email, inicio de sesión con Google o Apple, base de datos
+            y despliegue de la aplicación web.
           </td>
           <td>Región de la Unión Europea (eu-central).</td>
         </tr>
@@ -173,13 +172,13 @@
           </td>
         </tr>
         <tr>
-          <td>Vercel</td>
-          <td>Alojamiento y distribución de la aplicación web.</td>
-          <td>Red global que puede implicar tratamiento en EE. UU.</td>
-        </tr>
-        <tr>
           <td>Cloudinary</td>
           <td>Almacenamiento y entrega de las fotos de perfil.</td>
+          <td>Puede implicar tratamiento en EE. UU.</td>
+        </tr>
+        <tr>
+          <td>Google (Gmail)</td>
+          <td>Buzón de contacto del responsable para consultas y ejercicio de derechos.</td>
           <td>Puede implicar tratamiento en EE. UU.</td>
         </tr>
         <tr>

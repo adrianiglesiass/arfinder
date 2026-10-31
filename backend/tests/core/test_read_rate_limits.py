@@ -54,13 +54,16 @@ def test_health_is_never_rate_limited(client, auth_headers, strict_reads):
     assert client.get("/health/realtime").status_code == 200
 
 
-def test_public_profile_uses_the_ip_limiter(client, monkeypatch):
+def test_profile_detail_uses_the_ip_limiter(client, auth_headers, monkeypatch):
     from app.core import rate_limit
 
     monkeypatch.setattr(settings, "ENVIRONMENT", "production")
     monkeypatch.setattr(rate_limit, "limiter", SlidingWindowLimiter(2))
 
-    statuses = [client.get("/profiles/999999").status_code for _ in range(3)]
+    statuses = [
+        client.get("/profiles/999999", headers=auth_headers).status_code
+        for _ in range(3)
+    ]
 
     assert 429 not in statuses[:2]
     assert statuses[2] == 429

@@ -54,7 +54,7 @@ export const routes: Routes = [
   {
     path: '',
     component: Layout,
-    canActivate: [profileGuard],
+    canActivate: [authGuard, profileGuard],
     children: [
       { path: '', redirectTo: 'explorar', pathMatch: 'full' },
       {

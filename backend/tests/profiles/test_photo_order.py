@@ -42,14 +42,16 @@ def _make_profile_with_reordered_photos(db, create_test_user):
     return profile.id
 
 
-def test_detail_and_summary_share_photo_order(client, db, create_test_user):
+def test_detail_and_summary_share_photo_order(
+    client, db, create_test_user, auth_headers
+):
     profile_id = _make_profile_with_reordered_photos(db, create_test_user)
 
-    detail = client.get(f"/profiles/{profile_id}")
+    detail = client.get(f"/profiles/{profile_id}", headers=auth_headers)
     assert detail.status_code == 200
     detail_urls = [p["photo_url"] for p in detail.json()["photos"]]
 
-    summary = client.get("/profiles")
+    summary = client.get("/profiles", headers=auth_headers)
     assert summary.status_code == 200
     match = next(p for p in summary.json() if p["id"] == profile_id)
     summary_urls = match["photo_urls"]

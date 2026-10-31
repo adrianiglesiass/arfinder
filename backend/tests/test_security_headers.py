@@ -10,6 +10,7 @@ def test_security_headers_are_present(client, monkeypatch):
     assert response.headers["x-content-type-options"] == "nosniff"
     assert response.headers["x-frame-options"] == "DENY"
     assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
+    assert response.headers["x-robots-tag"] == "noindex, nofollow"
     assert "max-age=" in response.headers["strict-transport-security"]
 
 

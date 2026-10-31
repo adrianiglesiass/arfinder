@@ -1,14 +1,13 @@
 # Política de privacidad
 
-_Última actualización: 28 de octubre de 2026 · Versión 1.0.0_
+_Última actualización: 31 de octubre de 2026 · Versión 1.1.0_
 
 Esta política explica cómo se tratan los datos personales de las personas que usan Arfinder, una aplicación para encontrar compañeros de piso y habitaciones compartidas. Se redacta conforme al Reglamento (UE) 2016/679 (RGPD) y a la Ley Orgánica 3/2018 de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD).
 
 ## 1. Responsable del tratamiento
 
 - **Responsable:** Adrian Iglesias Álvarez
-- **NIF:** DNI 54703474K
-- **Domicilio:** Capitán Juan Varela 33, 2.º
+- **País:** España
 - **Email de contacto:** adrianiglesias010@gmail.com
 
 ## 2. Naturaleza del proyecto
@@ -47,7 +46,7 @@ No se toman decisiones automatizadas con efectos jurídicos sobre ti ni se elabo
 
 ## 5. Visibilidad de tu perfil
 
-Tu perfil (nombre, edad, ciudad, biografía, fotos, presupuesto, mascotas, tabaco, horario, género, disponibilidad, tipo y descripción de la habitación) es visible para otros usuarios de Arfinder. Además, la página de detalle de un perfil puede consultarse **sin iniciar sesión** por cualquier persona que conozca su enlace. Tu email no se muestra a otros usuarios.
+Tu perfil (nombre, edad, ciudad, biografía, fotos, presupuesto, mascotas, tabaco, horario, género, disponibilidad, tipo y descripción de la habitación) es visible únicamente para usuarios autenticados de Arfinder. Para consultar un perfil —incluida la página de detalle a la que apunta un enlace— es necesario haber iniciado sesión: no existe ninguna consulta pública de perfiles sin sesión. Tu email no se muestra a otros usuarios.
 
 Los mensajes solo son visibles para las dos personas que participan en la conversación.
 
@@ -57,10 +56,10 @@ No cedemos tus datos a terceros salvo obligación legal. Para prestar el servici
 
 | Proveedor | Función | Ubicación / transferencias |
 | --- | --- | --- |
-| InsForge | Autenticación, verificación de email, inicio de sesión con Google o Apple y base de datos. | Región de la Unión Europea (eu-central). |
+| InsForge | Autenticación, verificación de email, inicio de sesión con Google o Apple, base de datos y despliegue de la aplicación web. | Región de la Unión Europea (eu-central). |
 | Fly.io | Alojamiento del servidor de la API. | Región de Frankfurt (Alemania). Fly.io es una empresa de EE. UU.; ver nota sobre transferencias. |
-| Vercel | Alojamiento y distribución de la aplicación web. | Red global que puede implicar tratamiento en EE. UU. |
 | Cloudinary | Almacenamiento y entrega de las fotos de perfil. | Puede implicar tratamiento en EE. UU. |
+| Google (Gmail) | Buzón de contacto del responsable para consultas y ejercicio de derechos. | Puede implicar tratamiento en EE. UU. |
 | OpenStreetMap Nominatim (OpenStreetMap Foundation) | Búsqueda de ciudades. Recibe el texto de búsqueda desde nuestro servidor, no tu dirección IP. | Reino Unido (país con decisión de adecuación de la Comisión Europea). |
 | Google / Apple | Solo si eliges iniciar sesión con ellos: te identifican ante Arfinder conforme a sus propias políticas de privacidad. | Pueden implicar tratamiento en EE. UU. |
 
