@@ -64,7 +64,7 @@ describe('Legal pages', () => {
     const controller = element.querySelector('[data-testid="controller-info"]');
 
     expect(controller?.textContent).toContain(LEGAL_INFO.controller.name);
-    expect(controller?.textContent).toContain(LEGAL_INFO.controller.taxId);
+    expect(controller?.textContent).toContain(LEGAL_INFO.controller.country);
     expect(controller?.textContent).toContain(LEGAL_INFO.contactEmail);
     expect(element.querySelector('time')?.getAttribute('datetime')).toBe(LEGAL_INFO.lastUpdated);
     // Formatted the same way legal-page-layout does, so the assertion tracks lastUpdated.

@@ -9,6 +9,7 @@ BASE_SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Robots-Tag": "noindex, nofollow",
 }
 
 

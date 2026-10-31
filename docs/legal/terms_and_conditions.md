@@ -36,7 +36,7 @@ Podemos suspender o eliminar las cuentas que incumplan estas normas.
 
 Eres responsable del contenido que publicas (textos, fotos y mensajes) y garantizas que tienes derecho a publicarlo. Nos concedes una licencia gratuita, no exclusiva y limitada a lo necesario para alojar y mostrar ese contenido dentro de Arfinder mientras mantengas tu cuenta.
 
-Ten en cuenta que tu perfil es visible para otros usuarios y que la página de detalle de un perfil puede consultarse sin iniciar sesión. Te recomendamos no incluir datos especialmente sensibles en los campos de texto libre.
+Ten en cuenta que tu perfil es visible para otros usuarios autenticados de Arfinder y que, para consultar el detalle de un perfil —incluso a través de un enlace—, es necesario haber iniciado sesión. No existe ninguna consulta pública de perfiles sin sesión. Te recomendamos no incluir datos especialmente sensibles en los campos de texto libre.
 
 ## 6. Relaciones entre usuarios
 

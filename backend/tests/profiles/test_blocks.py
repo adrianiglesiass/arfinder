@@ -117,11 +117,11 @@ def test_search_excludes_blocked_in_both_directions(
     assert [p["id"] for p in res.json()] == [second_profile.id]
 
 
-def test_search_anonymous_still_sees_blocked(client, other_profile, auth_headers):
+def test_search_authenticated_excludes_blocked(client, other_profile, auth_headers):
     client.post(f"/profiles/{other_profile.id}/block", headers=auth_headers)
-    res = client.get("/profiles")
+    res = client.get("/profiles", headers=auth_headers)
     assert res.status_code == 200
-    assert any(p["id"] == other_profile.id for p in res.json())
+    assert all(p["id"] != other_profile.id for p in res.json())
 
 
 def test_favorites_exclude_blocked_profiles(
@@ -250,15 +250,15 @@ def test_mutual_block_lets_both_blockers_see_each_other(
     )
 
 
-def test_anonymous_profile_detail_stays_public(client, db, auth_headers, other_profile):
+def test_anonymous_profile_detail_requires_auth(
+    client, db, auth_headers, other_profile
+):
     my_profile = _my_profile(db)
     client.post(f"/profiles/{other_profile.id}/block", headers=auth_headers)
 
     res = client.get(f"/profiles/{my_profile.id}")
 
-    assert res.status_code == 200
-    assert res.headers["Cache-Control"] == "public, max-age=60"
-    assert "Authorization" in res.headers["Vary"]
+    assert res.status_code == 401
 
 
 def test_unblock_restores_profile_detail(client, db, auth_headers, other_profile):

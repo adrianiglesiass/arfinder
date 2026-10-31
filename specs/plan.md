@@ -93,7 +93,7 @@ fecha: 2026-09-10
 | 59 | Sin techo de gasto: nada corta el despliegue si el egress se dispara (Fly no tiene alertas ni límite) | infra | abuse-cost-ceiling | ✅ done → PR #305 |
 | 60 | El detalle de perfil dice "Presupuesto máximo" también en perfiles que ofrecen habitación | frontend | budget-followups | ✅ done → PR #310 |
 | 61 | Sin tipo elegido, el importe del filtro se aplica a los dos tipos de perfil (el mínimo de quien ofrece oculta habitaciones baratas) | frontend | budget-followups | ✅ done → PR #310 |
-| 62 | Perfiles públicos para anónimos: un usuario bloqueado puede ver el perfil cerrando sesión. Fuera de alcance: que los perfiles sean públicos es una decisión de producto, no un bug | frontend+backend | decisión de producto | ⏸️ decisión de producto |
+| 62 | Perfiles públicos para anónimos: un usuario bloqueado puede ver el perfil cerrando sesión. Fuera de alcance: que los perfiles sean públicos es una decisión de producto, no un bug | frontend+backend | decisión de producto | ✅ decidido: perfiles solo para autenticados → `fix/legal-exposure-public-profiles` |
 
 ## Fases (orden de ejecución)
 1. ✅ **fix/critical-issues** → PR #288 (mergeado).
@@ -120,6 +120,11 @@ fecha: 2026-09-10
 18. ✅ **fix/budget-filter-direction** → PR #308. #52.
 19. ✅ **Release v1.5.0** → PR #309 (tag v1.5.0, desplegado en producción el 2026-10-15).
 20. ✅ **fix/budget-followups** → PR #310. #60–#61.
+21. 🔄 **fix/legal-exposure-public-profiles** → #62. Cierra la exposición legal detectada en
+    auditoría (spec: [`fix-legal-exposure-public-profiles.md`](fix-legal-exposure-public-profiles.md)):
+    búsqueda y detalle de perfil exigen autenticación, `noindex` en API y frontend, NIF y domicilio
+    fuera de los documentos legales, versión legal 1.1.0 con re-consentimiento, y registro del
+    art. 30 RGPD.
 
 ## Estado del backlog
 - Release v1.4.0 en `main`. Antes de la siguiente, una auditoría con cinco agentes (code-reviewer,
