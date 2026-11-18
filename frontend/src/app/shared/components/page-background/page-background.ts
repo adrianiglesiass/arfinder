@@ -18,7 +18,7 @@ export class PageBackground {
 
   protected readonly containerClass = computed(() =>
     this.align() === 'start'
-      ? 'min-h-screen bg-white flex flex-col items-center p-6 lg:p-8 relative overflow-hidden'
-      : 'min-h-screen bg-white flex flex-col items-center justify-center p-6 lg:p-8 relative overflow-hidden'
+      ? 'page-background min-h-screen bg-white flex flex-col items-center p-6 lg:p-8 relative overflow-hidden'
+      : 'page-background min-h-screen bg-white flex flex-col items-center justify-center p-6 lg:p-8 relative overflow-hidden'
   );
 }
