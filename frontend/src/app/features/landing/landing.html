@@ -1,0 +1,28 @@
+<app-page-background align="start">
+  <main
+    class="w-full max-w-100 lg:max-w-2xl relative z-10 flex flex-col items-center text-center pt-8 lg:pt-16"
+  >
+    <app-arfinder-logo size="md" />
+
+    <h1 class="mt-6 text-3xl lg:text-5xl font-bold text-primary">
+      Encuentra habitación y compañeros de piso en España
+    </h1>
+    <p class="mt-3 text-gray-500">
+      Perfiles reales, chat directo y sin intermediarios para compartir piso.
+    </p>
+
+    <div class="mt-8 w-full flex flex-col sm:flex-row sm:justify-center gap-3">
+      <app-button class="w-full sm:w-56" (click)="goTo(routes.REGISTER)">Crear cuenta</app-button>
+      <app-button class="w-full sm:w-56" variant="secondary" (click)="goTo(routes.LOGIN)">
+        Entrar
+      </app-button>
+    </div>
+  </main>
+
+  <!-- The reserved bottom space keeps the legal links clear of the fixed PWA install banner. -->
+  <footer
+    class="relative z-10 w-full max-w-100 lg:max-w-2xl mt-10 pb-48 md:pb-8 pt-6 border-t border-hairline flex justify-center"
+  >
+    <app-legal-links />
+  </footer>
+</app-page-background>
