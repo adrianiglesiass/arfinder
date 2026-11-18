@@ -9,7 +9,7 @@ import { InsForgeClient } from '@insforge/sdk';
 import { CreateUserResponse, VerifyEmailResponse } from '@insforge/shared-schemas';
 
 import type { UserResponse } from '@core/api/api.models';
-import { ROUTES } from '@core/constants/routes';
+import { AUTH_PATHS, ROUTES } from '@core/constants/routes';
 import { STORAGE_KEYS } from '@core/constants/storage-keys';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
 
@@ -44,12 +44,6 @@ export class AuthService {
   private sdkReadyPromise: Promise<void> | null = null;
   private invalidatePromise: Promise<void> | null = null;
   private refreshPromise: Promise<RefreshOutcome> | null = null;
-  private readonly PUBLIC_PATHS = [
-    ROUTES.LOGIN,
-    ROUTES.REGISTER,
-    ROUTES.VERIFY_EMAIL,
-    ROUTES.AUTH_CALLBACK,
-  ];
   private readonly REFRESH_TOKEN_KEY = STORAGE_KEYS.auth.refreshToken;
   private readonly ACCESS_TOKEN_KEY = STORAGE_KEYS.auth.accessToken;
   private memoryAccessToken: string | null = null;
@@ -180,7 +174,7 @@ export class AuthService {
     this.invalidatePromise = (async () => {
       try {
         await this.logout();
-        if (!this.PUBLIC_PATHS.some((p) => window.location.pathname.startsWith(p))) {
+        if (!AUTH_PATHS.some((p) => window.location.pathname.startsWith(p))) {
           await this.router.navigate([ROUTES.LOGIN]);
         }
       } finally {

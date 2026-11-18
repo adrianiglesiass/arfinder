@@ -247,7 +247,7 @@ export default class Onboarding implements OnInit {
           photos.clearPersistedPhotos();
         }
 
-        await this.router.navigate(['']);
+        await this.router.navigate([ROUTES.EXPLORE]);
       } catch (error: unknown) {
         console.error('Error in onboarding:', error);
         const { general } = this.errorService.processError(error as HttpErrorResponse);

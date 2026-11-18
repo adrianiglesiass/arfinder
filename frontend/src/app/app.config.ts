@@ -20,6 +20,7 @@ import { providePrimeNG } from 'primeng/config';
 import { AuthService } from '@core/auth/auth.service';
 import { authErrorInterceptor, jwtInterceptor } from '@core/interceptors/jwt-interceptor';
 import { retryInterceptor } from '@core/interceptors/retry-interceptor';
+import { NavigationHistoryService } from '@core/navigation/navigation-history.service';
 
 const ArfinderPreset = definePreset(Aura, {
   semantic: {
@@ -60,6 +61,8 @@ export const appConfig: ApplicationConfig = {
     ),
     provideAppInitializer(() => {
       void inject(AuthService).init();
+      // The history must see every navigation, including the first one, so it starts with the app.
+      void inject(NavigationHistoryService);
     }),
 
     provideHttpClient(withInterceptors([retryInterceptor, jwtInterceptor, authErrorInterceptor])),

@@ -1,16 +1,15 @@
-<div
-  class="min-h-screen bg-white flex flex-col items-center justify-center p-6 lg:p-8 relative overflow-hidden"
->
-  <div
-    class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] max-w-160 max-h-160 rounded-full bg-orange-100 blur-[100px] pointer-events-none"
-  ></div>
-  <div
-    class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] max-w-160 max-h-160 rounded-full bg-rose-100 blur-[100px] pointer-events-none"
-  ></div>
-
+<app-page-background>
   <div class="w-full max-w-100 lg:max-w-110 xl:max-w-120 relative z-10">
-    <div class="flex justify-center mb-4">
-      <app-arfinder-logo size="lg" />
+    <div class="grid grid-cols-[48px_minmax(0,1fr)_48px] items-center mb-4">
+      <app-icon-button label="Volver" shape="circle" (click)="onBack()">
+        <i class="pi pi-arrow-left text-[18px]" aria-hidden="true"></i>
+      </app-icon-button>
+
+      <div class="flex justify-center min-w-0">
+        <app-arfinder-logo size="md" />
+      </div>
+
+      <span aria-hidden="true"></span>
     </div>
 
     <div
@@ -45,4 +44,4 @@
       <ng-content />
     </div>
   </div>
-</div>
+</app-page-background>

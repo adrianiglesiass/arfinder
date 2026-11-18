@@ -5,6 +5,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { ProfileApiService } from '@infrastructure/api/profile/profile.api.service';
 
 import { AuthService } from '@core/auth/auth.service';
+import { ROUTES } from '@core/constants/routes';
 import { OnboardingPersistenceService } from '@core/profile/onboarding-persistence.service';
 
 export const onboardingGuard: CanActivateFn = async () => {
@@ -16,14 +17,14 @@ export const onboardingGuard: CanActivateFn = async () => {
   try {
     await profileApi.getMyProfile();
     persistence.clearAll();
-    return router.createUrlTree(['/']);
+    return router.createUrlTree([ROUTES.EXPLORE]);
   } catch (error) {
     if (error instanceof HttpErrorResponse) {
       if (error.status === 404) return true;
 
       if (error.status === 401 || error.status === 403) {
         await authService.invalidateSession();
-        return router.createUrlTree(['/login']);
+        return router.createUrlTree([ROUTES.LOGIN]);
       }
     }
 
