@@ -26,6 +26,9 @@ lint:
 format:
 	$(PYTHON) -m ruff format .
 
+format-check:
+	$(PYTHON) -m ruff format --check .
+
 test:
 	PYTHONPATH=. $(PYTEST) tests/ -v
 
