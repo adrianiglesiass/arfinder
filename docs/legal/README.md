@@ -8,8 +8,13 @@ Source of truth for Arfinder's legal texts (user-facing content is in Spanish). 
 | Terms and conditions | [terms_and_conditions.md](terms_and_conditions.md) | `/terminos` |
 | Cookies and local storage | [storage_policy.md](storage_policy.md) | `/cookies` |
 | Legal notice (LSSI art. 10) | [legal_notice.md](legal_notice.md) | `/aviso-legal` |
+| Processing register (GDPR art. 30) | [processing_register.md](processing_register.md) | Internal, not published |
 
 When a document changes, update both the markdown file and the matching page, then bump `lastUpdated` and `LEGAL_DOCS_VERSION` in `legal-info.ts` together with `CURRENT_TERMS_VERSION` in `backend/app/core/constants.py`.
+
+## Profile visibility
+
+Profiles and the profile search are only available to authenticated Arfinder users. `GET /profiles` and `GET /profiles/{id}` require a bearer token and return `401` otherwise, so there is no anonymous or link-based access to a profile. The legal pages above stay public because they must be reachable without an account.
 
 ## Consent records
 
@@ -23,9 +28,9 @@ Every account (email, Google or Apple sign-up) must accept the Terms and conditi
 
 ## Before production
 
-- [x] Fill in controller data (name, NIF, address, contact email) in `legal-info.ts` and replace every `[PENDIENTE: ...]` placeholder in these documents.
+- [x] Fill in controller data (name, country, contact email) in `legal-info.ts` and replace every `[PENDIENTE: ...]` placeholder in these documents.
 - [ ] Confirm the Cloudinary account region and sign/accept its DPA; confirm the transfer mechanism (SCCs or Data Privacy Framework).
-- [ ] Confirm DPAs and data locations for InsForge (auth and database), Fly.io and Vercel.
+- [ ] Confirm DPAs and data locations for InsForge (auth, database and frontend hosting) and Fly.io.
 - [ ] Confirm where the production database is hosted and update the recipients table if it differs.
 - [ ] Get a legal review of all documents.
 - [x] Implement data export (portability) in-app: `GET /auth/me/export` downloads `arfinder-datos.json` from Editar perfil → Tus datos.

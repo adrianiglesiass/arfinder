@@ -206,11 +206,10 @@ def test_search_no_results(client, auth_headers, profile_madrid, profile_barcelo
     assert res.json() == []
 
 
-def test_search_anonymous_returns_all(client, profile_madrid, profile_barcelona):
-    # Endpoint es opcional-auth: sin token devuelve todos los perfiles sin filtrar.
+def test_search_anonymous_returns_401(client, profile_madrid, profile_barcelona):
+    # Profiles are only visible to authenticated users.
     res = client.get("/profiles")
-    assert res.status_code == 200
-    assert len(res.json()) == 2
+    assert res.status_code == 401
 
 
 def test_search_excludes_own_profile(client, db, profile_barcelona):
@@ -248,18 +247,18 @@ def test_search_excludes_own_profile(client, db, profile_barcelona):
     assert len(body) == 1
 
 
-def test_get_public_profile_ok(client, profile_madrid):
-    res = client.get(f"/profiles/{profile_madrid.id}")
+def test_get_profile_ok(client, auth_headers, profile_madrid):
+    res = client.get(f"/profiles/{profile_madrid.id}", headers=auth_headers)
     assert res.status_code == 200
     assert res.json()["id"] == profile_madrid.id
     assert res.json()["city"] == "Madrid"
 
 
-def test_get_public_profile_not_found(client):
-    res = client.get("/profiles/999")
+def test_get_profile_not_found(client, auth_headers):
+    res = client.get("/profiles/999", headers=auth_headers)
     assert res.status_code == 404
 
 
-def test_get_public_profile_no_auth_required(client, profile_madrid):
+def test_get_profile_requires_auth(client, profile_madrid):
     res = client.get(f"/profiles/{profile_madrid.id}")
-    assert res.status_code == 200
+    assert res.status_code == 401

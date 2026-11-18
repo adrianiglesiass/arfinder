@@ -5,12 +5,6 @@
   <p>Encuentra compañero de piso. Crea tu perfil, explora con filtros y habla en tiempo real.</p>
 </div>
 
-## Demo
-
-<div align="center">
-  <video src="https://github.com/user-attachments/assets/57d673c0-7890-4862-8fc7-107c23a848cb" width="300" controls></video>
-</div>
-
 ## Índice
 
 1. [¿Por qué este proyecto?](#por-qué-este-proyecto)
@@ -42,7 +36,7 @@ chat en tiempo real.
   solo bajo acción explícita.
 - Chat y notificaciones en tiempo real (WebSocket).
 - Gestión de fotos de perfil con almacenamiento en la nube.
-- Navegación pública de perfiles y explorar sin iniciar sesión.
+- Perfiles y búsqueda visibles solo para usuarios registrados.
 
 ## Tecnologías
 

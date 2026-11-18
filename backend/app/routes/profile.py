@@ -11,9 +11,9 @@ from app.core.rate_limit import (
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user, get_current_user_optional
+from app.core.dependencies import get_current_user
 from app.core.exceptions.profile import ProfileNotFoundError
-from app.core.openapi import BAD_REQUEST, CONFLICT, NOT_FOUND, PROTECTED, UNAUTH
+from app.core.openapi import CONFLICT, NOT_FOUND, PROTECTED, UNAUTH
 from app.db.database import get_db
 from app.core.route_utils import parse_age_param, parse_bool_param
 from app.models.profile import ScheduleEnum, TypeEnum
@@ -53,7 +53,7 @@ class _PhotoReorder(BaseModel):
 @router.get(
     "",
     response_model=List[ProfileSummary],
-    responses=BAD_REQUEST,
+    responses=UNAUTH,
     dependencies=[Depends(rate_limiter)],
 )
 def search(
@@ -71,16 +71,14 @@ def search(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
 ):
     clean_age_min = parse_age_param(age_min, "age_min")
     clean_age_max = parse_age_param(age_max, "age_max")
     clean_has_pets = parse_bool_param(has_pets, "has_pets")
     clean_is_smoker = parse_bool_param(is_smoker, "is_smoker")
 
-    excluded = (
-        block_service.excluded_user_ids(db, current_user.id) if current_user else []
-    )
+    excluded = block_service.excluded_user_ids(db, current_user.id)
     return profile_service.search_profiles(
         db,
         city,
@@ -95,7 +93,7 @@ def search(
         available_from,
         skip,
         limit,
-        exclude_user_id=current_user.id if current_user else None,
+        exclude_user_id=current_user.id,
         exclude_user_ids=excluded,
         budget_min=budget_min,
     )
@@ -320,21 +318,18 @@ def delete_profile_photo(
 @router.get(
     "/{profile_id}",
     response_model=ProfileResponse,
-    responses=NOT_FOUND,
+    responses=PROTECTED,
     dependencies=[Depends(rate_limiter)],
 )
 def get_public_profile(
     profile_id: int,
     response: Response,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
 ):
     response.headers["Vary"] = "Authorization"
-    response.headers["Cache-Control"] = (
-        "private, no-store" if current_user else "public, max-age=60"
-    )
-    viewer_id = current_user.id if current_user else None
-    return block_service.get_visible_profile(db, profile_id, viewer_id)
+    response.headers["Cache-Control"] = "private, no-store"
+    return block_service.get_visible_profile(db, profile_id, current_user.id)
 
 
 @router.delete("/me", status_code=204, responses=PROTECTED)

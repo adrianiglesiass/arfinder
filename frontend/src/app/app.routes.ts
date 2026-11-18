@@ -53,10 +53,16 @@ export const routes: Routes = [
 
   {
     path: '',
+    pathMatch: 'full',
+    canActivate: [guestGuard],
+    loadComponent: () => import('@features/landing/landing'),
+  },
+
+  {
+    path: '',
     component: Layout,
-    canActivate: [profileGuard],
+    canActivate: [authGuard, profileGuard],
     children: [
-      { path: '', redirectTo: 'explorar', pathMatch: 'full' },
       {
         path: 'explorar',
         loadComponent: () => import('@features/search-profile/search-profile'),
