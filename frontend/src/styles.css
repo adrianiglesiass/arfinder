@@ -108,6 +108,22 @@
 }
 
 @layer components {
+  .page-background {
+    background:
+      radial-gradient(ellipse 70% 55% at 0% 0%, rgba(255, 237, 213, 0.82), transparent 62%),
+      radial-gradient(ellipse 70% 55% at 100% 100%, rgba(255, 228, 230, 0.82), transparent 62%),
+      #ffffff;
+  }
+
+  @media (max-width: 639.98px) {
+    .page-background {
+      background:
+        radial-gradient(ellipse 95% 48% at -10% 8%, rgba(255, 237, 213, 0.78), transparent 68%),
+        radial-gradient(ellipse 95% 48% at 110% 92%, rgba(255, 228, 230, 0.78), transparent 68%),
+        #ffffff;
+    }
+  }
+
   @media (max-width: 639.98px) {
     .p-toast.p-toast-top-right {
       left: 1rem !important;
